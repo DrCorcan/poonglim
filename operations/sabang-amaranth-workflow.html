@@ -218,7 +218,7 @@
           <table>
             <tr><th>도구</th><th>실행 파일</th><th>폴더</th></tr>
             <tr><td>오성발주서생성.py</td><td>오성발주서_실행.bat</td><td>2. 사방넷 오성발주서 폴더\</td></tr>
-            <tr><td>erp업로드생성.py</td><td>(배치파일 추가 예정)</td><td>5. ERPerp업로드 폴더\</td></tr>
+            <tr><td>erp업로드생성.py</td><td>erp업로드생성_실행.bat</td><td>5. ERPerp업로드 폴더\</td></tr>
             <tr><td>송장메일발송.py</td><td>송장메일발송_실행.bat</td><td>4. 사방넷 송장메일발송 폴더\</td></tr>
             <tr><td>회수입고관리.py</td><td>회수입고관리_실행.bat</td><td>Z:\사무실 입고 및 AS\</td></tr>
           </table>
@@ -276,10 +276,11 @@
     <div id="d5b" class="detail-panel" style="margin-top:10px;">
       <div class="dp-header"><h2>erp업로드생성.py</h2><button class="dp-close" onclick="close_('d5b')">✕</button></div>
       <div class="dp-body">
-        <p>더존 아마란스10에 업로드할 주문등록 파일을 자동 생성합니다.</p>
+        <p>더존 아마란스10에 업로드할 주문등록 파일을 자동 생성합니다. (v2 — 주문시트 + 업체별 정렬)</p>
         <div class="file-tree">
           <span class="folder">5. ERPerp업로드 폴더\</span><br>
           &nbsp;&nbsp;├── <span class="py">erp업로드생성.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">erp업로드생성_실행.bat</span><br>
           &nbsp;&nbsp;├── <span class="xlsx">erp_업로드양식.xlsx</span><br>
           &nbsp;&nbsp;├── 📁 원본 &nbsp;← 발주총괄 여기에<br>
           &nbsp;&nbsp;└── 📁 완료
@@ -290,6 +291,7 @@
           <span class="tag tag-ok">✅ 취소완료</span>
           <span class="tag tag-warn">⚠️ 반품/교환 → 수동</span>
         </div>
+        <p>생성 시트: ① 등록 — 아마란스 주문등록 업로드용 &nbsp;② 주문 — 업체별 정렬, 단가 포함 전체 정보 확인용</p>
         <div class="table-wrap">
           <table>
             <tr><th>특수 처리</th><th>내용</th></tr>
