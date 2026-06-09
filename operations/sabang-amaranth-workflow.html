@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poonglim Electronics — 사방넷/아마란스 사무 자동화 업무 흐름도</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: #f5f4f0;
+    color: #2c2c2a;
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+  }
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 { font-size: 22px; font-weight: 600; color: #2c2c2a; letter-spacing: -0.3px; }
+  header p { font-size: 13px; color: #888780; margin-top: 6px; }
+
+  .flow { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+
+  .step {
+    width: 100%; border-radius: 12px; padding: 16px 24px;
+    cursor: pointer; border: 1px solid transparent;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .step:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .step.active { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+  .step-label { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; opacity: 0.6; }
+  .step-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .step-sub { font-size: 13px; opacity: 0.7; }
+
+  .s-gray   { background: #F1EFE8; }
+  .s-purple { background: #EEEDFE; }
+  .s-teal   { background: #E1F5EE; }
+  .s-gray   .step-label, .s-gray   .step-title { color: #444441; }
+  .s-gray   .step-sub { color: #5F5E5A; }
+  .s-purple .step-label, .s-purple .step-title { color: #3C3489; }
+  .s-purple .step-sub { color: #534AB7; }
+  .s-teal   .step-label, .s-teal   .step-title { color: #085041; }
+  .s-teal   .step-sub { color: #0F6E56; }
+
+  .arrow {
+    width: 2px; height: 28px; background: #B4B2A9; position: relative; flex-shrink: 0;
+  }
+  .arrow::after {
+    content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid #B4B2A9;
+  }
+
+  .parallel-wrap { width: 100%; }
+  .parallel-label { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; color: #888780; text-transform: uppercase; text-align: center; margin-bottom: 12px; }
+  .parallel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tool-card {
+    border-radius: 10px; padding: 14px 16px; cursor: pointer;
+    border: 1px solid transparent; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .tool-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .tool-card.active { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+  .tool-card .tc-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .tool-card .tc-desc { font-size: 12px; opacity: 0.7; }
+
+  .t-coral { background: #FAECE7; } .t-coral .tc-name { color: #712B13; } .t-coral .tc-desc { color: #993C1D; }
+  .t-blue  { background: #E6F1FB; } .t-blue  .tc-name { color: #0C447C; } .t-blue  .tc-desc { color: #185FA5; }
+  .t-green { background: #EAF3DE; } .t-green .tc-name { color: #27500A; } .t-green .tc-desc { color: #3B6D11; }
+  .t-amber { background: #FAEEDA; } .t-amber .tc-name { color: #633806; } .t-amber .tc-desc { color: #854F0B; }
+
+  .detail-panel {
+    width: 100%; border-radius: 12px; border: 1px solid #D3D1C7;
+    background: #fff; overflow: hidden; display: none;
+  }
+  .detail-panel.open { display: block; }
+  .dp-header {
+    padding: 14px 20px 12px; border-bottom: 1px solid #F1EFE8;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dp-header h2 { font-size: 15px; font-weight: 600; color: #2c2c2a; }
+  .dp-close { background: none; border: none; cursor: pointer; font-size: 18px; color: #888780; line-height: 1; padding: 0 4px; }
+  .dp-body { padding: 16px 20px 20px; }
+  .dp-body p { font-size: 14px; line-height: 1.7; color: #444441; margin-bottom: 12px; }
+  .dp-body p:last-child { margin-bottom: 0; }
+
+  .file-tree {
+    background: #F8F7F4; border-radius: 8px; padding: 14px 16px;
+    font-family: 'Menlo', 'Consolas', monospace; font-size: 12px;
+    color: #444441; line-height: 1.8; margin-bottom: 12px;
+  }
+  .file-tree .folder { color: #3C3489; font-weight: 600; }
+  .file-tree .py { color: #0F6E56; }
+  .file-tree .bat { color: #854F0B; }
+  .file-tree .xlsx { color: #185FA5; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .tag-ok   { background: #EAF3DE; color: #27500A; }
+  .tag-no   { background: #FCEBEB; color: #791F1F; }
+  .tag-warn { background: #FAEEDA; color: #633806; }
+
+  .table-wrap { overflow-x: auto; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 7px 10px; background: #F1EFE8; color: #444441; font-weight: 600; border-bottom: 1px solid #D3D1C7; }
+  td { padding: 7px 10px; border-bottom: 1px solid #F1EFE8; color: #2c2c2a; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  code { font-family: 'Menlo','Consolas',monospace; font-size: 12px; background: #F1EFE8; padding: 2px 6px; border-radius: 4px; color: #3C3489; }
+
+  .gap-arrow { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+  footer { text-align: center; margin-top: 48px; font-size: 12px; color: #B4B2A9; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>풍림전자 — 매일 업무 흐름도</h1>
+  <p>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다 &nbsp;·&nbsp; v9 (2026년 6월)</p>
+</header>
+
+<div class="flow">
+
+  <!-- STEP 1 -->
+  <div class="gap-arrow">
+    <div class="step s-gray" onclick="toggle('d1',this)">
+      <div class="step-label">1단계</div>
+      <div class="step-title">발주서 수신</div>
+      <div class="step-sub">거래처 이메일 → order@pensonic.co.kr</div>
+    </div>
+    <div id="d1" class="detail-panel">
+      <div class="dp-header"><h2>1단계 — 발주서 수신</h2><button class="dp-close" onclick="close_('d1')">✕</button></div>
+      <div class="dp-body">
+        <p>거래처 23곳에서 발주서를 이메일로 전송합니다. 수신 계정은 <code>order@pensonic.co.kr</code> (아마란스10 메일)입니다.</p>
+        <p>파일을 받으면 아래 폴더의 <code>원본\</code>에 넣습니다.</p>
+        <div class="file-tree">
+          <span class="folder">E:\★ 풍림전자\경영관리\1. 사방넷변환 폴더\</span><br>
+          &nbsp;&nbsp;├── <span class="py">sabang.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">run.bat</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">거래처_단가테이블.xlsx</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">거래처_매핑테이블.xlsx</span><br>
+          &nbsp;&nbsp;├── 📁 원본 &nbsp;← 발주서 여기에<br>
+          &nbsp;&nbsp;└── 📁 완료
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>주의사항</th><th>내용</th></tr>
+            <tr><td>파일명에 거래처명 없음</td><td>sabang.py 실행 시 ❌ 표시 → 파일명 수정 후 재실행</td></tr>
+            <tr><td>세트 상품 (PFW-901)</td><td>⚠️ 경고 출력 → 완료 파일에서 수동 2행 분리</td></tr>
+            <tr><td>같은 거래처 파일 2개</td><td>v3.4부터 자동으로 1개로 합침</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="gap-arrow">
+    <div class="step s-purple" onclick="toggle('d2',this)">
+      <div class="step-label">2단계</div>
+      <div class="step-title">sabang.py 실행</div>
+      <div class="step-sub">발주서 → 사방넷 입력본 자동 변환 (v3.4)</div>
+    </div>
+    <div id="d2" class="detail-panel">
+      <div class="dp-header"><h2>2단계 — sabang.py 실행</h2><button class="dp-close" onclick="close_('d2')">✕</button></div>
+      <div class="dp-body">
+        <p><span class="tag tag-ok" style="display:inline">실행</span> <code>run.bat</code> 더블클릭</p>
+        <p>원본 폴더의 발주서를 읽어 거래처_매핑테이블 + 거래처_단가테이블을 참조해 사방넷 업로드용 파일로 변환합니다.</p>
+        <div class="table-wrap">
+          <table>
+            <tr><th>기능</th><th>내용</th></tr>
+            <tr><td>제주도 택배비</td><td>주소에 '제주' 포함 시 추가택배비 자동 합산</td></tr>
+            <tr><td>합포장 추가택배비</td><td>수량=2일 때 1,000원 자동 적용</td></tr>
+            <tr><td>링커스 CDA 자동결정</td><td>옵션(블랙/화이트)으로 CZ01/CV01 자동 선택</td></tr>
+            <tr><td>더위즈 업체필터</td><td>누적 파일에서 더위즈 행만 자동 추출</td></tr>
+            <tr><td>파일 합치기</td><td>같은 거래처 파일 2개 → 1개로 자동 병합</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="gap-arrow">
+    <div class="step s-teal" onclick="toggle('d3',this)">
+      <div class="step-label">3단계</div>
+      <div class="step-title">사방넷 입력 + 출고 처리</div>
+      <div class="step-sub">변환 파일 → 사방넷 업로드 → 출고 진행</div>
+    </div>
+    <div id="d3" class="detail-panel">
+      <div class="dp-header"><h2>3단계 — 사방넷 입력 + 출고 처리</h2><button class="dp-close" onclick="close_('d3')">✕</button></div>
+      <div class="dp-body">
+        <p>완료 폴더의 변환 파일을 사방넷에 업로드합니다. 출고 유형에 따라 처리 방식이 달라집니다.</p>
+        <div class="table-wrap">
+          <table>
+            <tr><th>출고 유형</th><th>처리 방법</th></tr>
+            <tr><td>일반/본사 출고</td><td>사방넷 → 창고 접속 → 주문 다운로드 → 출고</td></tr>
+            <tr><td>소형 가전 (오성)</td><td>사방넷 → 엑셀 다운로드 → 오성 컨버전스 시스템 업로드</td></tr>
+            <tr><td>에어컨 (캐리어)</td><td>사방넷 → 발주서 작성 → 캐리어 발송 → 설치 모니터링</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="gap-arrow">
+    <div class="step s-gray" onclick="toggle('d4',this)">
+      <div class="step-label">4단계</div>
+      <div class="step-title">발주총괄 다운로드</div>
+      <div class="step-sub">사방넷에서 1회 다운 → 4개 도구 공통 입력</div>
+    </div>
+    <div id="d4" class="detail-panel">
+      <div class="dp-header"><h2>4단계 — 발주총괄 다운로드</h2><button class="dp-close" onclick="close_('d4')">✕</button></div>
+      <div class="dp-body">
+        <p>사방넷에서 발주총괄 파일을 <strong>1회만</strong> 다운로드하면 아래 4개 도구가 모두 이 파일을 입력으로 사용합니다. 각 도구 폴더의 <code>원본\</code>에 파일을 넣고 실행합니다.</p>
+        <div class="table-wrap">
+          <table>
+            <tr><th>도구</th><th>실행 파일</th><th>폴더</th></tr>
+            <tr><td>오성발주서생성.py</td><td>오성발주서_실행.bat</td><td>2. 사방넷 오성발주서 폴더\</td></tr>
+            <tr><td>erp업로드생성.py</td><td>(배치파일 추가 예정)</td><td>5. ERPerp업로드 폴더\</td></tr>
+            <tr><td>송장메일발송.py</td><td>송장메일발송_실행.bat</td><td>4. 사방넷 송장메일발송 폴더\</td></tr>
+            <tr><td>회수입고관리.py</td><td>회수입고관리_실행.bat</td><td>Z:\사무실 입고 및 AS\</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="gap-arrow">
+    <div class="parallel-wrap">
+      <div class="parallel-label">5단계 — 4개 도구 동시 실행</div>
+      <div class="parallel-grid">
+        <div class="tool-card t-coral" onclick="toggle('d5a',this)">
+          <div class="tc-name">오성발주서생성.py</div>
+          <div class="tc-desc">창고 발주</div>
+        </div>
+        <div class="tool-card t-blue" onclick="toggle('d5b',this)">
+          <div class="tc-name">erp업로드생성.py</div>
+          <div class="tc-desc">ERP 주문등록</div>
+        </div>
+        <div class="tool-card t-green" onclick="toggle('d5c',this)">
+          <div class="tc-name">송장메일발송.py</div>
+          <div class="tc-desc">거래처 송장 전송</div>
+        </div>
+        <div class="tool-card t-amber" onclick="toggle('d5d',this)">
+          <div class="tc-name">회수입고관리.py</div>
+          <div class="tc-desc">반품/교환 갱신</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="d5a" class="detail-panel" style="margin-top:10px;">
+      <div class="dp-header"><h2>오성발주서생성.py</h2><button class="dp-close" onclick="close_('d5a')">✕</button></div>
+      <div class="dp-body">
+        <p>오성 컨버전스 시스템에 업로드할 발주서를 자동 생성합니다.</p>
+        <div class="file-tree">
+          <span class="folder">2. 사방넷 오성발주서 폴더\</span><br>
+          &nbsp;&nbsp;├── <span class="py">오성발주서생성.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">오성발주서_실행.bat</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">오성_상품코드테이블.xlsx</span><br>
+          &nbsp;&nbsp;├── 📁 원본 &nbsp;← 발주총괄 여기에<br>
+          &nbsp;&nbsp;└── 📁 완료
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-ok">✅ 신규주문</span>
+          <span class="tag tag-ok">✅ 주문확인</span>
+          <span class="tag tag-no">❌ 출고대기 제외</span>
+        </div>
+        <p>⚠️ 오성_상품코드테이블에 없는 상품 → 경고 출력 → 테이블 추가 후 재실행</p>
+      </div>
+    </div>
+
+    <div id="d5b" class="detail-panel" style="margin-top:10px;">
+      <div class="dp-header"><h2>erp업로드생성.py</h2><button class="dp-close" onclick="close_('d5b')">✕</button></div>
+      <div class="dp-body">
+        <p>더존 아마란스10에 업로드할 주문등록 파일을 자동 생성합니다.</p>
+        <div class="file-tree">
+          <span class="folder">5. ERPerp업로드 폴더\</span><br>
+          &nbsp;&nbsp;├── <span class="py">erp업로드생성.py</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">erp_업로드양식.xlsx</span><br>
+          &nbsp;&nbsp;├── 📁 원본 &nbsp;← 발주총괄 여기에<br>
+          &nbsp;&nbsp;└── 📁 완료
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-ok">✅ 출고대기</span>
+          <span class="tag tag-ok">✅ 취소접수</span>
+          <span class="tag tag-ok">✅ 취소완료</span>
+          <span class="tag tag-warn">⚠️ 반품/교환 → 수동</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>특수 처리</th><th>내용</th></tr>
+            <tr><td>아이티프렌즈</td><td>물류메시지로 법인(03439)/개인(03573) 자동 분기</td></tr>
+            <tr><td>신세계몰(신)</td><td>→ 02622 (에스에스지닷컴)</td></tr>
+            <tr><td>Kt알파쇼핑</td><td>→ 01780 (케이티알파)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="d5c" class="detail-panel" style="margin-top:10px;">
+      <div class="dp-header"><h2>송장메일발송.py</h2><button class="dp-close" onclick="close_('d5c')">✕</button></div>
+      <div class="dp-body">
+        <p>거래처에 송장번호 파일을 생성합니다. (SMTP 자동 발송은 추후 예정)</p>
+        <div class="file-tree">
+          <span class="folder">4. 사방넷 송장메일발송 폴더\</span><br>
+          &nbsp;&nbsp;├── <span class="py">송장메일발송.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">송장메일발송_실행.bat</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">거래처_히스토리.xlsx</span><br>
+          &nbsp;&nbsp;├── 📁 원본 &nbsp;← 발주총괄 여기에<br>
+          &nbsp;&nbsp;└── 📁 송장전송파일
+        </div>
+        <div class="tag-row">
+          <span class="tag tag-ok">✅ 출고대기 + 송장번호 있는 거래처</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>제외 대상</th><th>이유</th></tr>
+            <tr><td>스마트스토어/쿠팡/삼성카드/Kt알파쇼핑</td><td>자동 채널 (메일 불필요)</td></tr>
+            <tr><td>티케이커머스 / 서울의봄</td><td>시스템 직접 업로드</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="d5d" class="detail-panel" style="margin-top:10px;">
+      <div class="dp-header"><h2>회수입고관리.py</h2><button class="dp-close" onclick="close_('d5d')">✕</button></div>
+      <div class="dp-body">
+        <p>반품/교환 회수 현황을 <code>풍림_회수AS관리.xlsx</code>에 자동 갱신합니다.</p>
+        <div class="file-tree">
+          <span class="folder">Z:\풍림전자 사무 자동화\사무실 입고 및 AS\</span><br>
+          &nbsp;&nbsp;├── <span class="py">회수입고관리.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">회수입고관리_실행.bat</span><br>
+          &nbsp;&nbsp;├── <span class="xlsx">풍림_회수AS관리.xlsx</span><br>
+          &nbsp;&nbsp;└── 📁 원본 &nbsp;← 발주총괄 여기에
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>사방넷 상태</th><th>처리</th></tr>
+            <tr><td>반품/교환회수준비</td><td>신규 행 자동 추가</td></tr>
+            <tr><td>반품/교환회수완료</td><td>주문상태 자동 갱신</td></tr>
+            <tr><td>중복 주문번호</td><td>상태 변경 시만 갱신, 동일하면 스킵</td></tr>
+          </table>
+        </div>
+        <p>⚠️ <code>풍림_회수AS관리.xlsx</code>가 열려 있으면 저장 실패 → 파일 닫고 재실행</p>
+      </div>
+    </div>
+
+    <div class="arrow" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- STEP 5.5 -->
+  <div class="gap-arrow">
+    <div class="step s-purple" onclick="toggle('d55',this)">
+      <div class="step-label">5.5단계</div>
+      <div class="step-title">송장업로드생성.py 실행</div>
+      <div class="step-sub">오성 송장 → 사방넷 운송장 업로드 + 누락 체크</div>
+    </div>
+    <div id="d55" class="detail-panel">
+      <div class="dp-header"><h2>5.5단계 — 송장업로드생성.py</h2><button class="dp-close" onclick="close_('d55')">✕</button></div>
+      <div class="dp-body">
+        <p>오성에서 받은 송장 파일과 우리가 업로드한 발주서를 비교해 사방넷 운송장 업로드 파일을 자동 생성합니다.</p>
+        <div class="file-tree">
+          <span class="folder">3. 오성송장 사방넷 업로드 파일\</span><br>
+          &nbsp;&nbsp;├── <span class="py">송장업로드생성.py</span><br>
+          &nbsp;&nbsp;├── <span class="bat">송장업로드생성_실행.bat</span><br>
+          &nbsp;&nbsp;├── 📁 원본 &nbsp;← 파일 2개 여기에<br>
+          &nbsp;&nbsp;└── 📁 완료
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>원본 폴더에 넣을 파일</th><th>설명</th></tr>
+            <tr><td>오성_발주서YYMMDD.xlsx</td><td>오성에 업로드한 발주서</td></tr>
+            <tr><td>확장주문검색_xxx.xls</td><td>오성에서 다운로드한 송장 파일</td></tr>
+          </table>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <tr><th>자동 체크</th><th>의미</th></tr>
+            <tr><td>✅ 전체 정상</td><td>발주 건수와 송장 건수 일치</td></tr>
+            <tr><td>⚠️ 송장 없는 주문</td><td>오성에서 아직 미출고</td></tr>
+            <tr><td>⚠️ 발주 없는 송장</td><td>확인 필요 (이상 건)</td></tr>
+          </table>
+        </div>
+        <p>생성 파일을 사방넷 <code>주문관리 &gt; 운송장입력(대량)</code>에서 업로드합니다.</p>
+        <p>※ NS-3000처럼 합포장 불가 상품은 발주 1건이라도 송장 2개가 나올 수 있으며 이는 정상입니다.</p>
+      </div>
+    </div>
+    <div class="arrow"></div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="gap-arrow">
+    <div class="step s-teal" onclick="toggle('d6',this)">
+      <div class="step-label">6단계</div>
+      <div class="step-title">ERP 출고등록 / 주문마감처리</div>
+      <div class="step-sub">출고등록 + 취소건 마감처리 (수동)</div>
+    </div>
+    <div id="d6" class="detail-panel">
+      <div class="dp-header"><h2>6단계 — ERP 출고등록 / 주문마감처리</h2><button class="dp-close" onclick="close_('d6')">✕</button></div>
+      <div class="dp-body">
+        <p>5단계에서 생성된 ERP 업로드 파일을 더존 아마란스10에 업로드합니다.</p>
+        <div class="table-wrap">
+          <table>
+            <tr><th>주문상태</th><th>ERP 처리</th><th>비고</th></tr>
+            <tr><td>출고대기</td><td>주문등록 업로드</td><td>흰 배경</td></tr>
+            <tr><td>취소접수/취소완료</td><td>주문등록 후 주문마감처리 (수동)</td><td>노란 배경</td></tr>
+            <tr><td>반품회수준비</td><td>출고에서 마이너스 처리 (수동)</td><td>빨간 배경</td></tr>
+            <tr><td>교환회수/발송준비</td><td>출고에서 수동 처리</td><td>빨간 배경</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  풍림전자주식회사 경영관리실 &nbsp;·&nbsp; v9 (2026년 6월) &nbsp;·&nbsp; 실제 폴더 구조 기준
+</footer>
+
+<script>
+  function toggle(id, el) {
+    const panel = document.getElementById(id);
+    const isOpen = panel.classList.contains('open');
+    document.querySelectorAll('.detail-panel').forEach(p => p.classList.remove('open'));
+    document.querySelectorAll('.step, .tool-card').forEach(s => s.classList.remove('active'));
+    if (!isOpen) {
+      panel.classList.add('open');
+      el.classList.add('active');
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }
+  function close_(id) {
+    document.getElementById(id).classList.remove('open');
+    document.querySelectorAll('.step, .tool-card').forEach(s => s.classList.remove('active'));
+  }
+</script>
+</body>
+</html>
