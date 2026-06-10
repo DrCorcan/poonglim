@@ -862,9 +862,18 @@ function calcDashboard(rows) {
 }
 
 function renderTable(rows, filter) {
-  let filtered = rows;
+  // 60일치만 표시
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
+  let filtered = rows.filter(r => {
+    const 접수일 = String(r[0]||'');
+    return 접수일 >= cutoffStr;
+  });
+
   if (filter !== '전체') {
-    filtered = rows.filter(r => {
+    filtered = filtered.filter(r => {
       const 구분 = String(r[1]||'').trim();
       const 완료 = String(r[15]||'').trim();
       if (filter === '진행중')   return 완료 === '진행중';
@@ -894,8 +903,14 @@ function renderTable(rows, filter) {
   const rows2026 = filtered.filter(r => String(r[0]||'').startsWith('2026'));
   const rows2025 = filtered.filter(r => !String(r[0]||'').startsWith('2026'));
 
-  const makeRows = (list) => list.map(r => `
-    <tr>
+  const makeRows = (list) => list.map(r => {
+    const realIdx = allData.indexOf(r);
+    const 완료 = String(r[15]||'').trim();
+    const 클릭가능 = 완료 !== '완료';
+    return `
+    <tr onclick="${클릭가능 ? `openListEdit(${realIdx})` : ''}"
+        style="cursor:${클릭가능 ? 'pointer' : 'default'}"
+        title="${클릭가능 ? '클릭하면 수정 가능' : ''}">
       <td style="white-space:nowrap">${r[0]||''}</td>
       <td><span class="${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span></td>
       <td style="white-space:nowrap">${r[2]||''}</td>
@@ -913,7 +928,9 @@ function renderTable(rows, filter) {
       <td style="text-align:center">${r[14]||''}</td>
       <td><span class="${statusClass(String(r[15]||'').trim())}">${r[15]||''}</span></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[16]||''}</td>
-    </tr>`).join('');
+      <td>${클릭가능 ? '<span style="color:#2980B9;font-size:11px">수정▶</span>' : ''}</td>
+    </tr>`;
+  }).join('');
 
   const thead = `
     <thead>
@@ -921,13 +938,14 @@ function renderTable(rows, filter) {
         <th>접수일</th><th>구분</th><th>채널</th><th>고객명</th><th>연락처</th>
         <th>상품명</th><th>수량</th><th>주문번호</th><th>회수송장</th>
         <th>택배접수일</th><th>택배입고일</th><th>CS내역/증상</th>
-        <th>불량여부</th><th>처리결과</th><th>ERP</th><th>완료여부</th><th>비고</th>
+        <th>불량여부</th><th>처리결과</th><th>ERP</th><th>완료여부</th><th>비고</th><th></th>
       </tr>
     </thead>`;
 
   const html = `
-  <div style="padding:10px 16px;font-size:12px;color:#888;">
-    총 ${filtered.length}건 (2026년: ${rows2026.length}건 / 2025년: ${rows2025.length}건)
+  <div style="padding:10px 16px;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center">
+    <span>최근 60일 — 총 ${filtered.length}건</span>
+    <span style="color:#2980B9;font-size:11px">미완료 행 클릭 시 수정 가능</span>
   </div>
   <div style="overflow-x:auto">
   <table style="min-width:1400px">
@@ -940,15 +958,7 @@ function renderTable(rows, filter) {
         </td>
       </tr>
       ${makeRows(rows2026)}` : ''}
-      ${rows2025.length > 0 ? `
-      <tr id="toggle-2025-row" onclick="toggle2025()" style="cursor:pointer;background:#F5F5F5">
-        <td colspan="17" style="font-weight:700;font-size:12px;padding:8px 12px;color:#888">
-          <span id="toggle-2025-icon">▶</span> 2025년 — ${rows2025.length}건 (클릭하여 펼치기)
-        </td>
-      </tr>
-      <tbody id="rows-2025" style="display:none">
-        ${makeRows(rows2025)}
-      </tbody>` : ''}
+
     </tbody>
   </table>
   </div>`;
@@ -995,6 +1005,15 @@ function showTab(tab, filter) {
     }
   }
   if (tab === 'as') renderASPending();
+}
+
+function openListEdit(rowIdx) {
+  // 전체목록에서 행 클릭 → A/S 처리 입력 탭으로 이동 + 해당 건 선택
+  showTab('as', null);
+  renderASPending(null);  // 전체 미완료 목록 표시
+  setTimeout(() => {
+    selectASRow(rowIdx);
+  }, 200);
 }
 
 function goToList(filter) {
