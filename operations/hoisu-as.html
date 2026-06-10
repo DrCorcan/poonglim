@@ -491,8 +491,12 @@
   <div id="tab-delivery" style="display:none">
     <div class="form-card">
       <h3>📦 택배 입고 처리</h3>
-      <p style="font-size:12px;color:#888;margin-bottom:16px;">택배가 도착하면 송장번호로 조회 후 입고일을 입력하세요.</p>
+      <p style="font-size:12px;color:#888;margin-bottom:16px;">
+        송장번호 입력 시 기존 회수 건과 자동 매칭됩니다.<br>
+        매칭 안 될 경우 새 건(A/S)으로 추가됩니다.
+      </p>
 
+      <!-- 1. 송장번호 + 입고일 -->
       <div class="form-row">
         <div>
           <label>회수 송장번호 <span>*</span></label>
@@ -504,11 +508,51 @@
         </div>
       </div>
 
+      <!-- 매칭 결과 -->
       <div class="search-result" id="delivery-result">
         조회 결과: <strong id="delivery-result-text"></strong>
       </div>
 
-      <div class="form-row" style="margin-top:12px">
+      <!-- 매칭 안될 때만 표시: 구분 선택 -->
+      <div id="delivery-new-row" style="display:none;margin-top:12px">
+        <div style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:12px">
+          ⚠️ 기존 회수 건과 매칭되지 않았습니다. 신규 건으로 추가됩니다.
+        </div>
+        <div class="form-row three">
+          <div>
+            <label>구분</label>
+            <select id="delivery-구분">
+              <option value="A/S">A/S</option>
+              <option value="반품">반품</option>
+              <option value="교환">교환</option>
+              <option value="부품판매">부품판매</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+          <div>
+            <label>채널(거래처)</label>
+            <input type="text" id="delivery-채널" placeholder="거래처명">
+          </div>
+          <div>
+            <label>상품명</label>
+            <input type="text" id="delivery-상품명" placeholder="예: PFW-901">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 보내는 분 정보 (택배 라벨) -->
+      <div style="font-size:12px;font-weight:700;color:#1F4E79;margin:14px 0 8px;padding-top:12px;border-top:1px solid #eee">
+        📬 보내는 분 정보 (택배 라벨)
+      </div>
+      <div class="form-row three">
+        <div>
+          <label>보내는 분 이름</label>
+          <input type="text" id="delivery-보내는분" placeholder="예: 박*형">
+        </div>
+        <div>
+          <label>연락처</label>
+          <input type="text" id="delivery-연락처" placeholder="010-0000-0000">
+        </div>
         <div>
           <label>불량여부</label>
           <select id="delivery-불량">
@@ -518,12 +562,24 @@
             <option>확인중</option>
           </select>
         </div>
+      </div>
+      <div class="form-row full">
         <div>
-          <label>CS내역/증상</label>
-          <input type="text" id="delivery-cs" placeholder="반품사유 또는 증상">
+          <label>보내는 분 주소</label>
+          <input type="text" id="delivery-주소" placeholder="경상남도 진주시...">
         </div>
       </div>
 
+      <!-- 3. 처리 내용 -->
+      <div style="font-size:12px;font-weight:700;color:#1F4E79;margin:14px 0 8px;padding-top:12px;border-top:1px solid #eee">
+        📝 처리 내용
+      </div>
+      <div class="form-row full">
+        <div>
+          <label>CS내역 / 증상</label>
+          <textarea id="delivery-cs" placeholder="반품사유 또는 A/S 증상을 입력하세요"></textarea>
+        </div>
+      </div>
       <div class="form-row full">
         <div>
           <label>비고</label>
@@ -858,6 +914,7 @@ function searchBySongJang() {
   const 송장 = document.getElementById('delivery-송장').value.trim();
   if (송장.length < 4) {
     document.getElementById('delivery-result').style.display = 'none';
+    document.getElementById('delivery-new-row').style.display = 'none';
     return;
   }
   const found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장.replace(/-/g,''));
@@ -866,11 +923,16 @@ function searchBySongJang() {
     const r = allData[found];
     document.getElementById('delivery-result').style.display = 'block';
     document.getElementById('delivery-result-text').textContent =
-      `[${r[1]}] ${r[2]} | ${r[5]} | 주문번호: ${r[7]}`;
+      `✅ 매칭됨: [${r[1]}] ${r[2]} | ${r[5]} | 주문번호: ${r[7]}`;
+    document.getElementById('delivery-new-row').style.display = 'none';
+    // 기존 데이터에서 고객명/연락처 자동 채우기
+    if (r[3]) document.getElementById('delivery-보내는분').value = r[3];
+    if (r[4]) document.getElementById('delivery-연락처').value = r[4];
   } else {
     foundRowIndex = -1;
     document.getElementById('delivery-result').style.display = 'block';
-    document.getElementById('delivery-result-text').textContent = '⚠️ 일치하는 회수 건 없음 (새 건으로 추가됩니다)';
+    document.getElementById('delivery-result-text').textContent = '⚠️ 기존 회수 건 없음 → 신규 건으로 추가';
+    document.getElementById('delivery-new-row').style.display = 'block';
   }
 }
 
@@ -895,11 +957,17 @@ function searchByOrderNum() {
 
 // 저장 함수들 — Claude API 통해 Apps Script로 전달
 async function submitDelivery() {
-  const 송장  = document.getElementById('delivery-송장').value.trim();
-  const 입고일 = document.getElementById('delivery-입고일').value;
-  const 불량  = document.getElementById('delivery-불량').value;
-  const cs   = document.getElementById('delivery-cs').value.trim();
-  const 비고  = document.getElementById('delivery-비고').value.trim();
+  const 송장   = document.getElementById('delivery-송장').value.trim();
+  const 입고일  = document.getElementById('delivery-입고일').value;
+  const 불량   = document.getElementById('delivery-불량').value;
+  const cs    = document.getElementById('delivery-cs').value.trim();
+  const 비고   = document.getElementById('delivery-비고').value.trim();
+  const 보내는분 = document.getElementById('delivery-보내는분').value.trim();
+  const 연락처  = document.getElementById('delivery-연락처').value.trim();
+  const 주소   = document.getElementById('delivery-주소').value.trim();
+  const 구분   = document.getElementById('delivery-구분').value;
+  const 채널   = document.getElementById('delivery-채널').value.trim();
+  const 상품명  = document.getElementById('delivery-상품명').value.trim();
 
   if (!송장 || !입고일) {
     showError('delivery-error', '송장번호와 입고일을 입력해주세요.');
@@ -912,18 +980,28 @@ async function submitDelivery() {
 
   try {
     await callAppsScript('updateDelivery', {
-      송장번호: 송장,
+      송장번호:   송장,
       택배입고일: 입고일,
-      불량여부: 불량,
-      CS내역: cs,
-      비고: 비고,
+      불량여부:  불량,
+      CS내역:   cs,
+      비고:     비고,
+      고객명:   보내는분,
+      연락처:   연락처,
+      주소:     주소,
+      구분:     구분,
+      채널:     채널,
+      상품명:   상품명,
       rowIndex: foundRowIndex,
     });
     showSuccess('delivery-success');
-    document.getElementById('delivery-송장').value = '';
-    document.getElementById('delivery-cs').value = '';
-    document.getElementById('delivery-비고').value = '';
+    // 입력창 초기화
+    ['delivery-송장','delivery-cs','delivery-비고','delivery-보내는분',
+     'delivery-연락처','delivery-주소','delivery-채널','delivery-상품명'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('delivery-불량').value = '';
     document.getElementById('delivery-result').style.display = 'none';
+    document.getElementById('delivery-new-row').style.display = 'none';
     await loadAll();
   } catch(e) {
     showError('delivery-error', e.message);
