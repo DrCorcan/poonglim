@@ -640,7 +640,7 @@
     </div>
 
     <div class="form-card" id="as-update-card">
-      <h3>🔧 기존 A/S 처리 결과 업데이트</h3>
+      <h3>🔧 기존 A/S 처리 결과 업데이트 <span style="font-size:12px;color:#888;font-weight:400">← 위 목록에서 선택하거나 번호로 직접 조회</span></h3>
 
       <!-- 미처리 A/S 건 목록 -->
       <div id="as-pending-list" style="margin-bottom:16px"></div>
@@ -1001,24 +1001,27 @@ function renderASPending(type) {
 
   const html = `
   <div style="font-size:12px;font-weight:700;color:#1F4E79;margin-bottom:8px">
-    📋 처리 대기 A/S 건 — ${pending.length}건 (클릭하면 자동 입력)
+    📋 처리 대기 A/S 건 — ${pending.length}건 (클릭하면 아래 입력창에 자동 입력)
   </div>
   <div style="border:1px solid #DDE1E7;border-radius:6px;overflow:hidden">
-  ${pending.map((r, i) => `
-    <div onclick="selectASRow(${allData.indexOf(r)})"
+  ${pending.map((r, i) => {
+    const realIdx = allData.indexOf(r);
+    return `
+    <div class="as-pending-item" onclick="selectASRow(${realIdx})"
          style="padding:10px 14px;border-bottom:1px solid #F0F0F0;cursor:pointer;
-                background:${i%2===0?'#fff':'#F8FAFC'};font-size:12px"
-         onmouseover="this.style.background='#E8F4FD'"
-         onmouseout="this.style.background='${i%2===0?'#fff':'#F8FAFC'}'">
+                background:${i%2===0?'#fff':'#F8FAFC'};font-size:12px;transition:background 0.15s">
       <span style="font-weight:700;color:#1F4E79">${r[3]||'(이름없음)'}</span>
-      <span style="margin:0 8px;color:#aaa">|</span>
-      <span>${r[5]||'상품미상'}</span>
-      <span style="margin:0 8px;color:#aaa">|</span>
-      <span style="color:#888">${r[8]||'송장없음'}</span>
-      <span style="margin:0 8px;color:#aaa">|</span>
+      <span style="margin:0 6px;color:#aaa">|</span>
+      <span style="color:#555">${r[2]||''}</span>
+      <span style="margin:0 6px;color:#aaa">|</span>
+      <span style="font-weight:600">${r[5]||'상품미상'}</span>
+      <span style="margin:0 6px;color:#aaa">|</span>
+      <span style="color:#888;font-size:11px">${r[8]||'송장없음'}</span>
+      <span style="margin:0 6px;color:#aaa">|</span>
       <span style="color:#E67E22;font-weight:600">${r[15]||''}</span>
-      <span style="float:right;color:#2980B9;font-size:11px">선택 ▶</span>
-    </div>`).join('')}
+      <span style="float:right;background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px">선택 ▶</span>
+    </div>`;
+  }).join('')}
   </div>`;
   document.getElementById('as-pending-list').innerHTML = html;
 }
@@ -1026,17 +1029,33 @@ function renderASPending(type) {
 function selectASRow(rowIdx) {
   foundRowIndex = rowIdx;
   const r = allData[rowIdx];
-  // 주문번호 또는 송장번호로 입력
-  if (r[7]) {
-    document.getElementById('as-search-주문번호').value = r[7];
-  } else if (r[8]) {
-    document.getElementById('as-search-송장').value = r[8];
-  }
+
+  // 주문번호/송장번호 입력창 채우기
+  document.getElementById('as-search-주문번호').value = r[7] || '';
+  document.getElementById('as-search-송장').value     = r[8] || '';
+
+  // 기존 값 자동 채우기
+  if (r[12]) document.getElementById('as-불량').value       = r[12];
+  if (r[13]) document.getElementById('as-처리결과').value   = r[13];
+  if (r[19]) document.getElementById('as-입금확인').value   = r[19];
+  if (r[20]) document.getElementById('as-출고송장').value   = r[20];
+  if (r[17]) document.getElementById('as-수리비용').value   = r[17];
+
+  // 결과 표시
   document.getElementById('as-result').style.display = 'block';
-  document.getElementById('as-result-text').textContent =
-    `✅ 선택됨: [${r[1]}] ${r[2]||''} | ${r[3]||''} | ${r[5]||''} | ${r[15]||''}`;
-  // 스크롤 이동
-  document.getElementById('as-update-card').scrollIntoView({behavior:'smooth'});
+  document.getElementById('as-result-text').innerHTML =
+    `✅ <strong>[${r[3]||'이름없음'}]</strong> ${r[5]||'상품미상'} | 송장: ${r[8]||'-'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
+
+  // 하단 업데이트 카드로 스크롤
+  setTimeout(() => {
+    document.getElementById('as-update-card').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+
+  // 선택된 행 하이라이트
+  document.querySelectorAll('.as-pending-item').forEach((el, i) => {
+    el.style.background = i === rowIdx ? '#D6EAF8' : (i%2===0?'#fff':'#F8FAFC');
+    el.style.border = i === rowIdx ? '2px solid #2980B9' : 'none';
+  });
 }
 
 function searchBySongJangAS() {
