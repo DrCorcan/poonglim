@@ -595,11 +595,11 @@
 
   <!-- A/S 처리 입력 탭 -->
   <div id="tab-as" style="display:none">
-    <div class="form-card">
-      <h3>🔧 A/S 처리 결과 입력</h3>
 
-      <!-- 신규 A/S 접수 -->
-      <p style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2C3E50;">신규 A/S 접수</p>
+    <!-- ① 신규 A/S 접수 -->
+    <div class="form-card" style="border-left:4px solid #2980B9">
+      <h3 style="color:#2980B9">📞 신규 A/S 접수</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:14px">전화/이메일로 새로운 A/S를 접수할 때 사용합니다. 저장하면 아래 처리 대기 목록에 자동으로 나타납니다.</p>
       <div class="form-row three">
         <div>
           <label>접수일 <span>*</span></label>
@@ -634,79 +634,99 @@
           <textarea id="as-증상" placeholder="고객이 말한 증상을 입력하세요"></textarea>
         </div>
       </div>
-      <button class="submit-btn" onclick="submitASNew()" style="background:#2980B9">신규 A/S 접수 저장</button>
-      <div class="success-msg" id="as-new-success">✅ 저장되었습니다!</div>
+      <button class="submit-btn" onclick="submitASNew()" style="background:#2980B9">📞 신규 A/S 접수 저장</button>
+      <div class="success-msg" id="as-new-success">✅ 접수되었습니다! 아래 처리 대기 목록에서 확인하세요.</div>
       <div class="error-msg" id="as-new-error"></div>
     </div>
 
-    <div class="form-card" id="as-update-card">
-      <h3>🔧 기존 A/S 처리 결과 업데이트 <span style="font-size:12px;color:#888;font-weight:400">← 위 목록에서 선택하거나 번호로 직접 조회</span></h3>
+    <!-- ② 처리 대기 목록 + 처리 결과 입력 -->
+    <div class="form-card" id="as-update-card" style="border-left:4px solid #E67E22">
+      <h3 style="color:#E67E22">🔧 처리 대기 목록 및 결과 입력</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:14px">아래 목록에서 건을 선택하면 처리 결과 입력창이 열립니다.</p>
 
-      <!-- 미처리 A/S 건 목록 -->
-      <div id="as-pending-list" style="margin-bottom:16px"></div>
+      <!-- 처리 대기 목록 -->
+      <div id="as-pending-list" style="margin-bottom:20px"></div>
 
-      <div class="form-row three">
-        <div>
-          <label>주문번호로 조회</label>
-          <input type="text" id="as-search-주문번호" placeholder="사방넷 주문번호" oninput="searchByOrderNum()">
+      <!-- 선택된 건 처리 결과 입력 (기본 숨김) -->
+      <div id="as-selected-panel" style="display:none;border:2px solid #2980B9;border-radius:8px;padding:16px;background:#F0F8FF">
+        <div style="font-size:13px;font-weight:700;color:#1F4E79;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #BDE0FF">
+          ✏️ 선택된 건 처리 결과 입력
         </div>
-        <div>
-          <label>또는 송장번호로 조회</label>
-          <input type="text" id="as-search-송장" placeholder="회수 송장번호" oninput="searchBySongJangAS()">
+
+        <!-- 조회 결과 -->
+        <div class="search-result" id="as-result" style="display:block;margin-bottom:12px">
+          선택된 건: <strong id="as-result-text">—</strong>
         </div>
-        <div>
-          <label>처리결과 <span>*</span></label>
-          <select id="as-처리결과">
-            <option value="">선택</option>
-            <option>수리발송</option>
-            <option>교환발송</option>
-            <option>환불처리</option>
-            <option>폐기</option>
-            <option>보관</option>
-            <option>고객협의완료</option>
-          </select>
+
+        <!-- 직접 조회 (선택 안했을 때) -->
+        <div style="font-size:11px;color:#888;margin-bottom:8px">또는 직접 조회:</div>
+        <div class="form-row">
+          <div>
+            <label>주문번호</label>
+            <input type="text" id="as-search-주문번호" placeholder="사방넷 주문번호" oninput="searchByOrderNum()">
+          </div>
+          <div>
+            <label>송장번호</label>
+            <input type="text" id="as-search-송장" placeholder="회수 송장번호" oninput="searchBySongJangAS()">
+          </div>
         </div>
+
+        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
+
+        <!-- 처리 결과 입력 -->
+        <div class="form-row three">
+          <div>
+            <label>처리결과 <span>*</span></label>
+            <select id="as-처리결과">
+              <option value="">선택</option>
+              <option>수리발송</option>
+              <option>교환발송</option>
+              <option>환불처리</option>
+              <option>폐기</option>
+              <option>보관</option>
+              <option>고객협의완료</option>
+            </select>
+          </div>
+          <div>
+            <label>불량여부</label>
+            <select id="as-불량">
+              <option value="">선택</option>
+              <option>불량</option>
+              <option>양품</option>
+              <option>확인중</option>
+            </select>
+          </div>
+          <div>
+            <label>수리완료일</label>
+            <input type="date" id="as-수리완료일">
+          </div>
+        </div>
+        <div class="form-row three">
+          <div>
+            <label>출고송장</label>
+            <input type="text" id="as-출고송장" placeholder="출고 송장번호">
+          </div>
+          <div>
+            <label>수리비용</label>
+            <input type="number" id="as-수리비용" placeholder="0">
+          </div>
+          <div>
+            <label>입금확인</label>
+            <select id="as-입금확인">
+              <option value="">선택</option>
+              <option>확인</option>
+              <option>미확인</option>
+              <option>무상</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="submit-btn" onclick="submitASUpdate()" style="flex:1">💾 처리 결과 저장</button>
+          <button onclick="closeASPanel()" style="padding:12px 20px;border:1px solid #ccc;border-radius:8px;background:white;cursor:pointer;font-size:13px">취소</button>
+        </div>
+        <div class="success-msg" id="as-update-success">✅ 저장되었습니다!</div>
+        <div class="error-msg" id="as-update-error"></div>
       </div>
-      <div class="search-result" id="as-result">
-        조회 결과: <strong id="as-result-text"></strong>
-      </div>
-      <div class="form-row three">
-        <div>
-          <label>불량여부</label>
-          <select id="as-불량">
-            <option value="">선택</option>
-            <option>불량</option>
-            <option>양품</option>
-            <option>확인중</option>
-          </select>
-        </div>
-        <div>
-          <label>수리완료일</label>
-          <input type="date" id="as-수리완료일">
-        </div>
-        <div>
-          <label>출고송장</label>
-          <input type="text" id="as-출고송장" placeholder="출고 송장번호">
-        </div>
-      </div>
-      <div class="form-row">
-        <div>
-          <label>수리비용</label>
-          <input type="number" id="as-수리비용" placeholder="0">
-        </div>
-        <div>
-          <label>입금확인</label>
-          <select id="as-입금확인">
-            <option value="">선택</option>
-            <option>확인</option>
-            <option>미확인</option>
-            <option>무상</option>
-          </select>
-        </div>
-      </div>
-      <button class="submit-btn" onclick="submitASUpdate()">처리 결과 저장</button>
-      <div class="success-msg" id="as-update-success">✅ 저장되었습니다!</div>
-      <div class="error-msg" id="as-update-error"></div>
     </div>
   </div>
 
@@ -1007,7 +1027,7 @@ function renderASPending(type) {
   ${pending.map((r, i) => {
     const realIdx = allData.indexOf(r);
     return `
-    <div class="as-pending-item" onclick="selectASRow(${realIdx})"
+    <div class="as-pending-item" onclick="selectASRow(${realIdx})" data-rowidx="${realIdx}"
          style="padding:10px 14px;border-bottom:1px solid #F0F0F0;cursor:pointer;
                 background:${i%2===0?'#fff':'#F8FAFC'};font-size:12px;transition:background 0.15s">
       <span style="font-weight:700;color:#1F4E79">${r[3]||'(이름없음)'}</span>
@@ -1042,19 +1062,51 @@ function selectASRow(rowIdx) {
   if (r[17]) document.getElementById('as-수리비용').value   = r[17];
 
   // 결과 표시
-  document.getElementById('as-result').style.display = 'block';
   document.getElementById('as-result-text').innerHTML =
-    `✅ <strong>[${r[3]||'이름없음'}]</strong> ${r[5]||'상품미상'} | 송장: ${r[8]||'-'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
+    `<strong>${r[3]||'이름없음'}</strong> | ${r[2]||''} | ${r[5]||'상품미상'} | 송장: ${r[8]||'-'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
 
-  // 하단 업데이트 카드로 스크롤
-  setTimeout(() => {
-    document.getElementById('as-update-card').scrollIntoView({behavior:'smooth', block:'start'});
-  }, 100);
+  // 패널 열기
+  document.getElementById('as-selected-panel').style.display = 'block';
 
   // 선택된 행 하이라이트
-  document.querySelectorAll('.as-pending-item').forEach((el, i) => {
-    el.style.background = i === rowIdx ? '#D6EAF8' : (i%2===0?'#fff':'#F8FAFC');
-    el.style.border = i === rowIdx ? '2px solid #2980B9' : 'none';
+  document.querySelectorAll('.as-pending-item').forEach(el => {
+    el.style.background = '';
+    el.style.outline = '';
+  });
+  const selectedEl = document.querySelectorAll('.as-pending-item')[
+    document.querySelectorAll('.as-pending-item.selected').length
+  ];
+  // 모든 항목 초기화 후 선택 항목 표시
+  document.querySelectorAll('.as-pending-item').forEach(el => el.classList.remove('selected'));
+  const allItems = document.querySelectorAll('.as-pending-item');
+  // rowIdx로 해당 아이템 찾기
+  allItems.forEach(el => {
+    if (el.dataset.rowidx == rowIdx) {
+      el.style.background = '#D6EAF8';
+      el.style.outline = '2px solid #2980B9';
+    }
+  });
+
+  // 패널로 스크롤
+  setTimeout(() => {
+    document.getElementById('as-selected-panel').scrollIntoView({behavior:'smooth', block:'center'});
+  }, 100);
+}
+
+function closeASPanel() {
+  document.getElementById('as-selected-panel').style.display = 'none';
+  foundRowIndex = -1;
+  document.getElementById('as-search-주문번호').value = '';
+  document.getElementById('as-search-송장').value = '';
+  document.getElementById('as-처리결과').value = '';
+  document.getElementById('as-불량').value = '';
+  document.getElementById('as-수리완료일').value = '';
+  document.getElementById('as-출고송장').value = '';
+  document.getElementById('as-수리비용').value = '';
+  document.getElementById('as-입금확인').value = '';
+  document.querySelectorAll('.as-pending-item').forEach(el => {
+    el.style.background = '';
+    el.style.outline = '';
   });
 }
 
@@ -1204,6 +1256,7 @@ async function submitASNew() {
     document.getElementById('as-상품명').value = '';
     document.getElementById('as-증상').value = '';
     await loadAll();
+    renderASPending(); // 목록 즉시 갱신
   } catch(e) {
     showError('as-new-error', e.message);
   }
@@ -1230,7 +1283,9 @@ async function submitASUpdate() {
   try {
     await callAppsScript('updateAS', data);
     showSuccess('as-update-success');
+    setTimeout(() => closeASPanel(), 1500);
     await loadAll();
+    renderASPending();
   } catch(e) {
     showError('as-update-error', e.message);
   }
