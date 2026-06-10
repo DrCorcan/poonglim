@@ -456,27 +456,27 @@
       <!-- 오늘 처리할 일 -->
       <div class="section-title dark">🗓 오늘 처리할 일</div>
       <div class="cards">
-        <div class="card" onclick="goToList('진행중')" style="cursor:pointer" title="클릭하면 목록으로">
+        <div class="card" onclick="goToList('반품')" style="cursor:pointer" title="반품/교환 미입고 목록">
           <div class="card-label">🔴 회수 미입고</div>
           <div class="card-num red" id="todo-미입고">-</div>
-          <div class="card-desc">택배 도착 확인</div>
+          <div class="card-desc">택배 도착 확인 ▶</div>
         </div>
-        <div class="card" onclick="goToList('입고완료')" style="cursor:pointer" title="클릭하면 목록으로">
+        <div class="card" onclick="goToList('입고완료')" style="cursor:pointer" title="입고완료 처리대기 목록">
           <div class="card-label">🟡 ERP 미처리</div>
           <div class="card-num orange" id="todo-erp">-</div>
-          <div class="card-desc">ERP 처리 필요</div>
+          <div class="card-desc">ERP 처리 필요 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('입금확인')" style="cursor:pointer" title="클릭하면 A/S 입력으로">
+        <div class="card" onclick="goToAS('입금확인')" style="cursor:pointer" title="A/S 입금확인 필요">
           <div class="card-label">💰 AS 입금확인</div>
           <div class="card-num orange" id="todo-입금">-</div>
-          <div class="card-desc">입금 확인 후 출고</div>
+          <div class="card-desc">입금 확인 후 출고 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('상담접수')" style="cursor:pointer" title="클릭하면 A/S 입력으로">
+        <div class="card" onclick="goToAS('상담접수')" style="cursor:pointer" title="A/S 처리 입력으로 이동">
           <div class="card-label">📞 AS 상담접수</div>
           <div class="card-num blue" id="todo-상담">-</div>
           <div class="card-desc">처리 결정 필요 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('처리중')" style="cursor:pointer" title="클릭하면 A/S 입력으로">
+        <div class="card" onclick="goToAS('처리중')" style="cursor:pointer" title="A/S 처리 입력으로 이동">
           <div class="card-label">🔧 AS 처리중</div>
           <div class="card-num blue" id="todo-as처리">-</div>
           <div class="card-desc">수리 완료 확인 ▶</div>
@@ -830,7 +830,7 @@ function calcDashboard(rows) {
     if (구분 === 'A/S') {
       as전체++;
       if (완료여부 === '진행중') as상담++;
-      if (완료여부 === '처리중') as처리중++;
+      if (완료여부 === '입고완료/처리대기' || 완료여부 === '처리중') as처리중++;
       if (입금확인 === '미확인') as입금++;
       if (완료여부 === '완료') as완료++;
     } else if (구분 === '반품' || 구분 === '교환') {
@@ -857,8 +857,7 @@ function calcDashboard(rows) {
   document.getElementById('todo-미입고').textContent  = 미입고;
   document.getElementById('todo-erp').textContent     = 처리대기;
   document.getElementById('todo-입금').textContent    = as입금;
-  // AS 상담접수 = 진행중 + 입고완료/처리대기 (A/S 건)
-  document.getElementById('todo-상담').textContent    = as상담 + as처리대기;
+  document.getElementById('todo-상담').textContent    = as상담;
   document.getElementById('todo-as처리').textContent  = as처리중;
 }
 
@@ -868,8 +867,10 @@ function renderTable(rows, filter) {
     filtered = rows.filter(r => {
       const 구분 = String(r[1]||'').trim();
       const 완료 = String(r[15]||'').trim();
-      if (filter === '진행중') return 완료 !== '완료';
-      if (filter === '완료')   return 완료 === '완료';
+      if (filter === '진행중')   return 완료 === '진행중';
+      if (filter === '미처리')   return 완료 !== '완료';
+      if (filter === '입고완료') return 완료 === '입고완료/처리대기';
+      if (filter === '완료')     return 완료 === '완료';
       return 구분 === filter;
     });
   }
@@ -973,7 +974,7 @@ function toggle2025() {
 function filterList(filter) {
   currentFilter = filter;
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if (event && event.target) event.target.classList.add('active');
   renderTable(allData, filter);
 }
 
@@ -997,7 +998,31 @@ function showTab(tab, filter) {
 }
 
 function goToList(filter) {
+  // 반품 카드 클릭 시 미입고(진행중) 반품/교환만 필터
+  if (filter === '반품') {
+    showTab('list', null);
+    // 진행중인 반품/교환만 표시
+    const filtered = allData.filter(r => {
+      const 구분 = String(r[1]||'').trim();
+      const 완료 = String(r[15]||'').trim();
+      return (구분 === '반품' || 구분 === '교환') && 완료 === '진행중';
+    });
+    renderFilteredDirect(filtered, '🔴 회수 미입고 (진행중)');
+    return;
+  }
   showTab('list', filter);
+}
+
+function renderFilteredDirect(filtered, title) {
+  // 직접 렌더링
+  currentFilter = '전체';
+  const wrap = document.getElementById('list-table');
+  if (filtered.length === 0) {
+    wrap.innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
+    return;
+  }
+  // renderTable과 동일하게 렌더링
+  renderTable(filtered, '전체');
 }
 
 function goToAS(type) {
