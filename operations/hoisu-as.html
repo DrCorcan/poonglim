@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>풍림전자 회수·A/S 현황판</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --navy:   #1F4E79;
+    --red:    #C0392B;
+    --orange: #E67E22;
+    --green:  #27AE60;
+    --blue:   #2980B9;
+    --dark:   #2C3E50;
+    --gray:   #7F8C8D;
+    --light:  #F4F6F8;
+    --white:  #FFFFFF;
+    --border: #DDE1E7;
+  }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* 헤더 */
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 18px; font-weight: 700; }
+  header .date { font-size: 13px; opacity: 0.7; }
+  .refresh-btn {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .refresh-btn:hover { background: rgba(255,255,255,0.25); }
+
+  .container { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* 섹션 제목 */
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px 8px 0 0;
+    margin-top: 20px;
+  }
+  .section-title.red    { background: var(--red); }
+  .section-title.blue   { background: var(--navy); }
+  .section-title.dark   { background: var(--dark); }
+
+  /* 카드 그룹 */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+
+  .card {
+    padding: 16px 12px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+  .card:last-child { border-right: none; }
+
+  .card-label {
+    font-size: 11px;
+    color: var(--gray);
+    margin-bottom: 8px;
+    line-height: 1.4;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-num {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .card-num.red    { color: var(--red); }
+  .card-num.orange { color: var(--orange); }
+  .card-num.green  { color: var(--green); }
+  .card-num.blue   { color: var(--blue); }
+  .card-num.dark   { color: var(--dark); }
+  .card-num.gray   { color: var(--gray); }
+
+  .card-desc {
+    font-size: 11px;
+    color: var(--gray);
+  }
+
+  /* 안내 */
+  .card-hint {
+    font-size: 11px;
+    color: #888;
+    padding: 8px 16px;
+    background: #FFFDE7;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    margin-bottom: 4px;
+    font-style: italic;
+  }
+
+  /* 테이블 */
+  .table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  .table-header {
+    padding: 12px 16px;
+    background: var(--navy);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+  }
+  .filter-tab {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .filter-tab.active, .filter-tab:hover {
+    background: white;
+    color: var(--navy);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: #F0F4F8;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dark);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #F0F0F0;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FAFC; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-반품   { background: #FDECEA; color: #C0392B; }
+  .badge-교환   { background: #FFF3E0; color: #E67E22; }
+  .badge-as     { background: #E8F4FD; color: #2980B9; }
+  .badge-진행중  { background: #FFF3E0; color: #E67E22; }
+  .badge-입고완료 { background: #FFF9C4; color: #F57F17; }
+  .badge-처리중  { background: #E8F4FD; color: #2980B9; }
+  .badge-완료   { background: #E8F5E9; color: #27AE60; }
+
+  /* 로딩 */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray);
+    font-size: 14px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid #ddd;
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 30px; color: var(--gray); font-size: 13px; }
+
+  /* 버튼 */
+  .action-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--navy); color: white; }
+  .btn-primary:hover { background: #163d5f; }
+
+  /* 탭 네비 */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    margin-top: 8px;
+  }
+  .nav-tab {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    background: white;
+    color: var(--gray);
+    transition: all 0.2s;
+  }
+  .nav-tab.active {
+    background: var(--navy);
+    color: white;
+    border-color: var(--navy);
+  }
+
+  /* 입력 폼 */
+  .form-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .form-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--navy);
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--light);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 4px;
+  }
+  label span { color: #E74C3C; }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--navy);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { background: #163d5f; }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .success-msg {
+    display: none;
+    background: #E8F5E9;
+    color: #27AE60;
+    border: 1px solid #A5D6A7;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    text-align: center;
+  }
+  .error-msg {
+    display: none;
+    background: #FDECEA;
+    color: #C0392B;
+    border: 1px solid #FFCDD2;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  .search-result {
+    background: #E8F4FD;
+    border: 1px solid #90CAF9;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+  }
+  .search-result strong { color: var(--navy); }
+
+  @media (max-width: 768px) {
+    .cards { grid-template-columns: repeat(3, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr; }
+    .container { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📋 풍림전자 회수·A/S 현황판</h1>
+    <div class="date" id="headerDate">로딩 중...</div>
+  </div>
+  <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
+</header>
+
+<div class="container">
+
+  <!-- 탭 네비 -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('dashboard')">📊 현황판</button>
+    <button class="nav-tab" onclick="showTab('delivery')">📦 택배 입고 입력</button>
+    <button class="nav-tab" onclick="showTab('as')">🔧 A/S 처리 입력</button>
+    <button class="nav-tab" onclick="showTab('list')">📋 전체 목록</button>
+  </div>
+
+  <!-- 현황판 탭 -->
+  <div id="tab-dashboard">
+    <div id="dashboard-loading" class="loading">
+      <span class="spinner"></span>데이터 불러오는 중...
+    </div>
+    <div id="dashboard-content" style="display:none">
+
+      <!-- 반품/교환 섹션 -->
+      <div class="section-title red">📦 반품 / 교환 회수 현황 (2026년~)</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">🔴 미입고<br>회수 대기</div>
+          <div class="card-num red" id="cnt-미입고">-</div>
+          <div class="card-desc">입고 확인 필요</div>
+        </div>
+        <div class="card">
+          <div class="card-label">🟡 입고완료<br>처리 대기</div>
+          <div class="card-num orange" id="cnt-처리대기">-</div>
+          <div class="card-desc">ERP 처리 필요</div>
+        </div>
+        <div class="card">
+          <div class="card-label">🟠 처리결정<br>대기</div>
+          <div class="card-num orange" id="cnt-처리결정">-</div>
+          <div class="card-desc">처리결과 선택 필요</div>
+        </div>
+        <div class="card">
+          <div class="card-label">✅ 처리완료<br>(ERP까지)</div>
+          <div class="card-num green" id="cnt-처리완료">-</div>
+          <div class="card-desc">ERP 처리 완료</div>
+        </div>
+        <div class="card">
+          <div class="card-label">📊 26년<br>전체</div>
+          <div class="card-num dark" id="cnt-전체반품">-</div>
+          <div class="card-desc"></div>
+        </div>
+      </div>
+      <div class="card-hint">→ 전체 목록 탭에서 완료여부 필터로 해당 건 조회</div>
+
+      <!-- A/S 섹션 -->
+      <div class="section-title blue">🔧 A/S 현황</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">📞 상담접수<br>(미입고)</div>
+          <div class="card-num blue" id="cnt-as상담">-</div>
+          <div class="card-desc">택배 미입고</div>
+        </div>
+        <div class="card">
+          <div class="card-label">🔧 입고<br>처리중</div>
+          <div class="card-num blue" id="cnt-as처리중">-</div>
+          <div class="card-desc">수리 진행중</div>
+        </div>
+        <div class="card">
+          <div class="card-label">💰 입금확인<br>필요</div>
+          <div class="card-num orange" id="cnt-as입금">-</div>
+          <div class="card-desc">확인 후 출고</div>
+        </div>
+        <div class="card">
+          <div class="card-label">✅ 완료</div>
+          <div class="card-num green" id="cnt-as완료">-</div>
+          <div class="card-desc">출고 완료</div>
+        </div>
+        <div class="card">
+          <div class="card-label">📊 전체</div>
+          <div class="card-num gray" id="cnt-as전체">-</div>
+          <div class="card-desc"></div>
+        </div>
+      </div>
+      <div class="card-hint">→ 전체 목록 탭에서 구분=A/S 필터로 조회</div>
+
+      <!-- 오늘 처리할 일 -->
+      <div class="section-title dark">🗓 오늘 처리할 일</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">🔴 회수 미입고</div>
+          <div class="card-num red" id="todo-미입고">-</div>
+          <div class="card-desc">택배 도착 확인</div>
+        </div>
+        <div class="card">
+          <div class="card-label">🟡 ERP 미처리</div>
+          <div class="card-num orange" id="todo-erp">-</div>
+          <div class="card-desc">ERP 처리 필요</div>
+        </div>
+        <div class="card">
+          <div class="card-label">💰 AS 입금확인</div>
+          <div class="card-num orange" id="todo-입금">-</div>
+          <div class="card-desc">입금 확인 후 출고</div>
+        </div>
+        <div class="card">
+          <div class="card-label">📞 AS 상담접수</div>
+          <div class="card-num blue" id="todo-상담">-</div>
+          <div class="card-desc">처리 결정 필요</div>
+        </div>
+        <div class="card">
+          <div class="card-label">🔧 AS 처리중</div>
+          <div class="card-num blue" id="todo-as처리">-</div>
+          <div class="card-desc">수리 완료 확인</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 숫자가 0이면 오늘은 해당 업무 없음</div>
+
+    </div>
+  </div>
+
+  <!-- 택배 입고 입력 탭 -->
+  <div id="tab-delivery" style="display:none">
+    <div class="form-card">
+      <h3>📦 택배 입고 처리</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:16px;">택배가 도착하면 송장번호로 조회 후 입고일을 입력하세요.</p>
+
+      <div class="form-row">
+        <div>
+          <label>회수 송장번호 <span>*</span></label>
+          <input type="text" id="delivery-송장" placeholder="예: 8445-8846-1662" oninput="searchBySongJang()">
+        </div>
+        <div>
+          <label>택배 입고일 <span>*</span></label>
+          <input type="date" id="delivery-입고일">
+        </div>
+      </div>
+
+      <div class="search-result" id="delivery-result">
+        조회 결과: <strong id="delivery-result-text"></strong>
+      </div>
+
+      <div class="form-row" style="margin-top:12px">
+        <div>
+          <label>불량여부</label>
+          <select id="delivery-불량">
+            <option value="">선택</option>
+            <option>불량</option>
+            <option>양품</option>
+            <option>확인중</option>
+          </select>
+        </div>
+        <div>
+          <label>CS내역/증상</label>
+          <input type="text" id="delivery-cs" placeholder="반품사유 또는 증상">
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <div>
+          <label>비고</label>
+          <input type="text" id="delivery-비고" placeholder="메모">
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="submitDelivery()" id="delivery-btn">입고 처리 저장</button>
+      <div class="success-msg" id="delivery-success">✅ 저장되었습니다!</div>
+      <div class="error-msg" id="delivery-error"></div>
+    </div>
+  </div>
+
+  <!-- A/S 처리 입력 탭 -->
+  <div id="tab-as" style="display:none">
+    <div class="form-card">
+      <h3>🔧 A/S 처리 결과 입력</h3>
+
+      <!-- 신규 A/S 접수 -->
+      <p style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2C3E50;">신규 A/S 접수</p>
+      <div class="form-row three">
+        <div>
+          <label>접수일 <span>*</span></label>
+          <input type="date" id="as-접수일">
+        </div>
+        <div>
+          <label>채널(거래처) <span>*</span></label>
+          <input type="text" id="as-채널" placeholder="예: 크레이브">
+        </div>
+        <div>
+          <label>고객명</label>
+          <input type="text" id="as-고객명" placeholder="고객 이름">
+        </div>
+      </div>
+      <div class="form-row three">
+        <div>
+          <label>연락처</label>
+          <input type="text" id="as-연락처" placeholder="010-0000-0000">
+        </div>
+        <div>
+          <label>상품명 <span>*</span></label>
+          <input type="text" id="as-상품명" placeholder="예: PFW-901">
+        </div>
+        <div>
+          <label>수량</label>
+          <input type="number" id="as-수량" value="1" min="1">
+        </div>
+      </div>
+      <div class="form-row full">
+        <div>
+          <label>증상 <span>*</span></label>
+          <textarea id="as-증상" placeholder="고객이 말한 증상을 입력하세요"></textarea>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="submitASNew()" style="background:#2980B9">신규 A/S 접수 저장</button>
+      <div class="success-msg" id="as-new-success">✅ 저장되었습니다!</div>
+      <div class="error-msg" id="as-new-error"></div>
+    </div>
+
+    <div class="form-card">
+      <h3>🔧 기존 A/S 처리 결과 업데이트</h3>
+      <div class="form-row">
+        <div>
+          <label>주문번호로 조회</label>
+          <input type="text" id="as-search-주문번호" placeholder="사방넷 주문번호" oninput="searchByOrderNum()">
+        </div>
+        <div>
+          <label>처리결과 <span>*</span></label>
+          <select id="as-처리결과">
+            <option value="">선택</option>
+            <option>수리발송</option>
+            <option>교환발송</option>
+            <option>환불처리</option>
+            <option>폐기</option>
+            <option>보관</option>
+            <option>고객협의완료</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-result" id="as-result">
+        조회 결과: <strong id="as-result-text"></strong>
+      </div>
+      <div class="form-row three">
+        <div>
+          <label>불량여부</label>
+          <select id="as-불량">
+            <option value="">선택</option>
+            <option>불량</option>
+            <option>양품</option>
+            <option>확인중</option>
+          </select>
+        </div>
+        <div>
+          <label>수리완료일</label>
+          <input type="date" id="as-수리완료일">
+        </div>
+        <div>
+          <label>출고송장</label>
+          <input type="text" id="as-출고송장" placeholder="출고 송장번호">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>수리비용</label>
+          <input type="number" id="as-수리비용" placeholder="0">
+        </div>
+        <div>
+          <label>입금확인</label>
+          <select id="as-입금확인">
+            <option value="">선택</option>
+            <option>확인</option>
+            <option>미확인</option>
+            <option>무상</option>
+          </select>
+        </div>
+      </div>
+      <button class="submit-btn" onclick="submitASUpdate()">처리 결과 저장</button>
+      <div class="success-msg" id="as-update-success">✅ 저장되었습니다!</div>
+      <div class="error-msg" id="as-update-error"></div>
+    </div>
+  </div>
+
+  <!-- 전체 목록 탭 -->
+  <div id="tab-list" style="display:none">
+    <div class="table-wrap">
+      <div class="table-header">
+        <span>전체 목록</span>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterList('전체')">전체</button>
+          <button class="filter-tab" onclick="filterList('진행중')">미처리</button>
+          <button class="filter-tab" onclick="filterList('반품')">반품</button>
+          <button class="filter-tab" onclick="filterList('교환')">교환</button>
+          <button class="filter-tab" onclick="filterList('A/S')">A/S</button>
+          <button class="filter-tab" onclick="filterList('완료')">완료</button>
+        </div>
+      </div>
+      <div id="list-loading" class="loading" style="display:none">
+        <span class="spinner"></span>불러오는 중...
+      </div>
+      <div id="list-table"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── 설정 ──────────────────────────────────────────────────
+const SHEET_ID  = '1kmZGzsxFh08Gxu0KM1K0wb4PBxdNnQQx-dqgfodEq-k';
+const SHEET_NAME = '회수및AS입력장';
+const API_KEY   = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // ← API 키 필요
+// ──────────────────────────────────────────────────────────
+
+// Anthropic API로 Google Sheets 읽기 (API Key 없이도 가능한 방법: 공개 CSV)
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+let allData = [];
+let currentFilter = '전체';
+let foundRowIndex = -1;
+
+// 오늘 날짜
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('delivery-입고일').value = today;
+document.getElementById('as-접수일').value = today;
+
+function updateHeaderDate() {
+  const now = new Date();
+  document.getElementById('headerDate').textContent =
+    `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+}
+
+// CSV로 데이터 읽기 (인증 불필요 — 시트가 공유되어 있으면 됨)
+async function fetchData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  // Google Visualization API 응답 파싱
+  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
+  const cols = json.table.cols.map(c => c.label);
+  const rows = json.table.rows.map(r =>
+    r.c.map(cell => cell ? (cell.f || cell.v || '') : '')
+  );
+  return { cols, rows };
+}
+
+async function loadAll() {
+  updateHeaderDate();
+  document.getElementById('dashboard-loading').style.display = 'block';
+  document.getElementById('dashboard-content').style.display = 'none';
+
+  try {
+    const { cols, rows } = await fetchData();
+    allData = rows;
+    calcDashboard(rows);
+    renderTable(rows, currentFilter);
+    document.getElementById('dashboard-loading').style.display = 'none';
+    document.getElementById('dashboard-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('dashboard-loading').innerHTML =
+      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>
+      Google Sheets 공유 설정을 확인해주세요.<br>
+      (링크가 있는 모든 사용자 → 뷰어 이상)</div>`;
+  }
+}
+
+function calcDashboard(rows) {
+  // 컬럼 인덱스: A=0,B=1,C=2...P=15,S=18
+  let 미입고=0, 처리대기=0, 처리결정=0, 처리완료=0, 전체반품=0;
+  let as상담=0, as처리중=0, as입금=0, as완료=0, as전체=0;
+
+  rows.forEach(r => {
+    const 접수일  = String(r[0] || '');
+    const 구분    = String(r[1] || '').trim();
+    const 완료여부 = String(r[15] || '').trim();
+    const erp처리 = String(r[14] || '').trim();
+    const 입금확인 = String(r[18] || '').trim();
+    const is2026  = 접수일.startsWith('2026');
+
+    if (!is2026) return;
+
+    if (구분 === 'A/S') {
+      as전체++;
+      if (완료여부 === '진행중') as상담++;
+      if (완료여부 === '처리중') as처리중++;
+      if (입금확인 === '미확인') as입금++;
+      if (완료여부 === '완료') as완료++;
+    } else if (구분 === '반품' || 구분 === '교환') {
+      전체반품++;
+      if (완료여부 === '진행중') 미입고++;
+      if (완료여부 === '입고완료/처리대기') 처리대기++;
+      if (완료여부 === '처리중') 처리결정++;
+      if (완료여부 === '완료' && erp처리 === 'Y') 처리완료++;
+    }
+  });
+
+  document.getElementById('cnt-미입고').textContent   = 미입고;
+  document.getElementById('cnt-처리대기').textContent  = 처리대기;
+  document.getElementById('cnt-처리결정').textContent  = 처리결정;
+  document.getElementById('cnt-처리완료').textContent  = 처리완료;
+  document.getElementById('cnt-전체반품').textContent  = 전체반품;
+  document.getElementById('cnt-as상담').textContent   = as상담;
+  document.getElementById('cnt-as처리중').textContent  = as처리중;
+  document.getElementById('cnt-as입금').textContent   = as입금;
+  document.getElementById('cnt-as완료').textContent   = as완료;
+  document.getElementById('cnt-as전체').textContent   = as전체;
+
+  // 오늘 처리할 일
+  document.getElementById('todo-미입고').textContent  = 미입고;
+  document.getElementById('todo-erp').textContent     = 처리대기;
+  document.getElementById('todo-입금').textContent    = as입금;
+  document.getElementById('todo-상담').textContent    = as상담;
+  document.getElementById('todo-as처리').textContent  = as처리중;
+}
+
+function renderTable(rows, filter) {
+  let filtered = rows;
+  if (filter !== '전체') {
+    filtered = rows.filter(r => {
+      const 구분 = String(r[1]||'').trim();
+      const 완료 = String(r[15]||'').trim();
+      if (filter === '진행중') return 완료 !== '완료';
+      if (filter === '완료')   return 완료 === '완료';
+      return 구분 === filter;
+    });
+  }
+
+  const badgeClass = g => {
+    const m = {'반품':'반품','교환':'교환','A/S':'as'};
+    return 'badge badge-' + (m[g]||'');
+  };
+  const statusClass = s => {
+    const m = {'진행중':'진행중','입고완료/처리대기':'입고완료','처리중':'처리중','완료':'완료'};
+    return 'badge badge-' + (m[s]||'');
+  };
+
+  if (filtered.length === 0) {
+    document.getElementById('list-table').innerHTML =
+      '<div class="empty">해당 건이 없습니다.</div>';
+    return;
+  }
+
+  const html = `
+  <div style="padding:10px 16px;font-size:12px;color:#888;">총 ${filtered.length}건</div>
+  <table>
+    <thead>
+      <tr>
+        <th>접수일</th><th>구분</th><th>채널</th><th>고객명</th>
+        <th>상품명</th><th>수량</th><th>주문번호</th><th>회수송장</th>
+        <th>택배입고일</th><th>CS내역/증상</th><th>불량여부</th>
+        <th>처리결과</th><th>ERP</th><th>완료여부</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${filtered.map(r => `
+      <tr>
+        <td>${r[0]||''}</td>
+        <td><span class="${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span></td>
+        <td>${r[2]||''}</td>
+        <td>${r[3]||''}</td>
+        <td>${r[5]||''}</td>
+        <td>${r[6]||''}</td>
+        <td style="font-size:11px">${r[7]||''}</td>
+        <td style="font-size:11px">${r[8]||''}</td>
+        <td>${r[10]||''}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[11]||''}</td>
+        <td>${r[12]||''}</td>
+        <td>${r[13]||''}</td>
+        <td>${r[14]||''}</td>
+        <td><span class="${statusClass(String(r[15]||'').trim())}">${r[15]||''}</span></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+  document.getElementById('list-table').innerHTML = html;
+}
+
+function filterList(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTable(allData, filter);
+}
+
+function showTab(tab) {
+  ['dashboard','delivery','as','list'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'list') renderTable(allData, currentFilter);
+}
+
+function searchBySongJang() {
+  const 송장 = document.getElementById('delivery-송장').value.trim();
+  if (송장.length < 4) {
+    document.getElementById('delivery-result').style.display = 'none';
+    return;
+  }
+  const found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장.replace(/-/g,''));
+  if (found >= 0) {
+    foundRowIndex = found;
+    const r = allData[found];
+    document.getElementById('delivery-result').style.display = 'block';
+    document.getElementById('delivery-result-text').textContent =
+      `[${r[1]}] ${r[2]} | ${r[5]} | 주문번호: ${r[7]}`;
+  } else {
+    foundRowIndex = -1;
+    document.getElementById('delivery-result').style.display = 'block';
+    document.getElementById('delivery-result-text').textContent = '⚠️ 일치하는 회수 건 없음 (새 건으로 추가됩니다)';
+  }
+}
+
+function searchByOrderNum() {
+  const 주문번호 = document.getElementById('as-search-주문번호').value.trim();
+  if (주문번호.length < 4) {
+    document.getElementById('as-result').style.display = 'none';
+    return;
+  }
+  const found = allData.findIndex(r => String(r[7]||'').trim() === 주문번호);
+  if (found >= 0) {
+    foundRowIndex = found;
+    const r = allData[found];
+    document.getElementById('as-result').style.display = 'block';
+    document.getElementById('as-result-text').textContent =
+      `[${r[1]}] ${r[2]} | ${r[5]} | 완료여부: ${r[15]}`;
+  } else {
+    document.getElementById('as-result').style.display = 'block';
+    document.getElementById('as-result-text').textContent = '⚠️ 주문번호를 찾을 수 없습니다';
+  }
+}
+
+// 저장 함수들 — Claude API 통해 Apps Script로 전달
+async function submitDelivery() {
+  const 송장  = document.getElementById('delivery-송장').value.trim();
+  const 입고일 = document.getElementById('delivery-입고일').value;
+  const 불량  = document.getElementById('delivery-불량').value;
+  const cs   = document.getElementById('delivery-cs').value.trim();
+  const 비고  = document.getElementById('delivery-비고').value.trim();
+
+  if (!송장 || !입고일) {
+    showError('delivery-error', '송장번호와 입고일을 입력해주세요.');
+    return;
+  }
+
+  const btn = document.getElementById('delivery-btn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  try {
+    await callAppsScript('updateDelivery', {
+      송장번호: 송장,
+      택배입고일: 입고일,
+      불량여부: 불량,
+      CS내역: cs,
+      비고: 비고,
+      rowIndex: foundRowIndex,
+    });
+    showSuccess('delivery-success');
+    document.getElementById('delivery-송장').value = '';
+    document.getElementById('delivery-cs').value = '';
+    document.getElementById('delivery-비고').value = '';
+    document.getElementById('delivery-result').style.display = 'none';
+    await loadAll();
+  } catch(e) {
+    showError('delivery-error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '입고 처리 저장';
+  }
+}
+
+async function submitASNew() {
+  const data = {
+    접수일:  document.getElementById('as-접수일').value,
+    채널:    document.getElementById('as-채널').value.trim(),
+    고객명:  document.getElementById('as-고객명').value.trim(),
+    연락처:  document.getElementById('as-연락처').value.trim(),
+    상품명:  document.getElementById('as-상품명').value.trim(),
+    수량:    document.getElementById('as-수량').value,
+    증상:    document.getElementById('as-증상').value.trim(),
+  };
+
+  if (!data.채널 || !data.상품명 || !data.증상) {
+    showError('as-new-error', '채널, 상품명, 증상은 필수 입력입니다.');
+    return;
+  }
+
+  try {
+    await callAppsScript('addASRow', data);
+    showSuccess('as-new-success');
+    document.getElementById('as-채널').value = '';
+    document.getElementById('as-고객명').value = '';
+    document.getElementById('as-연락처').value = '';
+    document.getElementById('as-상품명').value = '';
+    document.getElementById('as-증상').value = '';
+    await loadAll();
+  } catch(e) {
+    showError('as-new-error', e.message);
+  }
+}
+
+async function submitASUpdate() {
+  const 주문번호 = document.getElementById('as-search-주문번호').value.trim();
+  const data = {
+    주문번호:   주문번호,
+    처리결과:   document.getElementById('as-처리결과').value,
+    불량여부:   document.getElementById('as-불량').value,
+    수리완료일: document.getElementById('as-수리완료일').value,
+    출고송장:   document.getElementById('as-출고송장').value.trim(),
+    수리비용:   document.getElementById('as-수리비용').value,
+    입금확인:   document.getElementById('as-입금확인').value,
+    rowIndex:   foundRowIndex,
+  };
+
+  if (!data.처리결과) {
+    showError('as-update-error', '처리결과를 선택해주세요.');
+    return;
+  }
+
+  try {
+    await callAppsScript('updateAS', data);
+    showSuccess('as-update-success');
+    await loadAll();
+  } catch(e) {
+    showError('as-update-error', e.message);
+  }
+}
+
+// Google Apps Script 호출
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytxL0YEyuf5umDo5xWJPLYM24ba_rUCeuyHgEs2MPh2DHMxK28qNcNmXTTEeddS6EylQ/exec'; // ← 나중에 교체
+
+async function callAppsScript(action, data) {
+  if (false) {
+    // 테스트 모드: 실제 저장 없이 성공 처리
+    console.log('Apps Script 호출 (테스트):', action, data);
+    await new Promise(r => setTimeout(r, 500));
+    return { success: true };
+  }
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, data }),
+  });
+  const result = await res.json();
+  if (!result.success) throw new Error(result.message || '저장 실패');
+  return result;
+}
+
+function showSuccess(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// 초기 로드
+loadAll();
+</script>
+</body>
+</html>
