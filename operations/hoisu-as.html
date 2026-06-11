@@ -903,34 +903,47 @@ function renderTable(rows, filter) {
   const rows2026 = filtered.filter(r => String(r[0]||'').startsWith('2026'));
   const rows2025 = filtered.filter(r => !String(r[0]||'').startsWith('2026'));
 
-  const makeRows = (list) => list.map(r => {
+  const makeCards = (list) => list.map(r => {
     const realIdx = allData.indexOf(r);
     const 완료 = String(r[15]||'').trim();
     const 클릭가능 = 완료 !== '완료';
+    const cardId = 'card-' + realIdx;
+    const detailId = 'detail-' + realIdx;
     return `
-    <tr onclick="${클릭가능 ? `openListEdit(${realIdx})` : ''}"
-        style="cursor:${클릭가능 ? 'pointer' : 'default'}"
-        title="${클릭가능 ? '클릭하면 수정 가능' : ''}">
-      <td style="white-space:nowrap">${r[0]||''}</td>
-      <td><span class="${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span></td>
-      <td style="white-space:nowrap">${r[2]||''}</td>
-      <td style="white-space:nowrap">${r[3]||''}</td>
-      <td>${r[4]||''}</td>
-      <td style="white-space:nowrap">${r[5]||''}</td>
-      <td style="text-align:center">${r[6]||''}</td>
-      <td style="font-size:11px;white-space:nowrap">${r[7]||''}</td>
-      <td style="font-size:11px;white-space:nowrap">${r[8]||''}</td>
-      <td style="white-space:nowrap">${r[9]||''}</td>
-      <td style="white-space:nowrap">${r[10]||''}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r[11]||'').replace(/"/g,"'")}">${r[11]||''}</td>
-      <td style="white-space:nowrap">${r[12]||''}</td>
-      <td style="white-space:nowrap">${r[13]||''}</td>
-      <td style="text-align:center">${r[14]||''}</td>
-      <td><span class="${statusClass(String(r[15]||'').trim())}">${r[15]||''}</span></td>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[16]||''}</td>
-      <td>${클릭가능 ? '<span style="color:#2980B9;font-size:11px">수정▶</span>' : ''}</td>
-    </tr>`;
+    <div style="background:white;border:1px solid #DDE1E7;border-radius:8px;margin-bottom:8px;overflow:hidden">
+      <!-- 요약행 -->
+      <div style="display:flex;align-items:center;padding:10px 14px;gap:10px;cursor:pointer"
+           onclick="toggleDetail('${detailId}')">
+        <span style="white-space:nowrap;font-size:12px;color:#888;min-width:82px">${r[0]||''}</span>
+        <span class="${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
+        <span style="white-space:nowrap;font-size:13px;font-weight:600;min-width:80px">${r[3]||'(이름없음)'}</span>
+        <span style="color:#555;font-size:12px;flex:1">${r[5]||'상품미상'}</span>
+        <span style="font-size:11px;color:#888;white-space:nowrap">${r[8]||''}</span>
+        <span class="${statusClass(완료)}" style="white-space:nowrap">${완료}</span>
+        ${클릭가능 ? `<button onclick="event.stopPropagation();openListEdit(${realIdx})"
+          style="background:#2980B9;color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">수정 ▶</button>` : ''}
+        <span style="color:#aaa;font-size:11px">▼</span>
+      </div>
+      <!-- 상세 (접힘) -->
+      <div id="${detailId}" style="display:none;padding:10px 14px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <div><span style="color:#888">채널:</span> ${r[2]||'-'}</div>
+          <div><span style="color:#888">연락처:</span> ${r[4]||'-'}</div>
+          <div><span style="color:#888">수량:</span> ${r[6]||'-'}</div>
+          <div><span style="color:#888">주문번호:</span> ${r[7]||'-'}</div>
+          <div><span style="color:#888">택배접수일:</span> ${r[9]||'-'}</div>
+          <div><span style="color:#888">택배입고일:</span> ${r[10]||'-'}</div>
+          <div><span style="color:#888">불량여부:</span> ${r[12]||'-'}</div>
+          <div><span style="color:#888">처리결과:</span> ${r[13]||'-'}</div>
+          <div><span style="color:#888">ERP처리:</span> ${r[14]||'-'}</div>
+          <div><span style="color:#888">비고:</span> ${r[16]||'-'}</div>
+        </div>
+        ${r[11] ? `<div style="margin-top:8px"><span style="color:#888">CS내역/증상:</span> ${r[11]}</div>` : ''}
+      </div>
+    </div>`;
   }).join('');
+
+  const makeRows = makeCards;
 
   const thead = `
     <thead>
@@ -1005,6 +1018,12 @@ function showTab(tab, filter) {
     }
   }
   if (tab === 'as') renderASPending();
+}
+
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function openListEdit(rowIdx) {
