@@ -1258,22 +1258,42 @@ function closeASPanel() {
 }
 
 function searchBySongJangAS() {
-  const 송장 = document.getElementById('as-search-송장').value.trim();
+  const 송장raw = document.getElementById('as-search-송장').value.trim();
+  const 송장 = 송장raw.replace(/-/g,'');
   if (송장.length < 4) {
     document.getElementById('as-result').style.display = 'none';
     return;
   }
-  const found = allData.findIndex(r =>
-    String(r[8]||'').replace(/-/g,'') === 송장.replace(/-/g,''));
+
+  // 회수송장(I열=r[8]) 또는 출고송장(T열=r[19]) 모두 검색
+  let found = -1;
+  let 매칭종류 = '';
+
+  found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장);
+  if (found >= 0) {
+    매칭종류 = '회수송장';
+  } else {
+    found = allData.findIndex(r => String(r[19]||'').replace(/-/g,'') === 송장);
+    if (found >= 0) 매칭종류 = '출고송장';
+  }
+
   if (found >= 0) {
     foundRowIndex = found;
     const r = allData[found];
+
+    // 해당 란에 자동 표시
+    if (매칭종류 === '회수송장') {
+      document.getElementById('as-회수송장').value = r[8] || '';
+    } else {
+      document.getElementById('as-출고송장').value = r[19] || '';
+    }
+
     document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').textContent =
-      `✅ 매칭됨: [${r[1]}] ${r[3]||''} | ${r[5]||''} | ${r[15]||''}`;
+    document.getElementById('as-result-text').innerHTML =
+      `✅ 매칭됨 (${매칭종류}): <strong>${r[3]||'이름없음'}</strong> | ${r[5]||''} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
   } else {
     document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').textContent = '⚠️ 송장번호를 찾을 수 없습니다';
+    document.getElementById('as-result-text').textContent = '⚠️ 회수송장/출고송장 모두 찾을 수 없습니다';
   }
 }
 
