@@ -27,7 +27,6 @@
     min-height: 100vh;
   }
 
-  /* 헤더 */
   header {
     background: var(--navy);
     color: white;
@@ -51,7 +50,6 @@
 
   .container { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
 
-  /* 섹션 제목 */
   .section-title {
     font-size: 14px;
     font-weight: 700;
@@ -64,7 +62,6 @@
   .section-title.blue   { background: var(--navy); }
   .section-title.dark   { background: var(--dark); }
 
-  /* 카드 그룹 */
   .cards {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -82,8 +79,11 @@
     text-align: center;
     border-right: 1px solid var(--border);
     position: relative;
+    cursor: pointer;
+    transition: background 0.15s;
   }
   .card:last-child { border-right: none; }
+  .card:hover { background: #F0F4F8; }
 
   .card-label {
     font-size: 11px;
@@ -109,12 +109,8 @@
   .card-num.dark   { color: var(--dark); }
   .card-num.gray   { color: var(--gray); }
 
-  .card-desc {
-    font-size: 11px;
-    color: var(--gray);
-  }
+  .card-desc { font-size: 11px; color: var(--gray); }
 
-  /* 안내 */
   .card-hint {
     font-size: 11px;
     color: #888;
@@ -127,7 +123,6 @@
     font-style: italic;
   }
 
-  /* 테이블 */
   .table-wrap {
     background: white;
     border: 1px solid var(--border);
@@ -145,10 +140,7 @@
     justify-content: space-between;
     align-items: center;
   }
-  .filter-tabs {
-    display: flex;
-    gap: 6px;
-  }
+  .filter-tabs { display: flex; gap: 6px; }
   .filter-tab {
     padding: 4px 12px;
     border-radius: 12px;
@@ -159,10 +151,7 @@
     background: transparent;
     transition: all 0.2s;
   }
-  .filter-tab.active, .filter-tab:hover {
-    background: white;
-    color: var(--navy);
-  }
+  .filter-tab.active, .filter-tab:hover { background: white; color: var(--navy); }
 
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th {
@@ -198,7 +187,6 @@
   .badge-처리중  { background: #E8F4FD; color: #2980B9; }
   .badge-완료   { background: #E8F5E9; color: #27AE60; }
 
-  /* 로딩 */
   .loading {
     text-align: center;
     padding: 40px;
@@ -219,20 +207,6 @@
 
   .empty { text-align: center; padding: 30px; color: var(--gray); font-size: 13px; }
 
-  /* 버튼 */
-  .action-btn {
-    display: inline-block;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    text-decoration: none;
-  }
-  .btn-primary { background: var(--navy); color: white; }
-  .btn-primary:hover { background: #163d5f; }
-
   /* 탭 네비 */
   .nav-tabs {
     display: flex;
@@ -251,13 +225,35 @@
     color: var(--gray);
     transition: all 0.2s;
   }
-  .nav-tab.active {
-    background: var(--navy);
-    color: white;
-    border-color: var(--navy);
+  .nav-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  /* 입력 토글 */
+  .input-toggle {
+    display: flex;
+    background: #F0F4F8;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+    width: fit-content;
+  }
+  .toggle-btn {
+    padding: 8px 24px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: var(--gray);
+    transition: all 0.2s;
+  }
+  .toggle-btn.active {
+    background: white;
+    color: var(--navy);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
   }
 
-  /* 입력 폼 */
+  /* 폼 */
   .form-card {
     background: white;
     border: 1px solid var(--border);
@@ -273,6 +269,14 @@
     padding-bottom: 10px;
     border-bottom: 2px solid var(--light);
   }
+  .form-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin: 14px 0 10px;
+  }
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -282,13 +286,7 @@
   .form-row.full { grid-template-columns: 1fr; }
   .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
 
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--dark);
-    margin-bottom: 4px;
-  }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
   label span { color: #E74C3C; }
 
   input, select, textarea {
@@ -301,9 +299,7 @@
     outline: none;
     transition: border-color 0.2s;
   }
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--navy);
-  }
+  input:focus, select:focus, textarea:focus { border-color: var(--navy); }
   textarea { resize: vertical; min-height: 70px; }
 
   .submit-btn {
@@ -354,13 +350,28 @@
     margin-top: 8px;
     display: none;
   }
-  .search-result strong { color: var(--navy); }
+
+  /* 처리 입력 탭 */
+  .pending-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid #F0F0F0;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pending-item:hover { background: #F0F8FF; }
+  .pending-item.selected { background: #D6EAF8; outline: 2px solid #2980B9; }
+  .pending-item:last-child { border-bottom: none; }
 
   @media (max-width: 768px) {
     .cards { grid-template-columns: repeat(3, 1fr); }
     .form-row { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr; }
     .container { padding: 12px 16px; }
+    .nav-tab { padding: 6px 12px; font-size: 12px; }
   }
 </style>
 </head>
@@ -379,32 +390,33 @@
   <!-- 탭 네비 -->
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showTab('dashboard')">📊 현황판</button>
-    <button class="nav-tab" onclick="showTab('delivery')">📦 택배 입고 입력</button>
-    <button class="nav-tab" onclick="showTab('as')">🔧 A/S 처리 입력</button>
+    <button class="nav-tab" onclick="showTab('collect')">📥 정보수집</button>
+    <button class="nav-tab" onclick="showTab('process')">🔧 처리 입력</button>
     <button class="nav-tab" onclick="showTab('list')">📋 전체 목록</button>
   </div>
 
-  <!-- 현황판 탭 -->
+  <!-- ══════════════════════════════════════════
+       탭1: 현황판
+  ══════════════════════════════════════════ -->
   <div id="tab-dashboard">
     <div id="dashboard-loading" class="loading">
       <span class="spinner"></span>데이터 불러오는 중...
     </div>
     <div id="dashboard-content" style="display:none">
 
-      <!-- 반품/교환 섹션 -->
       <div class="section-title red">📦 반품 / 교환 회수 현황 (2026년~)</div>
       <div class="cards">
-        <div class="card">
+        <div class="card" onclick="goToList('진행중')">
           <div class="card-label">🔴 미입고<br>회수 대기</div>
           <div class="card-num red" id="cnt-미입고">-</div>
           <div class="card-desc">입고 확인 필요</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('입고완료')">
           <div class="card-label">🟡 입고완료<br>처리 대기</div>
           <div class="card-num orange" id="cnt-처리대기">-</div>
           <div class="card-desc">ERP 처리 필요</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('처리중')">
           <div class="card-label">🟠 처리결정<br>대기</div>
           <div class="card-num orange" id="cnt-처리결정">-</div>
           <div class="card-desc">처리결과 선택 필요</div>
@@ -420,22 +432,21 @@
           <div class="card-desc"></div>
         </div>
       </div>
-      <div class="card-hint">→ 전체 목록 탭에서 완료여부 필터로 해당 건 조회</div>
+      <div class="card-hint">→ 카드 클릭 시 전체 목록 탭으로 이동</div>
 
-      <!-- A/S 섹션 -->
       <div class="section-title blue">🔧 A/S 현황</div>
       <div class="cards">
-        <div class="card">
+        <div class="card" onclick="goToProcess('상담')">
           <div class="card-label">📞 상담접수<br>(미입고)</div>
           <div class="card-num blue" id="cnt-as상담">-</div>
           <div class="card-desc">택배 미입고</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToProcess('처리중')">
           <div class="card-label">🔧 입고<br>처리중</div>
           <div class="card-num blue" id="cnt-as처리중">-</div>
           <div class="card-desc">수리 진행중</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToProcess('입금')">
           <div class="card-label">💰 입금확인<br>필요</div>
           <div class="card-num orange" id="cnt-as입금">-</div>
           <div class="card-desc">확인 후 출고</div>
@@ -451,32 +462,31 @@
           <div class="card-desc"></div>
         </div>
       </div>
-      <div class="card-hint">→ 전체 목록 탭에서 구분=A/S 필터로 조회</div>
+      <div class="card-hint">→ 카드 클릭 시 처리 입력 탭으로 이동</div>
 
-      <!-- 오늘 처리할 일 -->
       <div class="section-title dark">🗓 오늘 처리할 일</div>
       <div class="cards">
-        <div class="card" onclick="goToList('반품')" style="cursor:pointer" title="반품/교환 미입고 목록">
+        <div class="card" onclick="goToList('진행중')">
           <div class="card-label">🔴 회수 미입고</div>
           <div class="card-num red" id="todo-미입고">-</div>
           <div class="card-desc">택배 도착 확인 ▶</div>
         </div>
-        <div class="card" onclick="goToList('입고완료')" style="cursor:pointer" title="입고완료 처리대기 목록">
+        <div class="card" onclick="goToList('입고완료')">
           <div class="card-label">🟡 ERP 미처리</div>
           <div class="card-num orange" id="todo-erp">-</div>
           <div class="card-desc">ERP 처리 필요 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('입금확인')" style="cursor:pointer" title="A/S 입금확인 필요">
+        <div class="card" onclick="goToProcess('입금')">
           <div class="card-label">💰 AS 입금확인</div>
           <div class="card-num orange" id="todo-입금">-</div>
           <div class="card-desc">입금 확인 후 출고 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('상담접수')" style="cursor:pointer" title="A/S 처리 입력으로 이동">
+        <div class="card" onclick="goToProcess('상담')">
           <div class="card-label">📞 AS 상담접수</div>
           <div class="card-num blue" id="todo-상담">-</div>
           <div class="card-desc">처리 결정 필요 ▶</div>
         </div>
-        <div class="card" onclick="goToAS('처리중')" style="cursor:pointer" title="A/S 처리 입력으로 이동">
+        <div class="card" onclick="goToProcess('처리중')">
           <div class="card-label">🔧 AS 처리중</div>
           <div class="card-num blue" id="todo-as처리">-</div>
           <div class="card-desc">수리 완료 확인 ▶</div>
@@ -487,263 +497,230 @@
     </div>
   </div>
 
-  <!-- 택배 입고 입력 탭 -->
-  <div id="tab-delivery" style="display:none">
+  <!-- ══════════════════════════════════════════
+       탭2: 정보수집 (A/S 접수 · 택배 입고 입력)
+  ══════════════════════════════════════════ -->
+  <div id="tab-collect" style="display:none">
+
+    <!-- 토글 -->
+    <div class="input-toggle">
+      <button class="toggle-btn active" id="toggle-delivery" onclick="switchCollectMode('delivery')">📦 택배 입고</button>
+      <button class="toggle-btn" id="toggle-consult" onclick="switchCollectMode('consult')">📞 상담 접수</button>
+    </div>
+
     <div class="form-card">
-      <h3>📦 택배 입고 처리</h3>
-      <p style="font-size:12px;color:#888;margin-bottom:16px;">
-        송장번호 입력 시 기존 회수 건과 자동 매칭됩니다.<br>
-        매칭 안 될 경우 새 건(A/S)으로 추가됩니다.
-      </p>
+      <h3 id="collect-title">📥 정보수집 — A/S 접수 (택배 입고 입력)</h3>
 
-      <!-- 1. 송장번호 + 입고일 -->
-      <div class="form-row">
-        <div>
-          <label>회수 송장번호 <span>*</span></label>
-          <input type="text" id="delivery-송장" placeholder="예: 8445-8846-1662" oninput="searchBySongJang()">
+      <!-- 택배 입고 전용 필드 -->
+      <div id="delivery-fields">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#1F4E79;border-radius:4px;margin-bottom:10px">
+          📦 택배 입고 정보
         </div>
-        <div>
-          <label>택배 입고일 <span>*</span></label>
-          <input type="date" id="delivery-입고일">
+        <div class="form-row">
+          <div>
+            <label>회수 송장번호 <span>*</span></label>
+            <input type="text" id="col-송장" placeholder="예: 8445-8846-1662" oninput="searchBySongJang()">
+          </div>
+          <div>
+            <label>택배 입고일 <span>*</span></label>
+            <input type="date" id="col-입고일">
+          </div>
         </div>
-      </div>
-
-      <!-- 매칭 결과 -->
-      <div class="search-result" id="delivery-result">
-        조회 결과: <strong id="delivery-result-text"></strong>
-      </div>
-
-      <!-- 매칭 안될 때만 표시: 구분 선택 -->
-      <div id="delivery-new-row" style="display:none;margin-top:12px">
-        <div style="background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:12px">
+        <div class="search-result" id="col-match-result">
+          조회 결과: <strong id="col-match-text"></strong>
+        </div>
+        <!-- 매칭 안될 때 신규 안내 -->
+        <div id="col-new-warn" style="display:none;background:#FFF9C4;border:1px solid #F9A825;border-radius:6px;padding:10px 14px;font-size:12px;margin-top:8px">
           ⚠️ 기존 회수 건과 매칭되지 않았습니다. 신규 건으로 추가됩니다.
         </div>
-        <div class="form-row three">
+        <div class="form-row full" style="margin-top:12px">
+          <div>
+            <label>보내는 분 주소</label>
+            <input type="text" id="col-주소" placeholder="택배 라벨 주소">
+          </div>
+        </div>
+      </div>
+
+      <!-- 상담 접수 전용 필드 -->
+      <div id="consult-fields" style="display:none">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#2980B9;border-radius:4px;margin-bottom:10px">
+          📞 상담 접수 정보
+        </div>
+        <div class="form-row">
+          <div>
+            <label>접수일 <span>*</span></label>
+            <input type="date" id="col-접수일">
+          </div>
           <div>
             <label>구분</label>
-            <select id="delivery-구분">
+            <select id="col-구분-consult">
               <option value="A/S">A/S</option>
-              <option value="반품">반품</option>
-              <option value="교환">교환</option>
-              <option value="부품판매">부품판매</option>
               <option value="기타">기타</option>
             </select>
           </div>
-          <div>
-            <label>채널(거래처)</label>
-            <input type="text" id="delivery-채널" placeholder="거래처명">
-          </div>
-          <div>
-            <label>상품명</label>
-            <input type="text" id="delivery-상품명" placeholder="예: PFW-901">
-          </div>
         </div>
       </div>
 
-      <!-- 2. 보내는 분 정보 (택배 라벨) -->
-      <div style="font-size:12px;font-weight:700;color:#1F4E79;margin:14px 0 8px;padding-top:12px;border-top:1px solid #eee">
-        📬 보내는 분 정보 (택배 라벨)
+      <!-- 공통 필드 -->
+      <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#27AE60;border-radius:4px;margin:14px 0 10px">
+        👤 고객 / 상품 정보 (공통)
       </div>
       <div class="form-row three">
         <div>
-          <label>보내는 분 이름</label>
-          <input type="text" id="delivery-보내는분" placeholder="예: 박*형">
+          <label>채널(거래처) <span>*</span></label>
+          <input type="text" id="col-채널" placeholder="예: 크레이브">
+        </div>
+        <div>
+          <label>고객명</label>
+          <input type="text" id="col-고객명" placeholder="이름">
         </div>
         <div>
           <label>연락처</label>
-          <input type="text" id="delivery-연락처" placeholder="010-0000-0000">
+          <input type="text" id="col-연락처" placeholder="010-0000-0000">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>상품명 / 모델명 <span>*</span></label>
+          <input type="text" id="col-상품명" placeholder="예: PFW-901">
         </div>
         <div>
-          <label>불량여부</label>
-          <select id="delivery-불량">
+          <label>상태 확인</label>
+          <select id="col-상태확인">
             <option value="">선택</option>
+            <option>서비스 요청</option>
+            <option>확인필요</option>
             <option>불량</option>
             <option>양품</option>
-            <option>확인중</option>
           </select>
         </div>
       </div>
       <div class="form-row full">
         <div>
-          <label>보내는 분 주소</label>
-          <input type="text" id="delivery-주소" placeholder="경상남도 진주시...">
-        </div>
-      </div>
-
-      <!-- 3. 처리 내용 -->
-      <div style="font-size:12px;font-weight:700;color:#1F4E79;margin:14px 0 8px;padding-top:12px;border-top:1px solid #eee">
-        📝 처리 내용
-      </div>
-      <div class="form-row full">
-        <div>
           <label>CS내역 / 증상</label>
-          <textarea id="delivery-cs" placeholder="반품사유 또는 A/S 증상을 입력하세요"></textarea>
+          <textarea id="col-cs" placeholder="고객 증상 또는 반품 사유를 입력하세요"></textarea>
         </div>
       </div>
       <div class="form-row full">
         <div>
           <label>비고</label>
-          <input type="text" id="delivery-비고" placeholder="메모">
+          <input type="text" id="col-비고" placeholder="메모">
         </div>
       </div>
 
-      <button class="submit-btn" onclick="submitDelivery()" id="delivery-btn">입고 처리 저장</button>
-      <div class="success-msg" id="delivery-success">✅ 저장되었습니다!</div>
-      <div class="error-msg" id="delivery-error"></div>
+      <button class="submit-btn" onclick="submitCollect()" id="col-btn">📥 접수 저장</button>
+      <div class="success-msg" id="col-success">✅ 저장되었습니다!</div>
+      <div class="error-msg" id="col-error"></div>
     </div>
   </div>
 
-  <!-- A/S 처리 입력 탭 -->
-  <div id="tab-as" style="display:none">
+  <!-- ══════════════════════════════════════════
+       탭3: 처리 입력
+  ══════════════════════════════════════════ -->
+  <div id="tab-process" style="display:none">
 
-    <!-- ① 신규 A/S 접수 -->
-    <div class="form-card" style="border-left:4px solid #2980B9">
-      <h3 style="color:#2980B9">📞 신규 A/S 접수</h3>
-      <p style="font-size:12px;color:#888;margin-bottom:14px">전화/이메일로 새로운 A/S를 접수할 때 사용합니다. 저장하면 아래 처리 대기 목록에 자동으로 나타납니다.</p>
-      <div class="form-row three">
-        <div>
-          <label>접수일 <span>*</span></label>
-          <input type="date" id="as-접수일">
-        </div>
-        <div>
-          <label>채널(거래처) <span>*</span></label>
-          <input type="text" id="as-채널" placeholder="예: 크레이브">
-        </div>
-        <div>
-          <label>고객명</label>
-          <input type="text" id="as-고객명" placeholder="고객 이름">
-        </div>
-      </div>
-      <div class="form-row three">
-        <div>
-          <label>연락처</label>
-          <input type="text" id="as-연락처" placeholder="010-0000-0000">
-        </div>
-        <div>
-          <label>상품명 <span>*</span></label>
-          <input type="text" id="as-상품명" placeholder="예: PFW-901">
-        </div>
-        <div>
-          <label>수량</label>
-          <input type="number" id="as-수량" value="1" min="1">
-        </div>
-      </div>
-      <div class="form-row full">
-        <div>
-          <label>증상 <span>*</span></label>
-          <textarea id="as-증상" placeholder="고객이 말한 증상을 입력하세요"></textarea>
-        </div>
-      </div>
-      <button class="submit-btn" onclick="submitASNew()" style="background:#2980B9">📞 신규 A/S 접수 저장</button>
-      <div class="success-msg" id="as-new-success">✅ 접수되었습니다! 아래 처리 대기 목록에서 확인하세요.</div>
-      <div class="error-msg" id="as-new-error"></div>
-    </div>
-
-    <!-- ② 처리 대기 목록 + 처리 결과 입력 -->
-    <div class="form-card" id="as-update-card" style="border-left:4px solid #E67E22">
-      <h3 style="color:#E67E22">🔧 처리 대기 목록 및 결과 입력</h3>
-      <p style="font-size:12px;color:#888;margin-bottom:14px">아래 목록에서 건을 선택하면 처리 결과 입력창이 열립니다.</p>
+    <div class="form-card">
+      <h3>🔧 처리 입력 — 반품 / 교환 / A/S 전체</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:16px">
+        아래 목록에서 건을 선택하면 처리 결과 입력창이 열립니다.
+      </p>
 
       <!-- 처리 대기 목록 -->
-      <div id="as-pending-list" style="margin-bottom:20px"></div>
-
-      <!-- 선택된 건 처리 결과 입력 (기본 숨김) -->
-      <div id="as-selected-panel" style="display:none;border:2px solid #2980B9;border-radius:8px;padding:16px;background:#F0F8FF">
-        <div style="font-size:13px;font-weight:700;color:#1F4E79;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #BDE0FF">
-          ✏️ 선택된 건 처리 결과 입력
-        </div>
-
-        <!-- 조회 결과 -->
-        <div class="search-result" id="as-result" style="display:block;margin-bottom:12px">
-          선택된 건: <strong id="as-result-text">—</strong>
-        </div>
-
-        <!-- 직접 조회 (선택 안했을 때) -->
-        <div style="font-size:11px;color:#888;margin-bottom:8px">또는 직접 조회:</div>
-        <div class="form-row">
-          <div>
-            <label>주문번호</label>
-            <input type="text" id="as-search-주문번호" placeholder="사방넷 주문번호" oninput="searchByOrderNum()">
-          </div>
-          <div>
-            <label>송장번호</label>
-            <input type="text" id="as-search-송장" placeholder="회수 송장번호" oninput="searchBySongJangAS()">
+      <div id="process-pending-wrap">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <span style="font-size:12px;font-weight:700;color:var(--navy)">📋 처리 대기 목록</span>
+          <span style="font-size:11px;color:#aaa">(2026년 미완료 전체)</span>
+          <!-- 필터 -->
+          <div style="margin-left:auto;display:flex;gap:6px">
+            <button class="filter-tab active" style="color:var(--navy);border-color:var(--navy)" onclick="filterPending('전체',this)">전체</button>
+            <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterPending('반품',this)">반품</button>
+            <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterPending('교환',this)">교환</button>
+            <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterPending('A/S',this)">A/S</button>
           </div>
         </div>
+        <div id="process-pending-list" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:300px;overflow-y:auto"></div>
+      </div>
 
-        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
+      <!-- 선택된 건 처리 입력 패널 -->
+      <div id="process-panel" style="display:none;margin-top:20px;border:2px solid #2980B9;border-radius:8px;padding:16px;background:#F0F8FF">
+        <div style="font-size:13px;font-weight:700;color:#1F4E79;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #BDE0FF;display:flex;justify-content:space-between;align-items:center">
+          <span>✏️ 처리 결과 입력</span>
+          <button onclick="closeProcessPanel()" style="background:none;border:1px solid #aaa;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:12px">닫기</button>
+        </div>
+
+        <!-- 선택 건 정보 표시 -->
+        <div style="background:#E8F4FD;border:1px solid #90CAF9;border-radius:6px;padding:10px 14px;font-size:12px;margin-bottom:14px">
+          선택된 건: <strong id="process-result-text">—</strong>
+        </div>
 
         <!-- ① 기본 정보 수정 -->
-        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#2C3E50;border-radius:4px">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#2C3E50;border-radius:4px;margin-bottom:8px">
           👤 기본 정보 (수정 가능)
         </div>
         <div class="form-row three">
           <div>
             <label>고객명</label>
-            <input type="text" id="as-edit-고객명" placeholder="이름 수정">
+            <input type="text" id="proc-고객명" placeholder="이름">
           </div>
           <div>
             <label>연락처</label>
-            <input type="text" id="as-edit-연락처" placeholder="010-0000-0000">
+            <input type="text" id="proc-연락처" placeholder="010-0000-0000">
           </div>
           <div>
             <label>채널(거래처)</label>
-            <input type="text" id="as-edit-채널" placeholder="거래처명">
+            <input type="text" id="proc-채널" placeholder="거래처명">
           </div>
         </div>
         <div class="form-row">
           <div>
             <label>상품명/모델명</label>
-            <input type="text" id="as-edit-상품명" placeholder="예: PFW-901">
+            <input type="text" id="proc-상품명" placeholder="예: PFW-901">
           </div>
           <div>
             <label>수량</label>
-            <input type="number" id="as-edit-수량" placeholder="1" min="1">
+            <input type="number" id="proc-수량" placeholder="1" min="1">
           </div>
         </div>
 
-        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
-
         <!-- ② 입고 확인 -->
-        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#2E75B6;border-radius:4px">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#2E75B6;border-radius:4px;margin:12px 0 8px">
           📦 입고 확인
         </div>
         <div class="form-row three">
           <div>
             <label>회수송장번호</label>
-            <input type="text" id="as-회수송장" placeholder="고객이 보내온 송장번호">
+            <input type="text" id="proc-회수송장" placeholder="송장번호">
           </div>
           <div>
-            <label>불량여부</label>
-            <select id="as-불량">
+            <label>상태 확인</label>
+            <select id="proc-상태확인">
               <option value="">선택</option>
+              <option>서비스 요청</option>
+              <option>확인필요</option>
               <option>불량</option>
               <option>양품</option>
-              <option>확인중</option>
             </select>
           </div>
           <div>
             <label>택배입고일</label>
-            <input type="date" id="as-택배입고일">
+            <input type="date" id="proc-택배입고일">
           </div>
         </div>
         <div class="form-row full">
           <div>
             <label>CS내역 / 증상</label>
-            <textarea id="as-cs내역" placeholder="고객 증상, 불량 내용 등" style="min-height:60px"></textarea>
+            <textarea id="proc-cs내역" placeholder="증상, 불량 내용" style="min-height:60px"></textarea>
           </div>
         </div>
 
-        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
-
         <!-- ③ 처리 결과 -->
-        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#E67E22;border-radius:4px">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#E67E22;border-radius:4px;margin:12px 0 8px">
           🔧 처리 결과
         </div>
         <div class="form-row three">
           <div>
             <label>처리결과</label>
-            <select id="as-처리결과">
+            <select id="proc-처리결과">
               <option value="">선택</option>
               <option>수리발송</option>
               <option>교환발송</option>
@@ -755,11 +732,11 @@
           </div>
           <div>
             <label>수리비용</label>
-            <input type="number" id="as-수리비용" placeholder="0 (무상이면 비워둠)">
+            <input type="number" id="proc-수리비용" placeholder="0 (무상이면 비워둠)">
           </div>
           <div>
             <label>입금확인</label>
-            <select id="as-입금확인">
+            <select id="proc-입금확인">
               <option value="">선택</option>
               <option>확인</option>
               <option>미확인</option>
@@ -767,43 +744,50 @@
             </select>
           </div>
         </div>
-        <div class="form-row full">
+        <div class="form-row">
           <div>
             <label>수리완료일</label>
-            <input type="date" id="as-수리완료일">
+            <input type="date" id="proc-수리완료일">
+          </div>
+          <div>
+            <label>ERP 처리</label>
+            <select id="proc-erp">
+              <option value="">선택</option>
+              <option value="Y">Y — 완료</option>
+              <option value="N">N — 미처리</option>
+            </select>
           </div>
         </div>
 
-        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
-
         <!-- ④ 출고 정보 -->
-        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#27AE60;border-radius:4px">
+        <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#27AE60;border-radius:4px;margin:12px 0 8px">
           🚚 출고 정보 (수리발송/교환발송 시)
         </div>
         <div class="form-row">
           <div>
             <label>출고송장번호</label>
-            <input type="text" id="as-출고송장" placeholder="수리 후 발송 송장번호">
+            <input type="text" id="proc-출고송장" placeholder="수리 후 발송 송장번호">
           </div>
           <div>
             <label>출고일</label>
-            <input type="date" id="as-출고일">
+            <input type="date" id="proc-출고일">
           </div>
         </div>
-        <div style="display:flex;gap:10px;margin-top:8px">
-          <button class="submit-btn" onclick="submitASUpdate()" style="flex:1">💾 처리 결과 저장</button>
-          <button onclick="closeASPanel()" style="padding:12px 20px;border:1px solid #ccc;border-radius:8px;background:white;cursor:pointer;font-size:13px">취소</button>
+
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="submit-btn" onclick="submitProcess()" style="flex:1">💾 처리 결과 저장</button>
+          <button onclick="closeProcessPanel()" style="padding:12px 20px;border:1px solid #ccc;border-radius:8px;background:white;cursor:pointer;font-size:13px">취소</button>
         </div>
-        <div class="success-msg" id="as-update-success">✅ 저장되었습니다!</div>
-        <div class="error-msg" id="as-update-error"></div>
+        <div class="success-msg" id="proc-success">✅ 저장되었습니다!</div>
+        <div class="error-msg" id="proc-error"></div>
       </div>
     </div>
   </div>
 
-  <!-- 전체 목록 탭 -->
+  <!-- ══════════════════════════════════════════
+       탭4: 전체 목록
+  ══════════════════════════════════════════ -->
   <div id="tab-list" style="display:none">
-
-    <!-- 기간 조회 -->
     <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <span style="font-size:13px;font-weight:600;color:var(--dark)">📅 기간 조회</span>
       <input type="date" id="search-from" style="width:140px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px">
@@ -811,48 +795,44 @@
       <input type="date" id="search-to" style="width:140px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px">
       <button onclick="searchByDate()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
       <button onclick="resetDateSearch()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 90일</button>
-      <span style="font-size:11px;color:#aaa">※ 최근 90일 이전 자료 조회 시 사용</span>
     </div>
 
     <div class="table-wrap">
       <div class="table-header">
         <span>전체 목록</span>
         <div class="filter-tabs">
-          <button class="filter-tab active" onclick="filterList('전체')">전체</button>
-          <button class="filter-tab" onclick="filterList('미처리')">미처리</button>
-          <button class="filter-tab" onclick="filterList('반품')">반품</button>
-          <button class="filter-tab" onclick="filterList('교환')">교환</button>
-          <button class="filter-tab" onclick="filterList('A/S')">A/S</button>
-          <button class="filter-tab" onclick="filterList('완료')">완료</button>
+          <button class="filter-tab active" onclick="filterList('전체',this)">전체</button>
+          <button class="filter-tab" onclick="filterList('미처리',this)">미처리</button>
+          <button class="filter-tab" onclick="filterList('반품',this)">반품</button>
+          <button class="filter-tab" onclick="filterList('교환',this)">교환</button>
+          <button class="filter-tab" onclick="filterList('A/S',this)">A/S</button>
+          <button class="filter-tab" onclick="filterList('완료',this)">완료</button>
         </div>
       </div>
-      <div id="list-loading" class="loading" style="display:none">
-        <span class="spinner"></span>불러오는 중...
-      </div>
+      <div id="list-loading" class="loading" style="display:none"><span class="spinner"></span>불러오는 중...</div>
       <div id="list-table"></div>
     </div>
   </div>
 
-</div>
+</div><!-- /container -->
 
 <script>
-// ── 설정 ──────────────────────────────────────────────────
-const SHEET_ID  = '1kmZGzsxFh08Gxu0KM1K0wb4PBxdNnQQx-dqgfodEq-k';
+const SHEET_ID   = '1kmZGzsxFh08Gxu0KM1K0wb4PBxdNnQQx-dqgfodEq-k';
 const SHEET_NAME = '회수및AS입력장';
-const API_KEY   = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'; // ← API 키 필요
-// ──────────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytxL0YEyuf5umDo5xWJPLYM24ba_rUCeuyHgEs2MPh2DHMxK28qNcNmXTTEeddS6EylQ/exec';
 
-// Anthropic API로 Google Sheets 읽기 (API Key 없이도 가능한 방법: 공개 CSV)
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
-let allData = [];
+let allData      = [];
 let currentFilter = '전체';
 let foundRowIndex = -1;
+let collectMode  = 'delivery'; // 'delivery' | 'consult'
+let pendingFilter = '전체';
+let customDateFrom = null;
+let customDateTo   = null;
 
-// 오늘 날짜
+// 오늘 날짜 세팅
 const today = new Date().toISOString().split('T')[0];
-document.getElementById('delivery-입고일').value = today;
-document.getElementById('as-접수일').value = today;
+document.getElementById('col-입고일').value  = today;
+document.getElementById('col-접수일').value  = today;
 
 function updateHeaderDate() {
   const now = new Date();
@@ -860,54 +840,45 @@ function updateHeaderDate() {
     `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
 }
 
-// CSV로 데이터 읽기 (인증 불필요 — 시트가 공유되어 있으면 됨)
+// ─── 데이터 로드 ───────────────────────────────
 async function fetchData() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  const res = await fetch(url);
+  const res  = await fetch(url);
   const text = await res.text();
-  // Google Visualization API 응답 파싱
   const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
-  const cols = json.table.cols.map(c => c.label);
-  const rows = json.table.rows.map(r =>
-    r.c.map(cell => cell ? (cell.f || cell.v || '') : '')
-  );
-  return { cols, rows };
+  const rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.f || cell.v || '') : ''));
+  return rows;
 }
 
 async function loadAll() {
   updateHeaderDate();
   document.getElementById('dashboard-loading').style.display = 'block';
   document.getElementById('dashboard-content').style.display = 'none';
-
   try {
-    const { cols, rows } = await fetchData();
-    allData = rows;
-    calcDashboard(rows);
-    renderTable(rows, currentFilter);
+    allData = await fetchData();
+    calcDashboard(allData);
+    renderTable(allData, currentFilter);
+    renderPendingList();
     document.getElementById('dashboard-loading').style.display = 'none';
     document.getElementById('dashboard-content').style.display = 'block';
   } catch(e) {
     document.getElementById('dashboard-loading').innerHTML =
-      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>
-      Google Sheets 공유 설정을 확인해주세요.<br>
-      (링크가 있는 모든 사용자 → 뷰어 이상)</div>`;
+      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Google Sheets 공유 설정(링크가 있는 모든 사용자 → 뷰어)을 확인해주세요.</div>`;
   }
 }
 
+// ─── 현황판 계산 ───────────────────────────────
 function calcDashboard(rows) {
-  // 컬럼 인덱스: A=0,B=1,C=2...P=15,S=18
   let 미입고=0, 처리대기=0, 처리결정=0, 처리완료=0, 전체반품=0;
-  let as상담=0, as처리대기=0, as처리중=0, as입금=0, as완료=0, as전체=0;
+  let as상담=0, as처리중=0, as입금=0, as완료=0, as전체=0;
 
   rows.forEach(r => {
-    const 접수일  = String(r[0] || '');
-    const 구분    = String(r[1] || '').trim();
-    const 완료여부 = String(r[15] || '').trim();
-    const erp처리 = String(r[14] || '').trim();
-    const 입금확인 = String(r[18] || '').trim();
-    const is2026  = 접수일.startsWith('2026');
-
-    if (!is2026) return;
+    const 접수일  = String(r[0]||'');
+    const 구분    = String(r[1]||'').trim();
+    const 완료여부 = String(r[15]||'').trim();
+    const erp처리 = String(r[14]||'').trim();
+    const 입금확인 = String(r[18]||'').trim();
+    if (!접수일.startsWith('2026')) return;
 
     if (구분 === 'A/S') {
       as전체++;
@@ -924,118 +895,357 @@ function calcDashboard(rows) {
     }
   });
 
-  document.getElementById('cnt-미입고').textContent   = 미입고;
-  document.getElementById('cnt-처리대기').textContent  = 처리대기;
-  document.getElementById('cnt-처리결정').textContent  = 처리결정;
-  document.getElementById('cnt-처리완료').textContent  = 처리완료;
-  document.getElementById('cnt-전체반품').textContent  = 전체반품;
-  document.getElementById('cnt-as상담').textContent   = as상담;
-  document.getElementById('cnt-as처리중').textContent  = as처리중;
-  document.getElementById('cnt-as입금').textContent   = as입금;
-  document.getElementById('cnt-as완료').textContent   = as완료;
-  document.getElementById('cnt-as전체').textContent   = as전체;
-
-  // 오늘 처리할 일
-  document.getElementById('todo-미입고').textContent  = 미입고;
-  document.getElementById('todo-erp').textContent     = 처리대기;
-  document.getElementById('todo-입금').textContent    = as입금;
-  document.getElementById('todo-상담').textContent    = as상담;
-  document.getElementById('todo-as처리').textContent  = as처리중;
+  document.getElementById('cnt-미입고').textContent  = 미입고;
+  document.getElementById('cnt-처리대기').textContent = 처리대기;
+  document.getElementById('cnt-처리결정').textContent = 처리결정;
+  document.getElementById('cnt-처리완료').textContent = 처리완료;
+  document.getElementById('cnt-전체반품').textContent = 전체반품;
+  document.getElementById('cnt-as상담').textContent  = as상담;
+  document.getElementById('cnt-as처리중').textContent = as처리중;
+  document.getElementById('cnt-as입금').textContent  = as입금;
+  document.getElementById('cnt-as완료').textContent  = as완료;
+  document.getElementById('cnt-as전체').textContent  = as전체;
+  document.getElementById('todo-미입고').textContent = 미입고;
+  document.getElementById('todo-erp').textContent    = 처리대기;
+  document.getElementById('todo-입금').textContent   = as입금;
+  document.getElementById('todo-상담').textContent   = as상담;
+  document.getElementById('todo-as처리').textContent = as처리중;
 }
 
-// 기간 조회 상태
-let customDateFrom = null;
-let customDateTo   = null;
+// ─── 탭 전환 ───────────────────────────────────
+function showTab(tab) {
+  ['dashboard','collect','process','list'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    t.classList.toggle('active', ['dashboard','collect','process','list'][i] === tab);
+  });
+  if (tab === 'process') renderPendingList();
+  if (tab === 'list')    renderTable(allData, currentFilter);
+}
 
+function goToList(filter) {
+  currentFilter = filter || '전체';
+  showTab('list');
+  renderTable(allData, currentFilter);
+}
+
+function goToProcess(type) {
+  showTab('process');
+  pendingFilter = type === '상담' ? 'A/S' : type === '처리중' ? 'A/S' : '전체';
+  renderPendingList();
+}
+
+// ─── 탭2: 토글 (택배입고 / 상담접수) ──────────
+function switchCollectMode(mode) {
+  collectMode = mode;
+  document.getElementById('toggle-delivery').classList.toggle('active', mode === 'delivery');
+  document.getElementById('toggle-consult').classList.toggle('active', mode === 'consult');
+  document.getElementById('delivery-fields').style.display = mode === 'delivery' ? 'block' : 'none';
+  document.getElementById('consult-fields').style.display  = mode === 'consult'  ? 'block' : 'none';
+  document.getElementById('collect-title').textContent =
+    mode === 'delivery'
+      ? '📥 정보수집 — A/S 접수 (택배 입고 입력)'
+      : '📥 정보수집 — 상담 접수';
+}
+
+// 송장 검색
+function searchBySongJang() {
+  const 송장 = document.getElementById('col-송장').value.trim().replace(/-/g,'');
+  if (송장.length < 4) {
+    document.getElementById('col-match-result').style.display = 'none';
+    document.getElementById('col-new-warn').style.display = 'none';
+    return;
+  }
+  const found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장);
+  if (found >= 0) {
+    foundRowIndex = found;
+    const r = allData[found];
+    document.getElementById('col-match-result').style.display = 'block';
+    document.getElementById('col-match-text').textContent =
+      `✅ 매칭됨: [${r[1]}] ${r[2]} | ${r[5]} | 주문번호: ${r[7]}`;
+    document.getElementById('col-new-warn').style.display = 'none';
+    if (r[3]) document.getElementById('col-고객명').value  = r[3];
+    if (r[4]) document.getElementById('col-연락처').value = r[4];
+    if (r[5]) document.getElementById('col-상품명').value = r[5];
+    if (r[2]) document.getElementById('col-채널').value   = r[2];
+  } else {
+    foundRowIndex = -1;
+    document.getElementById('col-match-result').style.display = 'block';
+    document.getElementById('col-match-text').textContent = '⚠️ 기존 회수 건 없음';
+    document.getElementById('col-new-warn').style.display = 'block';
+  }
+}
+
+// ─── 탭2: 저장 ─────────────────────────────────
+async function submitCollect() {
+  const btn = document.getElementById('col-btn');
+
+  if (collectMode === 'delivery') {
+    const 송장  = document.getElementById('col-송장').value.trim();
+    const 입고일 = document.getElementById('col-입고일').value;
+    if (!송장 || !입고일) { showError('col-error','송장번호와 입고일을 입력해주세요.'); return; }
+
+    btn.disabled = true; btn.textContent = '저장 중...';
+    try {
+      await callAppsScript('updateDelivery', {
+        송장번호:   송장,
+        택배입고일: 입고일,
+        불량여부:  document.getElementById('col-상태확인').value,
+        CS내역:   document.getElementById('col-cs').value.trim(),
+        비고:     document.getElementById('col-비고').value.trim(),
+        고객명:   document.getElementById('col-고객명').value.trim(),
+        연락처:   document.getElementById('col-연락처').value.trim(),
+        주소:     document.getElementById('col-주소').value.trim(),
+        채널:     document.getElementById('col-채널').value.trim(),
+        상품명:   document.getElementById('col-상품명').value.trim(),
+        구분:     'A/S',
+        rowIndex: foundRowIndex,
+      });
+      showSuccess('col-success');
+      resetCollectForm();
+      await loadAll();
+    } catch(e) { showError('col-error', e.message); }
+    finally { btn.disabled = false; btn.textContent = '📥 접수 저장'; }
+
+  } else {
+    // 상담 접수
+    const 채널  = document.getElementById('col-채널').value.trim();
+    const 상품명 = document.getElementById('col-상품명').value.trim();
+    const 증상  = document.getElementById('col-cs').value.trim();
+    if (!채널 || !상품명) { showError('col-error','채널과 상품명은 필수입니다.'); return; }
+
+    btn.disabled = true; btn.textContent = '저장 중...';
+    try {
+      await callAppsScript('addASRow', {
+        접수일:  document.getElementById('col-접수일').value,
+        채널:    채널,
+        고객명:  document.getElementById('col-고객명').value.trim(),
+        연락처:  document.getElementById('col-연락처').value.trim(),
+        상품명:  상품명,
+        수량:    1,
+        증상:    증상,
+      });
+      showSuccess('col-success');
+      resetCollectForm();
+      await loadAll();
+    } catch(e) { showError('col-error', e.message); }
+    finally { btn.disabled = false; btn.textContent = '📥 접수 저장'; }
+  }
+}
+
+function resetCollectForm() {
+  ['col-송장','col-주소','col-고객명','col-연락처','col-상품명','col-채널','col-cs','col-비고'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('col-상태확인').value = '';
+  document.getElementById('col-입고일').value  = today;
+  document.getElementById('col-접수일').value  = today;
+  document.getElementById('col-match-result').style.display = 'none';
+  document.getElementById('col-new-warn').style.display = 'none';
+  foundRowIndex = -1;
+}
+
+// ─── 탭3: 처리 대기 목록 ───────────────────────
+function renderPendingList(filter) {
+  if (filter) pendingFilter = filter;
+
+  const pending = allData.filter(r => {
+    const 접수일 = String(r[0]||'');
+    const 구분   = String(r[1]||'').trim();
+    const 완료   = String(r[15]||'').trim();
+    if (!접수일.startsWith('2026')) return false;
+    if (완료 === '완료') return false;
+    if (pendingFilter !== '전체') return 구분 === pendingFilter;
+    return true;
+  });
+
+  const wrap = document.getElementById('process-pending-list');
+
+  if (pending.length === 0) {
+    wrap.innerHTML = '<div style="padding:20px;text-align:center;color:#27AE60;font-size:13px">✅ 처리 대기 건이 없습니다.</div>';
+    return;
+  }
+
+  const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
+  const statusClass = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','처리중':'badge-처리중','완료':'badge-완료'}[s]||'');
+
+  wrap.innerHTML = pending.map(r => {
+    const realIdx = allData.indexOf(r);
+    return `
+    <div class="pending-item" onclick="selectProcessRow(${realIdx})" data-rowidx="${realIdx}" id="pending-${realIdx}">
+      <span style="font-size:11px;color:#888;min-width:82px;flex-shrink:0">${r[0]||''}</span>
+      <span class="badge ${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
+      <span style="font-weight:700;min-width:70px;flex-shrink:0">${r[3]||'(이름없음)'}</span>
+      <span style="color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[5]||'상품미상'}</span>
+      <span style="font-size:11px;color:#888;flex-shrink:0">${r[2]||''}</span>
+      <span class="badge ${statusClass(String(r[15]||'').trim())}" style="flex-shrink:0">${r[15]||''}</span>
+      <span style="background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px;flex-shrink:0">선택 ▶</span>
+    </div>`;
+  }).join('');
+}
+
+function filterPending(filter, btn) {
+  pendingFilter = filter;
+  document.querySelectorAll('#process-pending-wrap .filter-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderPendingList();
+}
+
+function selectProcessRow(rowIdx) {
+  foundRowIndex = rowIdx;
+  const r = allData[rowIdx];
+
+  // 하이라이트
+  document.querySelectorAll('.pending-item').forEach(el => {
+    el.classList.remove('selected');
+    el.style.background = '';
+  });
+  const el = document.getElementById(`pending-${rowIdx}`);
+  if (el) { el.classList.add('selected'); el.style.background = '#D6EAF8'; }
+
+  // 패널 채우기
+  document.getElementById('process-result-text').innerHTML =
+    `<strong>${r[3]||'이름없음'}</strong> | ${r[2]||''} | ${r[5]||'상품미상'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
+
+  document.getElementById('proc-고객명').value   = r[3]  || '';
+  document.getElementById('proc-연락처').value   = r[4]  || '';
+  document.getElementById('proc-채널').value     = r[2]  || '';
+  document.getElementById('proc-상품명').value   = r[5]  || '';
+  document.getElementById('proc-수량').value     = r[6]  || '';
+  document.getElementById('proc-회수송장').value = r[8]  || '';
+  document.getElementById('proc-cs내역').value   = r[11] || '';
+  if (r[10]) document.getElementById('proc-택배입고일').value = r[10];
+  if (r[12]) document.getElementById('proc-상태확인').value  = r[12];
+  if (r[13]) document.getElementById('proc-처리결과').value  = r[13];
+  if (r[14]) document.getElementById('proc-erp').value       = r[14];
+  if (r[17]) document.getElementById('proc-수리비용').value  = r[17];
+  if (r[18]) document.getElementById('proc-입금확인').value  = r[18]; // S열=18
+  if (r[19]) document.getElementById('proc-출고송장').value  = r[19];
+
+  document.getElementById('process-panel').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('process-panel').scrollIntoView({behavior:'smooth', block:'center'});
+  }, 100);
+}
+
+function closeProcessPanel() {
+  document.getElementById('process-panel').style.display = 'none';
+  foundRowIndex = -1;
+  ['proc-고객명','proc-연락처','proc-채널','proc-상품명','proc-수량',
+   'proc-회수송장','proc-cs내역','proc-출고송장','proc-수리비용'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  ['proc-택배입고일','proc-수리완료일','proc-출고일'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  ['proc-상태확인','proc-처리결과','proc-erp','proc-입금확인'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.querySelectorAll('.pending-item').forEach(el => {
+    el.classList.remove('selected'); el.style.background = '';
+  });
+}
+
+async function submitProcess() {
+  if (foundRowIndex < 0) { showError('proc-error','처리할 건을 목록에서 선택해주세요.'); return; }
+
+  const data = {
+    rowIndex:   foundRowIndex,
+    고객명:     document.getElementById('proc-고객명').value.trim(),
+    연락처:     document.getElementById('proc-연락처').value.trim(),
+    채널:       document.getElementById('proc-채널').value.trim(),
+    상품명:     document.getElementById('proc-상품명').value.trim(),
+    수량:       document.getElementById('proc-수량').value,
+    회수송장:   document.getElementById('proc-회수송장').value.trim(),
+    택배입고일: document.getElementById('proc-택배입고일').value,
+    cs내역:     document.getElementById('proc-cs내역').value.trim(),
+    불량여부:   document.getElementById('proc-상태확인').value,
+    처리결과:   document.getElementById('proc-처리결과').value,
+    수리비용:   document.getElementById('proc-수리비용').value,
+    입금확인:   document.getElementById('proc-입금확인').value,
+    수리완료일: document.getElementById('proc-수리완료일').value,
+    출고송장:   document.getElementById('proc-출고송장').value.trim(),
+    출고일:     document.getElementById('proc-출고일').value,
+    erp처리:    document.getElementById('proc-erp').value,
+  };
+
+  try {
+    await callAppsScript('updateAS', data);
+    showSuccess('proc-success');
+    setTimeout(() => closeProcessPanel(), 1500);
+    await loadAll();
+    renderPendingList();
+  } catch(e) { showError('proc-error', e.message); }
+}
+
+// ─── 탭4: 전체 목록 ────────────────────────────
 function searchByDate() {
   customDateFrom = document.getElementById('search-from').value;
   customDateTo   = document.getElementById('search-to').value;
-  if (!customDateFrom || !customDateTo) {
-    alert('시작일과 종료일을 모두 입력해주세요.');
-    return;
-  }
+  if (!customDateFrom || !customDateTo) { alert('시작일과 종료일을 모두 입력해주세요.'); return; }
   renderTable(allData, currentFilter);
 }
 
 function resetDateSearch() {
-  customDateFrom = null;
-  customDateTo   = null;
+  customDateFrom = null; customDateTo = null;
   document.getElementById('search-from').value = '';
   document.getElementById('search-to').value   = '';
   renderTable(allData, currentFilter);
 }
 
+function filterList(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('#tab-list .filter-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTable(allData, filter);
+}
+
 function renderTable(rows, filter) {
-  // 기간 필터 (커스텀 기간 or 최근 90일)
   let filtered;
   if (customDateFrom && customDateTo) {
-    filtered = rows.filter(r => {
-      const 접수일 = String(r[0]||'');
-      return 접수일 >= customDateFrom && 접수일 <= customDateTo;
-    });
+    filtered = rows.filter(r => { const d = String(r[0]||''); return d >= customDateFrom && d <= customDateTo; });
   } else {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 90);
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
     const cutoffStr = cutoff.toISOString().split('T')[0];
-    filtered = rows.filter(r => {
-      const 접수일 = String(r[0]||'');
-      return 접수일 >= cutoffStr;
-    });
+    filtered = rows.filter(r => String(r[0]||'') >= cutoffStr);
   }
 
   if (filter !== '전체') {
     filtered = filtered.filter(r => {
       const 구분 = String(r[1]||'').trim();
       const 완료 = String(r[15]||'').trim();
-      if (filter === '진행중')   return 완료 === '진행중';
-      if (filter === '미처리')   return 완료 !== '완료';
-      if (filter === '입고완료') return 완료 === '입고완료/처리대기';
-      if (filter === '완료')     return 완료 === '완료';
+      if (filter === '미처리') return 완료 !== '완료';
+      if (filter === '완료')   return 완료 === '완료';
       return 구분 === filter;
     });
   }
 
-  const badgeClass = g => {
-    const m = {'반품':'반품','교환':'교환','A/S':'as'};
-    return 'badge badge-' + (m[g]||'');
-  };
-  const statusClass = s => {
-    const m = {'진행중':'진행중','입고완료/처리대기':'입고완료','처리중':'처리중','완료':'완료'};
-    return 'badge badge-' + (m[s]||'');
-  };
+  const badgeClass   = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
+  const statusClass  = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','처리중':'badge-처리중','완료':'badge-완료'}[s]||'');
 
   if (filtered.length === 0) {
-    document.getElementById('list-table').innerHTML =
-      '<div class="empty">해당 건이 없습니다.</div>';
+    document.getElementById('list-table').innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
     return;
   }
 
-  // 2026 / 2025 분리
-  const rows2026 = filtered.filter(r => String(r[0]||'').startsWith('2026'));
-  const rows2025 = filtered.filter(r => !String(r[0]||'').startsWith('2026'));
-
-  const makeCards = (list) => list.map(r => {
+  const makeCards = list => list.map(r => {
     const realIdx = allData.indexOf(r);
     const 완료 = String(r[15]||'').trim();
-    const 클릭가능 = 완료 !== '완료';
-    const cardId = 'card-' + realIdx;
-    const detailId = 'detail-' + realIdx;
+    const detailId = `detail-${realIdx}`;
     return `
     <div style="background:white;border:1px solid #DDE1E7;border-radius:8px;margin-bottom:8px;overflow:hidden">
-      <!-- 요약행 -->
-      <div style="display:flex;align-items:center;padding:10px 14px;gap:10px;cursor:pointer"
-           onclick="toggleDetail('${detailId}')">
+      <div style="display:flex;align-items:center;padding:10px 14px;gap:10px;cursor:pointer" onclick="toggleDetail('${detailId}')">
         <span style="white-space:nowrap;font-size:12px;color:#888;min-width:82px">${r[0]||''}</span>
-        <span class="${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
+        <span class="badge ${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
         <span style="white-space:nowrap;font-size:13px;font-weight:600;min-width:80px">${r[3]||'(이름없음)'}</span>
         <span style="color:#555;font-size:12px;flex:1">${r[5]||'상품미상'}</span>
         <span style="font-size:11px;color:#888;white-space:nowrap">${r[8]||''}</span>
-        <span class="${statusClass(완료)}" style="white-space:nowrap">${완료}</span>
-        ${클릭가능 ? `<button onclick="event.stopPropagation();openListEdit(${realIdx})"
-          style="background:#2980B9;color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">수정 ▶</button>` : ''}
+        <span class="badge ${statusClass(완료)}" style="white-space:nowrap">${완료}</span>
+        ${완료 !== '완료' ? `<button onclick="event.stopPropagation();openFromList(${realIdx})"
+          style="background:#2980B9;color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">처리 ▶</button>` : ''}
         <span style="color:#aaa;font-size:11px">▼</span>
       </div>
-      <!-- 상세 (접힘) -->
       <div id="${detailId}" style="display:none;padding:10px 14px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
           <div><span style="color:#888">채널:</span> ${r[2]||'-'}</div>
@@ -1044,7 +1254,7 @@ function renderTable(rows, filter) {
           <div><span style="color:#888">주문번호:</span> ${r[7]||'-'}</div>
           <div><span style="color:#888">택배접수일:</span> ${r[9]||'-'}</div>
           <div><span style="color:#888">택배입고일:</span> ${r[10]||'-'}</div>
-          <div><span style="color:#888">불량여부:</span> ${r[12]||'-'}</div>
+          <div><span style="color:#888">상태확인:</span> ${r[12]||'-'}</div>
           <div><span style="color:#888">처리결과:</span> ${r[13]||'-'}</div>
           <div><span style="color:#888">ERP처리:</span> ${r[14]||'-'}</div>
           <div><span style="color:#888">비고:</span> ${r[16]||'-'}</div>
@@ -1054,489 +1264,26 @@ function renderTable(rows, filter) {
     </div>`;
   }).join('');
 
-  const makeRows = makeCards;
-
-  const thead = `
-    <thead>
-      <tr>
-        <th>접수일</th><th>구분</th><th>채널</th><th>고객명</th><th>연락처</th>
-        <th>상품명</th><th>수량</th><th>주문번호</th><th>회수송장</th>
-        <th>택배접수일</th><th>택배입고일</th><th>CS내역/증상</th>
-        <th>불량여부</th><th>처리결과</th><th>ERP</th><th>완료여부</th><th>비고</th><th></th>
-      </tr>
-    </thead>`;
-
-  const html = `
-  <div style="padding:10px 16px;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center">
-    <span>${customDateFrom && customDateTo ? customDateFrom + ' ~ ' + customDateTo : '최근 90일'} — 총 ${filtered.length}건</span>
-    <span style="color:#2980B9;font-size:11px">미완료 행 클릭 시 수정 가능</span>
-  </div>
-  <div style="overflow-x:auto">
-  <table style="min-width:1400px">
-    ${thead}
-    <tbody>
-      ${rows2026.length > 0 ? `
-      <tr>
-        <td colspan="17" style="background:#E8F4FD;font-weight:700;font-size:12px;padding:8px 12px;color:#1F4E79">
-          📅 2026년 — ${rows2026.length}건
-        </td>
-      </tr>
-      ${makeRows(rows2026)}` : ''}
-
-    </tbody>
-  </table>
-  </div>`;
-
-  document.getElementById('list-table').innerHTML = html;
-}
-
-function toggle2025() {
-  const tbody = document.getElementById('rows-2025');
-  const icon  = document.getElementById('toggle-2025-icon');
-  const row   = document.getElementById('toggle-2025-row');
-  if (tbody.style.display === 'none') {
-    tbody.style.display = '';
-    icon.textContent = '▼';
-    row.querySelector('td').innerHTML = row.querySelector('td').innerHTML.replace('펼치기','접기');
-  } else {
-    tbody.style.display = 'none';
-    icon.textContent = '▶';
-    row.querySelector('td').innerHTML = row.querySelector('td').innerHTML.replace('접기','펼치기');
-  }
-}
-
-function filterList(filter) {
-  currentFilter = filter;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-  if (event && event.target) event.target.classList.add('active');
-  renderTable(allData, filter);
-}
-
-function showTab(tab, filter) {
-  ['dashboard','delivery','as','list'].forEach(t => {
-    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  const idx = ['dashboard','delivery','as','list'].indexOf(tab);
-  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
-  if (tab === 'list') {
-    if (filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-      renderTable(allData, filter);
-    } else {
-      renderTable(allData, currentFilter);
-    }
-  }
-  if (tab === 'as') renderASPending();
+  document.getElementById('list-table').innerHTML = `
+    <div style="padding:10px 16px;font-size:12px;color:#888;display:flex;justify-content:space-between">
+      <span>${customDateFrom && customDateTo ? customDateFrom+' ~ '+customDateTo : '최근 90일'} — 총 ${filtered.length}건</span>
+      <span style="color:#2980B9;font-size:11px">미완료 행 → 처리 ▶ 버튼</span>
+    </div>
+    <div style="padding:0 16px 16px">${makeCards(filtered)}</div>`;
 }
 
 function toggleDetail(id) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
-function openListEdit(rowIdx) {
-  // 전체목록에서 행 클릭 → A/S 처리 입력 탭으로 이동 + 해당 건 선택
-  showTab('as', null);
-  renderASPending(null);  // 전체 미완료 목록 표시
-  setTimeout(() => {
-    selectASRow(rowIdx);
-  }, 200);
+function openFromList(rowIdx) {
+  showTab('process');
+  setTimeout(() => selectProcessRow(rowIdx), 200);
 }
 
-function goToList(filter) {
-  // 반품 카드 클릭 시 미입고(진행중) 반품/교환만 필터
-  if (filter === '반품') {
-    showTab('list', null);
-    // 진행중인 반품/교환만 표시
-    const filtered = allData.filter(r => {
-      const 구분 = String(r[1]||'').trim();
-      const 완료 = String(r[15]||'').trim();
-      return (구분 === '반품' || 구분 === '교환') && 완료 === '진행중';
-    });
-    renderFilteredDirect(filtered, '🔴 회수 미입고 (진행중)');
-    return;
-  }
-  showTab('list', filter);
-}
-
-function renderFilteredDirect(filtered, title) {
-  // 직접 렌더링
-  currentFilter = '전체';
-  const wrap = document.getElementById('list-table');
-  if (filtered.length === 0) {
-    wrap.innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
-    return;
-  }
-  // renderTable과 동일하게 렌더링
-  renderTable(filtered, '전체');
-}
-
-function goToAS(type) {
-  showTab('as', null);
-  renderASPending(type);
-}
-
-function renderASPending(type) {
-  // 미처리 A/S 건 목록 표시 (타입별 필터, 2026년만)
-  const pending = allData.filter(r => {
-    const 접수일 = String(r[0]||'');
-    const 구분   = String(r[1]||'').trim();
-    const 완료   = String(r[15]||'').trim();
-    if (!접수일.startsWith('2026')) return false;  // 2026년만
-    if (구분 !== 'A/S') return false;
-    if (완료 === '완료') return false;
-
-    // 타입별 필터
-    if (type === '상담접수') return 완료 === '진행중';
-    if (type === '처리중')   return 완료 === '입고완료/처리대기' || 완료 === '처리중';
-    if (type === '입금확인') return true;
-    return true; // 타입 없으면 2026년 전체 미완료
-  });
-
-  if (pending.length === 0) {
-    document.getElementById('as-pending-list').innerHTML =
-      '<div style="font-size:12px;color:#27AE60;padding:8px 0">✅ 처리 대기 중인 A/S 건이 없습니다.</div>';
-    return;
-  }
-
-  const typeLabel = type === '상담접수' ? '📞 상담접수(미입고)' :
-                    type === '처리중'   ? '🔧 입고/처리중' :
-                    type === '입금확인' ? '💰 입금확인 필요' : '전체 미완료';
-
-  const html = `
-  <div style="font-size:12px;font-weight:700;color:#1F4E79;margin-bottom:8px">
-    📋 처리 대기 A/S 건 [${typeLabel}] — ${pending.length}건 (클릭하면 아래 입력창에 자동 입력)
-  </div>
-  <div style="border:1px solid #DDE1E7;border-radius:6px;overflow:hidden">
-  ${pending.map((r, i) => {
-    const realIdx = allData.indexOf(r);
-    return `
-    <div class="as-pending-item" onclick="selectASRow(${realIdx})" data-rowidx="${realIdx}"
-         style="padding:10px 14px;border-bottom:1px solid #F0F0F0;cursor:pointer;
-                background:${i%2===0?'#fff':'#F8FAFC'};font-size:12px;transition:background 0.15s">
-      <span style="font-weight:700;color:#1F4E79">${r[3]||'(이름없음)'}</span>
-      <span style="margin:0 6px;color:#aaa">|</span>
-      <span style="color:#555">${r[2]||''}</span>
-      <span style="margin:0 6px;color:#aaa">|</span>
-      <span style="font-weight:600">${r[5]||'상품미상'}</span>
-      <span style="margin:0 6px;color:#aaa">|</span>
-      <span style="color:#888;font-size:11px">${r[8]||'송장없음'}</span>
-      <span style="margin:0 6px;color:#aaa">|</span>
-      <span style="color:#E67E22;font-weight:600">${r[15]||''}</span>
-      <span style="float:right;background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px">선택 ▶</span>
-    </div>`;
-  }).join('')}
-  </div>`;
-  document.getElementById('as-pending-list').innerHTML = html;
-}
-
-function selectASRow(rowIdx) {
-  foundRowIndex = rowIdx;
-  const r = allData[rowIdx];
-
-  // 주문번호/송장번호 입력창 채우기
-  document.getElementById('as-search-주문번호').value = r[7] || '';
-  document.getElementById('as-search-송장').value     = r[8] || '';
-
-  // 기존 값 자동 채우기
-  document.getElementById('as-edit-고객명').value  = r[3]  || '';
-  document.getElementById('as-edit-연락처').value  = r[4]  || '';
-  document.getElementById('as-edit-채널').value    = r[2]  || '';
-  document.getElementById('as-edit-상품명').value  = r[5]  || '';
-  document.getElementById('as-edit-수량').value    = r[6]  || '';
-  document.getElementById('as-회수송장').value     = r[8]  || '';
-  document.getElementById('as-cs내역').value       = r[11] || '';
-  if (r[10]) document.getElementById('as-택배입고일').value = r[10];
-  if (r[12]) document.getElementById('as-불량').value      = r[12];
-  if (r[13]) document.getElementById('as-처리결과').value  = r[13];
-  if (r[17]) document.getElementById('as-수리비용').value  = r[17];
-  if (r[19]) document.getElementById('as-입금확인').value  = r[19];
-  if (r[20]) document.getElementById('as-출고송장').value  = r[20];
-
-  // 결과 표시
-  document.getElementById('as-result-text').innerHTML =
-    `<strong>${r[3]||'이름없음'}</strong> | ${r[2]||''} | ${r[5]||'상품미상'} | 송장: ${r[8]||'-'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
-
-  // 패널 열기
-  document.getElementById('as-selected-panel').style.display = 'block';
-
-  // 선택된 행 하이라이트
-  document.querySelectorAll('.as-pending-item').forEach(el => {
-    el.style.background = '';
-    el.style.outline = '';
-  });
-  const selectedEl = document.querySelectorAll('.as-pending-item')[
-    document.querySelectorAll('.as-pending-item.selected').length
-  ];
-  // 모든 항목 초기화 후 선택 항목 표시
-  document.querySelectorAll('.as-pending-item').forEach(el => el.classList.remove('selected'));
-  const allItems = document.querySelectorAll('.as-pending-item');
-  // rowIdx로 해당 아이템 찾기
-  allItems.forEach(el => {
-    if (el.dataset.rowidx == rowIdx) {
-      el.style.background = '#D6EAF8';
-      el.style.outline = '2px solid #2980B9';
-    }
-  });
-
-  // 패널로 스크롤
-  setTimeout(() => {
-    document.getElementById('as-selected-panel').scrollIntoView({behavior:'smooth', block:'center'});
-  }, 100);
-}
-
-function closeASPanel() {
-  document.getElementById('as-selected-panel').style.display = 'none';
-  foundRowIndex = -1;
-  document.getElementById('as-search-주문번호').value = '';
-  document.getElementById('as-search-송장').value = '';
-  document.getElementById('as-처리결과').value = '';
-  document.getElementById('as-불량').value = '';
-  document.getElementById('as-수리완료일').value = '';
-  ['as-edit-고객명','as-edit-연락처','as-edit-채널','as-edit-상품명',
-   'as-edit-수량','as-회수송장','as-cs내역','as-출고송장'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('as-택배입고일').value = '';
-  document.getElementById('as-출고일').value     = '';
-  document.getElementById('as-수리완료일').value  = '';
-  document.getElementById('as-수리비용').value   = '';
-  document.getElementById('as-불량').value       = '';
-  document.getElementById('as-처리결과').value   = '';
-  document.getElementById('as-입금확인').value   = '';
-  document.querySelectorAll('.as-pending-item').forEach(el => {
-    el.style.background = '';
-    el.style.outline = '';
-  });
-}
-
-function searchBySongJangAS() {
-  const 송장raw = document.getElementById('as-search-송장').value.trim();
-  const 송장 = 송장raw.replace(/-/g,'');
-  if (송장.length < 4) {
-    document.getElementById('as-result').style.display = 'none';
-    return;
-  }
-
-  // 회수송장(I열=r[8]) 또는 출고송장(T열=r[19]) 모두 검색
-  let found = -1;
-  let 매칭종류 = '';
-
-  found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장);
-  if (found >= 0) {
-    매칭종류 = '회수송장';
-  } else {
-    found = allData.findIndex(r => String(r[19]||'').replace(/-/g,'') === 송장);
-    if (found >= 0) 매칭종류 = '출고송장';
-  }
-
-  if (found >= 0) {
-    foundRowIndex = found;
-    const r = allData[found];
-
-    // 해당 란에 자동 표시
-    if (매칭종류 === '회수송장') {
-      document.getElementById('as-회수송장').value = r[8] || '';
-    } else {
-      document.getElementById('as-출고송장').value = r[19] || '';
-    }
-
-    document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').innerHTML =
-      `✅ 매칭됨 (${매칭종류}): <strong>${r[3]||'이름없음'}</strong> | ${r[5]||''} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
-  } else {
-    document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').textContent = '⚠️ 회수송장/출고송장 모두 찾을 수 없습니다';
-  }
-}
-
-function searchBySongJang() {
-  const 송장 = document.getElementById('delivery-송장').value.trim();
-  if (송장.length < 4) {
-    document.getElementById('delivery-result').style.display = 'none';
-    document.getElementById('delivery-new-row').style.display = 'none';
-    return;
-  }
-  const found = allData.findIndex(r => String(r[8]||'').replace(/-/g,'') === 송장.replace(/-/g,''));
-  if (found >= 0) {
-    foundRowIndex = found;
-    const r = allData[found];
-    document.getElementById('delivery-result').style.display = 'block';
-    document.getElementById('delivery-result-text').textContent =
-      `✅ 매칭됨: [${r[1]}] ${r[2]} | ${r[5]} | 주문번호: ${r[7]}`;
-    document.getElementById('delivery-new-row').style.display = 'none';
-    // 기존 데이터에서 고객명/연락처 자동 채우기
-    if (r[3]) document.getElementById('delivery-보내는분').value = r[3];
-    if (r[4]) document.getElementById('delivery-연락처').value = r[4];
-  } else {
-    foundRowIndex = -1;
-    document.getElementById('delivery-result').style.display = 'block';
-    document.getElementById('delivery-result-text').textContent = '⚠️ 기존 회수 건 없음 → 신규 건으로 추가';
-    document.getElementById('delivery-new-row').style.display = 'block';
-  }
-}
-
-function searchByOrderNum() {
-  const 주문번호 = document.getElementById('as-search-주문번호').value.trim();
-  if (주문번호.length < 4) {
-    document.getElementById('as-result').style.display = 'none';
-    return;
-  }
-  const found = allData.findIndex(r => String(r[7]||'').trim() === 주문번호);
-  if (found >= 0) {
-    foundRowIndex = found;
-    const r = allData[found];
-    document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').textContent =
-      `[${r[1]}] ${r[2]} | ${r[5]} | 완료여부: ${r[15]}`;
-  } else {
-    document.getElementById('as-result').style.display = 'block';
-    document.getElementById('as-result-text').textContent = '⚠️ 주문번호를 찾을 수 없습니다';
-  }
-}
-
-// 저장 함수들 — Claude API 통해 Apps Script로 전달
-async function submitDelivery() {
-  const 송장   = document.getElementById('delivery-송장').value.trim();
-  const 입고일  = document.getElementById('delivery-입고일').value;
-  const 불량   = document.getElementById('delivery-불량').value;
-  const cs    = document.getElementById('delivery-cs').value.trim();
-  const 비고   = document.getElementById('delivery-비고').value.trim();
-  const 보내는분 = document.getElementById('delivery-보내는분').value.trim();
-  const 연락처  = document.getElementById('delivery-연락처').value.trim();
-  const 주소   = document.getElementById('delivery-주소').value.trim();
-  const 구분   = document.getElementById('delivery-구분').value;
-  const 채널   = document.getElementById('delivery-채널').value.trim();
-  const 상품명  = document.getElementById('delivery-상품명').value.trim();
-
-  if (!송장 || !입고일) {
-    showError('delivery-error', '송장번호와 입고일을 입력해주세요.');
-    return;
-  }
-
-  const btn = document.getElementById('delivery-btn');
-  btn.disabled = true;
-  btn.textContent = '저장 중...';
-
-  try {
-    await callAppsScript('updateDelivery', {
-      송장번호:   송장,
-      택배입고일: 입고일,
-      불량여부:  불량,
-      CS내역:   cs,
-      비고:     비고,
-      고객명:   보내는분,
-      연락처:   연락처,
-      주소:     주소,
-      구분:     구분,
-      채널:     채널,
-      상품명:   상품명,
-      rowIndex: foundRowIndex,
-    });
-    showSuccess('delivery-success');
-    // 입력창 초기화
-    ['delivery-송장','delivery-cs','delivery-비고','delivery-보내는분',
-     'delivery-연락처','delivery-주소','delivery-채널','delivery-상품명'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    document.getElementById('delivery-불량').value = '';
-    document.getElementById('delivery-result').style.display = 'none';
-    document.getElementById('delivery-new-row').style.display = 'none';
-    await loadAll();
-  } catch(e) {
-    showError('delivery-error', e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '입고 처리 저장';
-  }
-}
-
-async function submitASNew() {
-  const data = {
-    접수일:  document.getElementById('as-접수일').value,
-    채널:    document.getElementById('as-채널').value.trim(),
-    고객명:  document.getElementById('as-고객명').value.trim(),
-    연락처:  document.getElementById('as-연락처').value.trim(),
-    상품명:  document.getElementById('as-상품명').value.trim(),
-    수량:    document.getElementById('as-수량').value,
-    증상:    document.getElementById('as-증상').value.trim(),
-  };
-
-  if (!data.채널 || !data.상품명 || !data.증상) {
-    showError('as-new-error', '채널, 상품명, 증상은 필수 입력입니다.');
-    return;
-  }
-
-  try {
-    await callAppsScript('addASRow', data);
-    showSuccess('as-new-success');
-    document.getElementById('as-채널').value = '';
-    document.getElementById('as-고객명').value = '';
-    document.getElementById('as-연락처').value = '';
-    document.getElementById('as-상품명').value = '';
-    document.getElementById('as-증상').value = '';
-    await loadAll();
-    renderASPending(); // 목록 즉시 갱신
-  } catch(e) {
-    showError('as-new-error', e.message);
-  }
-}
-
-async function submitASUpdate() {
-  const 주문번호 = document.getElementById('as-search-주문번호').value.trim();
-  const data = {
-    rowIndex:   foundRowIndex,
-    주문번호:   주문번호,
-    고객명:     document.getElementById('as-edit-고객명').value.trim(),
-    연락처:     document.getElementById('as-edit-연락처').value.trim(),
-    채널:       document.getElementById('as-edit-채널').value.trim(),
-    상품명:     document.getElementById('as-edit-상품명').value.trim(),
-    수량:       document.getElementById('as-edit-수량').value,
-    회수송장:   document.getElementById('as-회수송장').value.trim(),
-    택배입고일: document.getElementById('as-택배입고일').value,
-    cs내역:     document.getElementById('as-cs내역').value.trim(),
-    불량여부:   document.getElementById('as-불량').value,
-    처리결과:   document.getElementById('as-처리결과').value,
-    수리비용:   document.getElementById('as-수리비용').value,
-    입금확인:   document.getElementById('as-입금확인').value,
-    수리완료일: document.getElementById('as-수리완료일').value,
-    출고송장:   document.getElementById('as-출고송장').value.trim(),
-    출고일:     document.getElementById('as-출고일').value,
-  };
-
-  // 처리결과 없어도 저장 가능 (중간 저장 허용)
-  const hasAnyInput = Object.entries(data).some(([k,v]) =>
-    k !== 'rowIndex' && k !== '주문번호' && v !== '' && v !== null
-  );
-  if (!hasAnyInput) {
-    showError('as-update-error', '수정할 내용을 입력해주세요.');
-    return;
-  }
-
-  try {
-    await callAppsScript('updateAS', data);
-    showSuccess('as-update-success');
-    setTimeout(() => closeASPanel(), 1500);
-    await loadAll();
-    renderASPending();
-  } catch(e) {
-    showError('as-update-error', e.message);
-  }
-}
-
-// Google Apps Script 호출
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytxL0YEyuf5umDo5xWJPLYM24ba_rUCeuyHgEs2MPh2DHMxK28qNcNmXTTEeddS6EylQ/exec'; // ← 나중에 교체
-
+// ─── Apps Script 호출 ──────────────────────────
 async function callAppsScript(action, data) {
-  if (false) {
-    // 테스트 모드: 실제 저장 없이 성공 처리
-    console.log('Apps Script 호출 (테스트):', action, data);
-    await new Promise(r => setTimeout(r, 500));
-    return { success: true };
-  }
   const res = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
     body: JSON.stringify({ action, data }),
@@ -1551,7 +1298,6 @@ function showSuccess(id) {
   el.style.display = 'block';
   setTimeout(() => { el.style.display = 'none'; }, 3000);
 }
-
 function showError(id, msg) {
   const el = document.getElementById(id);
   el.textContent = '❌ ' + msg;
