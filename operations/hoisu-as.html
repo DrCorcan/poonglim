@@ -421,12 +421,12 @@
           <div class="card-num orange" id="cnt-처리결정">-</div>
           <div class="card-desc">처리결과 선택 필요</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('처리완료')">
           <div class="card-label">✅ 처리완료<br>(ERP까지)</div>
           <div class="card-num green" id="cnt-처리완료">-</div>
           <div class="card-desc">ERP 처리 완료</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('전체반품')">
           <div class="card-label">📊 26년<br>전체</div>
           <div class="card-num dark" id="cnt-전체반품">-</div>
           <div class="card-desc"></div>
@@ -446,17 +446,17 @@
           <div class="card-num blue" id="cnt-as처리중">-</div>
           <div class="card-desc">수리 진행중</div>
         </div>
-        <div class="card" onclick="goToProcess('입금')">
+        <div class="card" onclick="goToList('AS입금')">
           <div class="card-label">💰 입금확인<br>필요</div>
           <div class="card-num orange" id="cnt-as입금">-</div>
           <div class="card-desc">확인 후 출고</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('AS완료')">
           <div class="card-label">✅ 완료</div>
           <div class="card-num green" id="cnt-as완료">-</div>
           <div class="card-desc">출고 완료</div>
         </div>
-        <div class="card">
+        <div class="card" onclick="goToList('AS전체')">
           <div class="card-label">📊 전체</div>
           <div class="card-num gray" id="cnt-as전체">-</div>
           <div class="card-desc"></div>
@@ -476,7 +476,7 @@
           <div class="card-num orange" id="todo-erp">-</div>
           <div class="card-desc">ERP 처리 필요 ▶</div>
         </div>
-        <div class="card" onclick="goToProcess('입금')">
+        <div class="card" onclick="goToList('AS입금')">
           <div class="card-label">💰 AS 입금확인</div>
           <div class="card-num orange" id="todo-입금">-</div>
           <div class="card-desc">입금 확인 후 출고 ▶</div>
@@ -927,13 +927,19 @@ function showTab(tab) {
 function goToList(filter) {
   currentFilter = filter || '전체';
   showTab('list');
+  // 필터 버튼 활성화 (탭 내 버튼과 매핑)
+  const btnMap = {'전체':'전체','미처리':'미처리','반품':'반품','교환':'교환','A/S':'A/S','완료':'완료'};
+  const btnLabel = btnMap[filter] || null;
+  document.querySelectorAll('#tab-list .filter-tab').forEach(t => {
+    t.classList.toggle('active', btnLabel && t.textContent.trim() === btnLabel);
+  });
   renderTable(allData, currentFilter);
 }
 
 function goToProcess(type) {
   showTab('process');
-  pendingFilter = type === '상담' ? 'A/S' : type === '처리중' ? 'A/S' : '전체';
-  renderPendingList();
+  pendingFilter = (type === '상담' || type === '처리중' || type === '입금') ? 'A/S' : '전체';
+  renderPendingList(type);
 }
 
 // ─── 탭2: 토글 (택배입고 / 상담접수) ──────────
@@ -1047,16 +1053,21 @@ function resetCollectForm() {
 }
 
 // ─── 탭3: 처리 대기 목록 ───────────────────────
-function renderPendingList(filter) {
-  if (filter) pendingFilter = filter;
-
+function renderPendingList(type) {
   const pending = allData.filter(r => {
-    const 접수일 = String(r[0]||'');
-    const 구분   = String(r[1]||'').trim();
-    const 완료   = String(r[15]||'').trim();
+    const 접수일  = String(r[0]||'');
+    const 구분    = String(r[1]||'').trim();
+    const 완료    = String(r[15]||'').trim();
+    const 입금확인 = String(r[18]||'').trim();
     if (!접수일.startsWith('2026')) return false;
     if (완료 === '완료') return false;
-    if (pendingFilter !== '전체') return 구분 === pendingFilter;
+
+    if (pendingFilter !== '전체' && 구분 !== pendingFilter) return false;
+
+    // type별 세부 필터
+    if (type === '상담')   return 완료 === '진행중';
+    if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '처리중';
+    if (type === '입금')   return 입금확인 === '미확인';
     return true;
   });
 
@@ -1213,10 +1224,22 @@ function renderTable(rows, filter) {
 
   if (filter !== '전체') {
     filtered = filtered.filter(r => {
-      const 구분 = String(r[1]||'').trim();
-      const 완료 = String(r[15]||'').trim();
-      if (filter === '미처리') return 완료 !== '완료';
-      if (filter === '완료')   return 완료 === '완료';
+      const 구분   = String(r[1]||'').trim();
+      const 완료   = String(r[15]||'').trim();
+      const erp    = String(r[14]||'').trim();
+      const 입금확인 = String(r[18]||'').trim();
+      // 완료여부 기반
+      if (filter === '진행중')   return (구분==='반품'||구분==='교환') && 완료==='진행중';
+      if (filter === '입고완료') return (구분==='반품'||구분==='교환') && 완료==='입고완료/처리대기';
+      if (filter === '처리완료') return (구분==='반품'||구분==='교환') && 완료==='완료' && erp==='Y';
+      if (filter === '전체반품') return 구분==='반품' || 구분==='교환';
+      // A/S 기반
+      if (filter === 'AS완료')   return 구분==='A/S' && 완료==='완료';
+      if (filter === 'AS전체')   return 구분==='A/S';
+      if (filter === 'AS입금')   return 구분==='A/S' && 입금확인==='미확인';
+      // 일반
+      if (filter === '미처리')   return 완료 !== '완료';
+      if (filter === '완료')     return 완료 === '완료';
       return 구분 === filter;
     });
   }
