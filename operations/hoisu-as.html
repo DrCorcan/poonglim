@@ -673,9 +673,40 @@
 
         <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
 
-        <!-- ① 입고 정보 -->
-        <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:6px;padding:4px 8px;background:#F0F0F0;border-radius:4px">
-          📦 입고 정보
+        <!-- ① 기본 정보 수정 -->
+        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#2C3E50;border-radius:4px">
+          👤 기본 정보 (수정 가능)
+        </div>
+        <div class="form-row three">
+          <div>
+            <label>고객명</label>
+            <input type="text" id="as-edit-고객명" placeholder="이름 수정">
+          </div>
+          <div>
+            <label>연락처</label>
+            <input type="text" id="as-edit-연락처" placeholder="010-0000-0000">
+          </div>
+          <div>
+            <label>채널(거래처)</label>
+            <input type="text" id="as-edit-채널" placeholder="거래처명">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>상품명/모델명</label>
+            <input type="text" id="as-edit-상품명" placeholder="예: PFW-901">
+          </div>
+          <div>
+            <label>수량</label>
+            <input type="number" id="as-edit-수량" placeholder="1" min="1">
+          </div>
+        </div>
+
+        <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
+
+        <!-- ② 입고 확인 -->
+        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#2E75B6;border-radius:4px">
+          📦 입고 확인
         </div>
         <div class="form-row three">
           <div>
@@ -692,20 +723,26 @@
             </select>
           </div>
           <div>
-            <label>수리완료일</label>
-            <input type="date" id="as-수리완료일">
+            <label>택배입고일</label>
+            <input type="date" id="as-택배입고일">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div>
+            <label>CS내역 / 증상</label>
+            <textarea id="as-cs내역" placeholder="고객 증상, 불량 내용 등" style="min-height:60px"></textarea>
           </div>
         </div>
 
         <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
 
-        <!-- ② 처리 결과 -->
-        <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:6px;padding:4px 8px;background:#F0F0F0;border-radius:4px">
+        <!-- ③ 처리 결과 -->
+        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#E67E22;border-radius:4px">
           🔧 처리 결과
         </div>
         <div class="form-row three">
           <div>
-            <label>처리결과 <span>*</span></label>
+            <label>처리결과</label>
             <select id="as-처리결과">
               <option value="">선택</option>
               <option>수리발송</option>
@@ -718,7 +755,7 @@
           </div>
           <div>
             <label>수리비용</label>
-            <input type="number" id="as-수리비용" placeholder="0">
+            <input type="number" id="as-수리비용" placeholder="0 (무상이면 비워둠)">
           </div>
           <div>
             <label>입금확인</label>
@@ -730,11 +767,17 @@
             </select>
           </div>
         </div>
+        <div class="form-row full">
+          <div>
+            <label>수리완료일</label>
+            <input type="date" id="as-수리완료일">
+          </div>
+        </div>
 
         <div style="height:1px;background:#BDE0FF;margin:12px 0"></div>
 
-        <!-- ③ 출고 정보 -->
-        <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:6px;padding:4px 8px;background:#F0F0F0;border-radius:4px">
+        <!-- ④ 출고 정보 -->
+        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:8px;padding:5px 10px;background:#27AE60;border-radius:4px">
           🚚 출고 정보 (수리발송/교환발송 시)
         </div>
         <div class="form-row">
@@ -1199,12 +1242,19 @@ function selectASRow(rowIdx) {
   document.getElementById('as-search-송장').value     = r[8] || '';
 
   // 기존 값 자동 채우기
-  if (r[8])  document.getElementById('as-회수송장').value   = r[8];   // 회수송장
-  if (r[12]) document.getElementById('as-불량').value       = r[12];
-  if (r[13]) document.getElementById('as-처리결과').value   = r[13];
-  if (r[19]) document.getElementById('as-입금확인').value   = r[19];
-  if (r[20]) document.getElementById('as-출고송장').value   = r[20];
-  if (r[17]) document.getElementById('as-수리비용').value   = r[17];
+  document.getElementById('as-edit-고객명').value  = r[3]  || '';
+  document.getElementById('as-edit-연락처').value  = r[4]  || '';
+  document.getElementById('as-edit-채널').value    = r[2]  || '';
+  document.getElementById('as-edit-상품명').value  = r[5]  || '';
+  document.getElementById('as-edit-수량').value    = r[6]  || '';
+  document.getElementById('as-회수송장').value     = r[8]  || '';
+  document.getElementById('as-cs내역').value       = r[11] || '';
+  if (r[10]) document.getElementById('as-택배입고일').value = r[10];
+  if (r[12]) document.getElementById('as-불량').value      = r[12];
+  if (r[13]) document.getElementById('as-처리결과').value  = r[13];
+  if (r[17]) document.getElementById('as-수리비용').value  = r[17];
+  if (r[19]) document.getElementById('as-입금확인').value  = r[19];
+  if (r[20]) document.getElementById('as-출고송장').value  = r[20];
 
   // 결과 표시
   document.getElementById('as-result-text').innerHTML =
@@ -1246,11 +1296,17 @@ function closeASPanel() {
   document.getElementById('as-처리결과').value = '';
   document.getElementById('as-불량').value = '';
   document.getElementById('as-수리완료일').value = '';
-  document.getElementById('as-회수송장').value = '';
-  document.getElementById('as-출고송장').value  = '';
-  document.getElementById('as-출고일').value    = '';
-  document.getElementById('as-수리비용').value  = '';
-  document.getElementById('as-입금확인').value  = '';
+  ['as-edit-고객명','as-edit-연락처','as-edit-채널','as-edit-상품명',
+   'as-edit-수량','as-회수송장','as-cs내역','as-출고송장'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('as-택배입고일').value = '';
+  document.getElementById('as-출고일').value     = '';
+  document.getElementById('as-수리완료일').value  = '';
+  document.getElementById('as-수리비용').value   = '';
+  document.getElementById('as-불량').value       = '';
+  document.getElementById('as-처리결과').value   = '';
+  document.getElementById('as-입금확인').value   = '';
   document.querySelectorAll('.as-pending-item').forEach(el => {
     el.style.background = '';
     el.style.outline = '';
@@ -1432,20 +1488,31 @@ async function submitASNew() {
 async function submitASUpdate() {
   const 주문번호 = document.getElementById('as-search-주문번호').value.trim();
   const data = {
+    rowIndex:   foundRowIndex,
     주문번호:   주문번호,
-    처리결과:   document.getElementById('as-처리결과').value,
-    불량여부:   document.getElementById('as-불량').value,
-    수리완료일: document.getElementById('as-수리완료일').value,
+    고객명:     document.getElementById('as-edit-고객명').value.trim(),
+    연락처:     document.getElementById('as-edit-연락처').value.trim(),
+    채널:       document.getElementById('as-edit-채널').value.trim(),
+    상품명:     document.getElementById('as-edit-상품명').value.trim(),
+    수량:       document.getElementById('as-edit-수량').value,
     회수송장:   document.getElementById('as-회수송장').value.trim(),
-    출고송장:   document.getElementById('as-출고송장').value.trim(),
-    출고일:     document.getElementById('as-출고일').value,
+    택배입고일: document.getElementById('as-택배입고일').value,
+    cs내역:     document.getElementById('as-cs내역').value.trim(),
+    불량여부:   document.getElementById('as-불량').value,
+    처리결과:   document.getElementById('as-처리결과').value,
     수리비용:   document.getElementById('as-수리비용').value,
     입금확인:   document.getElementById('as-입금확인').value,
-    rowIndex:   foundRowIndex,
+    수리완료일: document.getElementById('as-수리완료일').value,
+    출고송장:   document.getElementById('as-출고송장').value.trim(),
+    출고일:     document.getElementById('as-출고일').value,
   };
 
-  if (!data.처리결과) {
-    showError('as-update-error', '처리결과를 선택해주세요.');
+  // 처리결과 없어도 저장 가능 (중간 저장 허용)
+  const hasAnyInput = Object.entries(data).some(([k,v]) =>
+    k !== 'rowIndex' && k !== '주문번호' && v !== '' && v !== null
+  );
+  if (!hasAnyInput) {
+    showError('as-update-error', '수정할 내용을 입력해주세요.');
     return;
   }
 
