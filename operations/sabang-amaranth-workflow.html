@@ -104,6 +104,21 @@
 
   code { font-family: 'Menlo','Consolas',monospace; font-size: 12px; background: #F1EFE8; padding: 2px 6px; border-radius: 4px; color: #3C3489; }
 
+  /* 현황판 바로가기 버튼 */
+  .portal-btn {
+    display: inline-block;
+    background: #1F4E79;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 14px;
+    transition: opacity 0.15s;
+  }
+  .portal-btn:hover { opacity: 0.85; }
+
   .gap-arrow { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
   footer { text-align: center; margin-top: 48px; font-size: 12px; color: #B4B2A9; }
@@ -113,7 +128,7 @@
 
 <header>
   <h1>풍림전자 — 사방넷/아마란스 사무 자동화 업무 흐름도</h1>
-  <p>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다 &nbsp;·&nbsp; v10 (2026년 6월)</p>
+  <p>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다 &nbsp;·&nbsp; v11 (2026년 6월)</p>
 </header>
 
 <div class="flow">
@@ -167,7 +182,7 @@
         <div class="table-wrap">
           <table>
             <tr><th>기능</th><th>내용</th></tr>
-            <tr><td>발주서 주문번호 우선 적용</td><td>발주서에 주문번호가 있으면 그 값 사용 (★ 표시) / 없으면 자동생성. 매핑테이블 <code>P_주문번호</code> 컬럼으로 관리</td></tr>
+            <tr><td>발주서 주문번호 우선 적용</td><td>발주서에 주문번호가 있으면 그 값 사용 (★ 표시) / 없으면 자동생성</td></tr>
             <tr><td>PMK-3000 수량별 택배비</td><td>1개 3,000원 / 2~4개 4,000원 (합포장 반영)</td></tr>
             <tr><td>제주도 택배비</td><td>주소에 '제주' 포함 시 추가택배비 자동 합산</td></tr>
             <tr><td>합포장 추가택배비</td><td>수량=2일 때 1,000원 자동 적용 (PMK-3000 제외)</td></tr>
@@ -198,7 +213,7 @@
             <tr><th>출고 유형</th><th>처리 방법</th></tr>
             <tr><td>일반/본사 출고</td><td>사방넷 → 창고 접속 → 주문 다운로드 → 출고</td></tr>
             <tr><td>소형 가전 (오성)</td><td>사방넷 → 엑셀 다운로드 → 오성 컨버전스 시스템 업로드</td></tr>
-            <tr><td>에어컨 (캐리어)</td><td>사방넷 → 발주서 작성 → 캐리어 발송 → 설치 모니터링</td></tr>
+            <tr><td>에어컨 (캐리어)</td><td>사방넷 → 캐리어발주.py → 발주서 생성 → 캐리어 이메일 발송</td></tr>
           </table>
         </div>
       </div>
@@ -211,12 +226,12 @@
     <div class="step s-gray" onclick="toggle('d4',this)">
       <div class="step-label">4단계</div>
       <div class="step-title">발주총괄 다운로드</div>
-      <div class="step-sub">사방넷에서 1회 다운 → 4개 도구 공통 입력</div>
+      <div class="step-sub">사방넷에서 1회 다운 → 5개 도구 공통 입력</div>
     </div>
     <div id="d4" class="detail-panel">
       <div class="dp-header"><h2>4단계 — 발주총괄 다운로드</h2><button class="dp-close" onclick="close_('d4')">✕</button></div>
       <div class="dp-body">
-        <p>사방넷에서 발주총괄 파일을 <strong>1회만</strong> 다운로드하면 아래 4개 도구가 모두 이 파일을 입력으로 사용합니다. 각 도구 폴더의 <code>원본\</code>에 파일을 넣고 실행합니다.</p>
+        <p>사방넷에서 발주총괄 파일을 <strong>1회만</strong> 다운로드하면 아래 도구들이 모두 이 파일을 입력으로 사용합니다. 각 도구 폴더의 <code>원본\</code>에 파일을 넣고 실행합니다.</p>
         <div class="table-wrap">
           <table>
             <tr><th>도구</th><th>실행 파일</th><th>폴더</th></tr>
@@ -224,6 +239,7 @@
             <tr><td>erp업로드생성.py</td><td>erp업로드생성_실행.bat</td><td>5. ERPerp업로드 폴더\</td></tr>
             <tr><td>송장메일발송.py</td><td>송장메일발송_실행.bat</td><td>4. 사방넷 송장메일발송 폴더\</td></tr>
             <tr><td>회수입고관리.py</td><td>회수입고관리_실행.bat</td><td>Z:\사무실 입고 및 AS\</td></tr>
+            <tr><td>캐리어발주.py</td><td>캐리어발주_실행.bat</td><td>Z:\캐리어 관리\1. 캐리어발주\</td></tr>
           </table>
         </div>
       </div>
@@ -234,7 +250,7 @@
   <!-- STEP 5 -->
   <div class="gap-arrow">
     <div class="parallel-wrap">
-      <div class="parallel-label">5단계 — 4개 도구 동시 실행</div>
+      <div class="parallel-label">5단계 — 도구 동시 실행</div>
       <div class="parallel-grid">
         <div class="tool-card t-coral" onclick="toggle('d5a',this)">
           <div class="tc-name">오성발주서생성.py</div>
@@ -250,7 +266,7 @@
         </div>
         <div class="tool-card t-amber" onclick="toggle('d5d',this)">
           <div class="tc-name">회수입고관리.py</div>
-          <div class="tc-desc">반품/교환 갱신</div>
+          <div class="tc-desc">반품/교환 → Google Sheets 자동 추가</div>
         </div>
       </div>
     </div>
@@ -331,26 +347,65 @@
       </div>
     </div>
 
+    <!-- ★ 회수입고관리 — 상세 수정 ★ -->
     <div id="d5d" class="detail-panel" style="margin-top:10px;">
-      <div class="dp-header"><h2>회수입고관리.py</h2><button class="dp-close" onclick="close_('d5d')">✕</button></div>
+      <div class="dp-header"><h2>회수입고관리.py — 반품/교환 자동 수집 + 웹 현황판</h2><button class="dp-close" onclick="close_('d5d')">✕</button></div>
       <div class="dp-body">
-        <p>반품/교환 회수 건을 Google Sheets(풍림_회수AS관리)에 자동 추가합니다.</p>
-        <div class="file-tree">
-          <span class="folder">Z:\풍림전자 사무 자동화\사무실 입고 및 AS\</span><br>
-          &nbsp;&nbsp;├── <span class="py">회수입고관리.py</span><br>
-          &nbsp;&nbsp;├── <span class="bat">회수입고관리_실행.bat</span><br>
-          &nbsp;&nbsp;├── <span class="xlsx">풍림_회수AS관리_v2.xlsx</span> ← 로컬 백업용<br>
-          &nbsp;&nbsp;└── 📁 원본 &nbsp;← 발주총괄 여기에
+
+        <p>반품·교환 회수 건은 <strong>두 가지 경로</strong>로 관리됩니다.</p>
+
+        <!-- ① Python 자동 수집 -->
+        <div style="background:#F1EFE8;border-radius:8px;padding:12px 14px;margin-bottom:14px">
+          <div style="font-size:12px;font-weight:700;color:#3C3489;margin-bottom:8px">① 자동 수집 — 회수입고관리.py (매일 실행)</div>
+          <p style="font-size:13px;margin-bottom:8px">발주총괄 파일에서 반품·교환 회수 건을 추출해 Google Sheets(풍림_회수AS관리)에 자동으로 행을 추가합니다. 중복 주문번호는 상태가 변경될 때만 갱신하고 동일하면 스킵합니다.</p>
+          <div class="file-tree">
+            <span class="folder">Z:\풍림전자 사무 자동화\사무실 입고 및 AS\</span><br>
+            &nbsp;&nbsp;├── <span class="py">회수입고관리.py</span> (v2)<br>
+            &nbsp;&nbsp;├── <span class="bat">회수입고관리_실행.bat</span><br>
+            &nbsp;&nbsp;├── poonglim-0f980142b793.json &nbsp;← Google 서비스 계정 키<br>
+            &nbsp;&nbsp;├── <span class="xlsx">풍림_회수AS관리_v2.xlsx</span> &nbsp;← 로컬 백업용<br>
+            &nbsp;&nbsp;└── 📁 원본 &nbsp;← 발주총괄 여기에
+          </div>
+          <div class="table-wrap">
+            <table>
+              <tr><th>사방넷 상태</th><th>처리</th></tr>
+              <tr><td>반품/교환회수준비</td><td>Google Sheets 신규 행 자동 추가</td></tr>
+              <tr><td>반품/교환회수완료</td><td>완료여부 자동 갱신</td></tr>
+              <tr><td>중복 주문번호</td><td>상태 변경 시만 갱신, 동일하면 스킵</td></tr>
+            </table>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <tr><th>사방넷 상태</th><th>처리</th></tr>
-            <tr><td>반품/교환회수준비</td><td>Google Sheets 신규 행 자동 추가</td></tr>
-            <tr><td>반품/교환회수완료</td><td>주문상태 자동 갱신</td></tr>
-            <tr><td>중복 주문번호</td><td>상태 변경 시만 갱신, 동일하면 스킵</td></tr>
-          </table>
+
+        <!-- ② 웹 현황판 -->
+        <div style="background:#E1F5EE;border-radius:8px;padding:12px 14px;margin-bottom:14px">
+          <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:8px">② 웹 현황판 — ops.corcan.co.kr/operations/hoisu-as.html</div>
+          <p style="font-size:13px;margin-bottom:8px">Python이 자동 수집한 데이터와 수동 접수 건을 통합 관리하는 웹 현황판입니다. 별도 로그인 없이 접속하며, 역할별로 다른 화면을 사용합니다.</p>
+          <div class="table-wrap">
+            <table>
+              <tr><th>탭</th><th>담당</th><th>용도</th></tr>
+              <tr><td>📊 현황판</td><td>Dr. Corcan</td><td>미처리 건수 한눈에 파악, 카드 클릭으로 상세 이동</td></tr>
+              <tr><td>📥 정보수집</td><td>경영관리실(이경희) / 택배담당</td><td>택배 입고 처리 + 상담 접수 (송장번호로 자동 매칭)</td></tr>
+              <tr><td>🔧 처리 입력</td><td>경영관리실 / A/S팀</td><td>반품·교환·A/S 처리 결과 입력, ERP 처리 여부 체크</td></tr>
+              <tr><td>📋 전체 목록</td><td>전체</td><td>최근 90일 / 기간 조회, 미완료 건 수정</td></tr>
+            </table>
+          </div>
+          <div class="table-wrap" style="margin-top:10px">
+            <table>
+              <tr><th>주요 흐름</th><th>설명</th></tr>
+              <tr><td>택배 입고 처리</td><td>송장번호 입력 → 기존 회수 건 자동 매칭 → 입고일·상태 저장</td></tr>
+              <tr><td>신규 상담 접수</td><td>택배 없는 A/S 전화 접수 → 정보수집 탭 "상담 접수" 모드</td></tr>
+              <tr><td>처리 결과 입력</td><td>처리 탭 목록에서 건 선택 → 처리결과·출고송장 입력 → 완료여부 자동 변경</td></tr>
+              <tr><td>완료 기준</td><td>수리/교환발송 → 출고송장 입력 시 완료 / 환불·폐기·보관 → 처리결과 선택 즉시 완료</td></tr>
+            </table>
+          </div>
+          <p style="font-size:13px;margin-top:10px">Google Sheets(풍림_회수AS관리)가 데이터 원본이며, 웹 현황판은 Google Apps Script(v5)를 통해 읽기·쓰기를 수행합니다.</p>
         </div>
-        <p>결과는 <code>ops.corcan.co.kr/operations/hoisu-as.html</code> 현황판에서 조회합니다.</p>
+
+        <!-- 바로가기 버튼 -->
+        <a class="portal-btn" href="hoisu-as.html" target="_blank">
+          📋 회수·A/S 현황판 열기 →
+        </a>
+
       </div>
     </div>
 
@@ -424,7 +479,7 @@
 </div>
 
 <footer>
-  풍림전자주식회사 경영관리실 &nbsp;·&nbsp; v10 (2026년 6월) &nbsp;·&nbsp; 실제 폴더 구조 기준
+  풍림전자주식회사 경영관리실 &nbsp;·&nbsp; v11 (2026년 6월) &nbsp;·&nbsp; 실제 폴더 구조 기준
 </footer>
 
 <script>
@@ -445,3 +500,4 @@
   }
 </script>
 </body>
+</html>
