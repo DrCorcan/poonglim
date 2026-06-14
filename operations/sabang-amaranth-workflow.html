@@ -118,11 +118,15 @@
   code { font-family: 'Menlo','Consolas',monospace; font-size: 12px; background: #F1EFE8; padding: 2px 6px; border-radius: 4px; color: #3C3489; }
 
   .portal-btn {
-    display: inline-block; background: #1F4E79; color: white;
+    display: inline-block; color: white;
     text-decoration: none; padding: 10px 20px; border-radius: 8px;
-    font-size: 13px; font-weight: 600; margin-top: 14px; transition: opacity 0.15s;
+    font-size: 13px; font-weight: 600; margin-top: 14px; margin-right: 8px;
+    transition: opacity 0.15s;
   }
   .portal-btn:hover { opacity: 0.85; }
+  .portal-btn.navy  { background: #1F4E79; }
+  .portal-btn.teal  { background: #0F6E56; }
+  .portal-btn.blue  { background: #185FA5; }
 
   .gap-arrow { display: flex; flex-direction: column; align-items: center; width: 100%; }
 
@@ -138,14 +142,11 @@
 
 <header>
   <h1>풍림전자 — 매일 업무 흐름도</h1>
-  <p>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다 &nbsp;·&nbsp; v12 (2026년 6월)</p>
+  <p>각 단계를 클릭하면 상세 내용을 확인할 수 있습니다 &nbsp;·&nbsp; v13 (2026년 6월)</p>
 </header>
 
 <div class="flow">
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- E드라이브 영역 -->
-  <!-- ════════════════════════════════════════ -->
   <div class="section-divider">📂 E드라이브 — 경영관리</div>
   <div class="arrow" style="height:16px"></div>
 
@@ -261,7 +262,7 @@
     <div class="arrow"></div>
   </div>
 
-  <!-- STEP 5 — 동시 실행 도구들 -->
+  <!-- STEP 5 -->
   <div class="gap-arrow">
     <div class="parallel-wrap">
       <div class="parallel-label">5단계 — 도구 동시 실행 (순서 무관)</div>
@@ -362,14 +363,14 @@
           &nbsp;&nbsp;├── <span class="bat">회수입고관리_실행.bat</span><br>
           &nbsp;&nbsp;└── 📁 원본 &nbsp;← 발주총괄 여기에
         </div>
-        <a class="portal-btn" href="hoisu-as.html" target="_blank">📋 회수·A/S 현황판 열기 →</a>
+        <a class="portal-btn navy" href="hoisu-as.html" target="_blank">📋 회수·A/S 현황판 열기 →</a>
       </div>
     </div>
 
     <div class="arrow" style="margin-top:10px;"></div>
   </div>
 
-  <!-- STEP 5.5 — 오성 송장 업로드 -->
+  <!-- STEP 5.5 -->
   <div class="gap-arrow">
     <div class="step s-purple" onclick="toggle('d55',this)">
       <div class="step-label">5.5단계</div>
@@ -400,7 +401,7 @@
     <div class="arrow"></div>
   </div>
 
-  <!-- STEP 6 — ERP -->
+  <!-- STEP 6 -->
   <div class="gap-arrow">
     <div class="step s-teal" onclick="toggle('d6',this)">
       <div class="step-label">6단계</div>
@@ -424,13 +425,11 @@
     <div class="arrow"></div>
   </div>
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- Z드라이브 영역 -->
-  <!-- ════════════════════════════════════════ -->
+  <!-- Z드라이브 구분선 -->
   <div class="section-divider">📂 Z드라이브 — 매입처 관리 (캐리어·윈세이·스타리온)</div>
   <div class="arrow" style="height:16px"></div>
 
-  <!-- STEP 7 — 매입처발주 -->
+  <!-- STEP 7 -->
   <div class="gap-arrow">
     <div class="step s-blue" onclick="toggle('d7',this)">
       <div class="step-label">7단계</div>
@@ -443,7 +442,7 @@
         <p>발주총괄 파일 1개를 원본 폴더에 넣고 실행하면 매입처별로 자동 분기하여 구글시트에 업로드합니다.</p>
         <div class="file-tree">
           <span class="folder">Z:\풍림전자 사무 자동화\매입처 관리\1단계_발주원장구글시트업로드\</span><br>
-          &nbsp;&nbsp;├── <span class="py">매입처발주.py</span> (v1.0)<br>
+          &nbsp;&nbsp;├── <span class="py">매입처발주.py</span> (v1.1)<br>
           &nbsp;&nbsp;├── <span class="bat">매입처발주_실행.bat</span><br>
           &nbsp;&nbsp;├── <span class="xlsx">캐리어_모델단가테이블.xlsx</span><br>
           &nbsp;&nbsp;├── <span class="xlsx">윈세이_모델단가테이블.xlsx</span><br>
@@ -464,13 +463,13 @@
             <tr><td>스타리온</td><td>출고대기 → 발주대기<br>신규/주문확인 → 해피콜대기</td><td>발주대기 / 해피콜대기 / 발주완료</td></tr>
           </table>
         </div>
-        <p>실행 완료 후 발주총괄 파일은 <code>완료\YYYYMMDD\</code> 폴더로 자동 이동합니다.</p>
+        <a class="portal-btn blue" href="carrier.html" target="_blank">📦 매입처 현황판 열기 →</a>
       </div>
     </div>
     <div class="arrow"></div>
   </div>
 
-  <!-- STEP 8 — 발주서생성 -->
+  <!-- STEP 8 -->
   <div class="gap-arrow">
     <div class="step s-blue" onclick="toggle('d8',this)">
       <div class="step-label">8단계</div>
@@ -493,14 +492,14 @@
             <tr><th>매입처</th><th>발주서 생성 조건</th><th>발주 후 처리</th></tr>
             <tr><td>윈세이</td><td>완료여부 = 발주대기</td><td>구글시트 → 발주완료 자동 변경<br>발주서 이메일 발송 (수동)</td></tr>
             <tr><td>스타리온</td><td>완료여부 = 발주대기</td><td>구글시트 → 발주완료 자동 변경<br>발주서 이메일 발송 (수동)</td></tr>
-            <tr><td>캐리어</td><td>구글시트에서 신규 건 확인</td><td>캐리어 담당자에게 이메일 발송 (수동)<br>오더번호 회신 → D열 수동 입력</td></tr>
+            <tr><td>캐리어</td><td>구글시트에서 신규 건 확인</td><td>캐리어 담당자에게 이메일 발송 (수동)<br>오더번호 회신 → 오더번호업데이트.py 실행</td></tr>
           </table>
         </div>
         <div class="note-box">
           발주서 재생성이 필요한 경우:<br>
           구글시트에서 해당 건 완료여부 → 발주대기로 수동 변경 후 재실행
         </div>
-
+        <a class="portal-btn blue" href="carrier.html" target="_blank">📦 매입처 현황판 열기 →</a>
       </div>
     </div>
   </div>
@@ -508,7 +507,7 @@
 </div>
 
 <footer>
-  풍림전자주식회사 경영관리실 &nbsp;·&nbsp; v12 (2026년 6월) &nbsp;·&nbsp; 실제 폴더 구조 기준
+  풍림전자주식회사 경영관리실 &nbsp;·&nbsp; v13 (2026년 6월) &nbsp;·&nbsp; 실제 폴더 구조 기준
 </footer>
 
 <script>
