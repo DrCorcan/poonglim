@@ -918,6 +918,7 @@
               <option>청구완료</option>
               <option>입금확인</option>
               <option>무상</option>
+              <option>관리제외</option>
             </select>
           </div>
         </div>
@@ -1228,11 +1229,30 @@ async function loadAll() {
   }
 }
 
+// 수리비용 숫자 판정
+// 30,000 / 30000 / 30000원 형태를 모두 30000으로 인식
+function parseMoney(value) {
+  const cleaned = String(value || '').replace(/[^0-9.-]/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
 // 청구/입금 확인이 필요한 상태
-// 기존 데이터 호환: 과거 값인 "미확인"도 미수/확인 필요로 집계
-function isBillingPending(value) {
-  const v = String(value || '').trim();
-  return v === '청구필요' || v === '청구완료' || v === '미확인';
+// 기준:
+// 1) 수리비용이 0보다 있어야 함
+// 2) 입금확인 칸이 빈칸 / 청구필요 / 청구완료 / 기존 미확인 이면 카운트
+// 3) 입금확인 / 기존 확인 / 무상 / 관리제외 는 카운트 제외
+function isBillingPending(costValue, statusValue) {
+  const cost = parseMoney(costValue);
+  const status = String(statusValue || '').trim();
+
+  if (cost <= 0) return false;
+
+  const excluded = ['입금확인', '확인', '무상', '관리제외'];
+  if (excluded.includes(status)) return false;
+
+  // 빈칸, 청구필요, 청구완료, 미확인은 모두 청구/입금 확인 필요
+  return true;
 }
 
 // 기존 데이터 호환: 과거 값인 "확인"/"미확인"을 새 상태값으로 화면에서 매핑
@@ -1260,7 +1280,7 @@ function calcDashboard(rows) {
       as전체++;
       if (완료여부 === '진행중') as상담++;
       if (완료여부 === '입고완료/처리대기' || 완료여부 === '처리중') as처리중++;
-      if (isBillingPending(입금확인)) as입금++;
+      if (isBillingPending(r[17], 입금확인)) as입금++;
       if (완료여부 === '완료') as완료++;
     } else if (구분 === '반품' || 구분 === '교환') {
       전체반품++;
@@ -1443,7 +1463,7 @@ function renderPendingList(type) {
     // type별 세부 필터
     if (type === '상담')   return 완료 === '진행중';
     if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '처리중';
-    if (type === '입금')   return isBillingPending(입금확인);
+    if (type === '입금')   return isBillingPending(r[17], 입금확인);
     return true;
   });
 
@@ -1612,7 +1632,7 @@ function renderTable(rows, filter) {
       // A/S 기반
       if (filter === 'AS완료')   return 구분==='A/S' && 완료==='완료';
       if (filter === 'AS전체')   return 구분==='A/S';
-      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(입금확인);
+      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인);
       // 일반
       if (filter === '미처리')   return 완료 !== '완료';
       if (filter === '완료')     return 완료 === '완료';
