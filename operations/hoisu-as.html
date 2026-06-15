@@ -845,6 +845,12 @@
             <input type="text" id="proc-채널" placeholder="거래처명">
           </div>
         </div>
+        <div class="form-row full">
+          <div>
+            <label>주소</label>
+            <input type="text" id="proc-주소" placeholder="사방넷 업로드용 주소">
+          </div>
+        </div>
         <div class="form-row">
           <div>
             <label>상품명/모델명</label>
@@ -973,6 +979,8 @@
       <input type="date" id="search-to" style="width:140px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px">
       <button onclick="searchByDate()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
       <button onclick="resetDateSearch()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 90일</button>
+      <button onclick="downloadCurrentListExcel()" style="background:#27AE60;color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">⬇ 현재 목록 엑셀</button>
+      <button onclick="downloadSabangnetExcel()" style="background:#E67E22;color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">⬇ 사방넷 업로드 양식</button>
     </div>
 
     <div class="table-wrap">
@@ -984,6 +992,7 @@
           <button class="filter-tab" onclick="filterList('반품',this)">반품</button>
           <button class="filter-tab" onclick="filterList('교환',this)">교환</button>
           <button class="filter-tab" onclick="filterList('A/S',this)">A/S</button>
+          <button class="filter-tab" onclick="filterList('AS입금',this)">청구/입금</button>
           <button class="filter-tab" onclick="filterList('완료',this)">완료</button>
         </div>
       </div>
@@ -1009,6 +1018,7 @@ let customDateTo   = null;
 let currentUser = null;
 let logData = null;
 let authInfo = null;
+let currentRenderedRows = [];
 
 // ─── 로그인 정보 관리 ─────────────────────────────
 function getStoredAuth() {
@@ -1324,7 +1334,7 @@ function goToList(filter) {
   currentFilter = filter || '전체';
   showTab('list');
   // 필터 버튼 활성화 (탭 내 버튼과 매핑)
-  const btnMap = {'전체':'전체','미처리':'미처리','반품':'반품','교환':'교환','A/S':'A/S','완료':'완료'};
+  const btnMap = {'전체':'전체','미처리':'미처리','반품':'반품','교환':'교환','A/S':'A/S','AS입금':'청구/입금','완료':'완료'};
   const btnLabel = btnMap[filter] || null;
   document.querySelectorAll('#tab-list .filter-tab').forEach(t => {
     t.classList.toggle('active', btnLabel && t.textContent.trim() === btnLabel);
@@ -1427,6 +1437,7 @@ async function submitCollect() {
         상품명:  상품명,
         수량:    1,
         증상:    증상,
+        주소:    document.getElementById('col-주소').value.trim(),
       });
       showSuccess('col-success');
       resetCollectForm();
@@ -1527,8 +1538,9 @@ function selectProcessRow(rowIdx) {
   if (r[13]) document.getElementById('proc-처리결과').value  = r[13];
   if (r[14]) document.getElementById('proc-erp').value       = r[14];
   if (r[17]) document.getElementById('proc-수리비용').value  = r[17];
-  if (r[18]) document.getElementById('proc-입금확인').value  = normalizeBillingStatus(r[18]); // S열=18
+  document.getElementById('proc-입금확인').value = r[18] ? normalizeBillingStatus(r[18]) : ''; // S열=18
   if (r[19]) document.getElementById('proc-출고송장').value  = r[19];
+  document.getElementById('proc-주소').value = r[25] || '';
 
   document.getElementById('process-panel').style.display = 'block';
   setTimeout(() => {
@@ -1540,7 +1552,7 @@ function closeProcessPanel() {
   document.getElementById('process-panel').style.display = 'none';
   foundRowIndex = -1;
   ['proc-고객명','proc-연락처','proc-채널','proc-상품명','proc-수량',
-   'proc-회수송장','proc-cs내역','proc-출고송장','proc-수리비용'].forEach(id => {
+   'proc-회수송장','proc-cs내역','proc-출고송장','proc-수리비용','proc-주소'].forEach(id => {
     document.getElementById(id).value = '';
   });
   ['proc-택배입고일','proc-수리완료일','proc-출고일'].forEach(id => {
@@ -1575,6 +1587,7 @@ async function submitProcess() {
     출고송장:   document.getElementById('proc-출고송장').value.trim(),
     출고일:     document.getElementById('proc-출고일').value,
     erp처리:    document.getElementById('proc-erp').value,
+    주소:       document.getElementById('proc-주소').value.trim(),
   };
 
   try {
@@ -1643,6 +1656,8 @@ function renderTable(rows, filter) {
   const badgeClass   = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
   const statusClass  = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','처리중':'badge-처리중','완료':'badge-완료'}[s]||'');
 
+  currentRenderedRows = filtered;
+
   if (filtered.length === 0) {
     document.getElementById('list-table').innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
     return;
@@ -1677,8 +1692,11 @@ function renderTable(rows, filter) {
           <div><span style="color:#888">상태확인:</span> ${r[12]||'-'}</div>
           <div><span style="color:#888">처리결과:</span> ${r[13]||'-'}</div>
           <div><span style="color:#888">ERP처리:</span> ${r[14]||'-'}</div>
+          <div><span style="color:#888">수리비용:</span> ${r[17]||'-'}</div>
+          <div><span style="color:#888">청구/입금:</span> ${r[18]||'-'}</div>
           <div><span style="color:#888">비고:</span> ${r[16]||'-'}</div>
         </div>
+        ${r[25] ? `<div style="margin-top:8px"><span style="color:#888">주소:</span> ${r[25]}</div>` : ''}
         ${r[11] ? `<div style="margin-top:8px"><span style="color:#888">CS내역/증상:</span> ${r[11]}</div>` : ''}
         <div style="margin-top:8px;color:#777">
           <span style="color:#888">접수자:</span> ${r[21]||'-'} 
@@ -1802,6 +1820,101 @@ ${afterText || '{}'}
 }
 
 
+// ─── 엑셀 다운로드 ─────────────────────────────
+function excelEscape(value) {
+  const v = String(value ?? '');
+  return v
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function downloadExcelFile(filename, headers, rows) {
+  if (!rows || rows.length === 0) {
+    alert('다운로드할 데이터가 없습니다.');
+    return;
+  }
+
+  const html = `
+    <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body>
+        <table border="1">
+          <thead>
+            <tr>${headers.map(h => `<th>${excelEscape(h)}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `<tr>${row.map(cell => `<td style="mso-number-format:'\\@';">${excelEscape(cell)}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      </body>
+    </html>`;
+
+  const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function getDownloadDateText() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+}
+
+function getRowsForDownload() {
+  return currentRenderedRows && currentRenderedRows.length ? currentRenderedRows : [];
+}
+
+function downloadCurrentListExcel() {
+  const headers = [
+    '접수일','구분','채널','고객명','연락처','상품명','수량','주문번호','회수송장번호','택배접수일','택배입고일',
+    'CS내역/증상','불량여부','처리결과','ERP처리','완료여부','비고','수리비용','입금확인','출고송장','수리완료일',
+    '접수자','접수자이메일','최종수정자','최종수정시간','주소'
+  ];
+
+  const rows = getRowsForDownload().map(r => headers.map((_, idx) => r[idx] || ''));
+  const filterName = String(currentFilter || '전체').replace(/[\\/:*?"<>|]/g, '_');
+  downloadExcelFile(`풍림전자_AS제품회수_${filterName}_${getDownloadDateText()}.xls`, headers, rows);
+}
+
+function downloadSabangnetExcel() {
+  const headers = [
+    '일자','고객명','우편번호','주소','연락처1','연락처2','상품명','모델명','수량','주문번호','배송메세지','결제가격','공급가','택배비'
+  ];
+
+  const todayText = new Date().toISOString().split('T')[0];
+  const rows = getRowsForDownload().map(r => [
+    r[20] || todayText,     // 일자: 수리완료일, 없으면 오늘
+    r[3] || '',            // 고객명
+    '',                    // 우편번호
+    r[25] || '',           // 주소: Z열
+    r[4] || '',            // 연락처1
+    '',                    // 연락처2
+    r[5] || '',            // 상품명
+    '',                    // 모델명
+    r[6] || '',            // 수량
+    r[7] || '',            // 주문번호
+    r[11] || r[16] || '',  // 배송메세지
+    '',                    // 결제가격
+    '',                    // 공급가
+    ''                     // 택배비
+  ]);
+
+  downloadExcelFile(`사방넷_AS업로드_${getDownloadDateText()}.xls`, headers, rows);
+}
+
+
 // ─── Apps Script 호출 ──────────────────────────
 async function callAppsScript(action, data) {
   const result = await jsonpRequest(action, data);
@@ -1865,4 +1978,3 @@ checkAccessBeforeLoad();
 </div>
 </body>
 </html>
-
