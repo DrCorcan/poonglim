@@ -1661,8 +1661,8 @@ function renderTable(rows, filter) {
         <span style="color:#555;font-size:12px;flex:1">${r[5]||'상품미상'}</span>
         <span style="font-size:11px;color:#888;white-space:nowrap">${r[8]||''}</span>
         <span class="badge ${statusClass(완료)}" style="white-space:nowrap">${완료}</span>
-        ${완료 !== '완료' ? `<button onclick="event.stopPropagation();openFromList(${realIdx})"
-          style="background:#2980B9;color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">처리 ▶</button>` : ''}
+        <button onclick="event.stopPropagation();openFromList(${realIdx})"
+          style="background:${완료 === '완료' ? '#7F8C8D' : '#2980B9'};color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">${완료 === '완료' ? '수정 ▶' : '처리 ▶'}</button>
         <button class="log-btn" onclick="event.stopPropagation();toggleRowLogs(${realIdx})">로그보기 ▼</button>
         <span style="color:#aaa;font-size:11px">▼</span>
       </div>
@@ -1865,3 +1865,4 @@ checkAccessBeforeLoad();
 </div>
 </body>
 </html>
+
