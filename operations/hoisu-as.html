@@ -366,6 +366,99 @@
   .pending-item.selected { background: #D6EAF8; outline: 2px solid #2980B9; }
   .pending-item:last-child { border-bottom: none; }
 
+
+  /* 접근 권한 확인 화면 */
+  .auth-screen {
+    padding: 70px 24px;
+    text-align: center;
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  }
+  .auth-screen h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+  .auth-screen p {
+    color: #666;
+    line-height: 1.7;
+    font-size: 14px;
+  }
+  .user-pill {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+  .log-btn {
+    background: #F0F4F8;
+    color: #1F4E79;
+    border: 1px solid #B8C7D6;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .log-btn:hover {
+    background: #E8F4FD;
+  }
+  .log-panel {
+    display: none;
+    padding: 12px 14px;
+    background: #FFFDF5;
+    border-top: 1px solid #EEE;
+    font-size: 12px;
+  }
+  .log-item {
+    border: 1px solid #E7DDBF;
+    background: #FFFFFF;
+    border-radius: 6px;
+    padding: 9px 10px;
+    margin-bottom: 8px;
+  }
+  .log-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .log-time {
+    color: #666;
+    font-weight: 600;
+  }
+  .log-actor {
+    color: #1F4E79;
+    font-weight: 700;
+  }
+  .log-action {
+    background: #E8F4FD;
+    color: #2980B9;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .log-json {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #F8FAFC;
+    border: 1px solid #E6ECF2;
+    border-radius: 5px;
+    padding: 8px;
+    color: #555;
+    max-height: 180px;
+    overflow: auto;
+    display: none;
+    margin-top: 6px;
+  }
+  .log-detail-toggle {
+    border: none;
+    background: transparent;
+    color: #2980B9;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+  }
+
   @media (max-width: 768px) {
     .cards { grid-template-columns: repeat(3, 1fr); }
     .form-row { grid-template-columns: 1fr; }
@@ -377,10 +470,26 @@
 </head>
 <body>
 
+<div id="auth-check" class="auth-screen">
+  <h2>🔐 사용자 확인 중...</h2>
+  <p>Google 계정 로그인 및 사용 권한을 확인하고 있습니다.</p>
+</div>
+
+<div id="auth-denied" class="auth-screen" style="display:none;">
+  <h2 style="color:#C0392B;">⛔ 접근 권한이 없습니다</h2>
+  <p>
+    이 페이지는 USER_MASTER에 등록된 사용자만 사용할 수 있습니다.<br>
+    관리자에게 Google 이메일 등록을 요청하세요.
+  </p>
+</div>
+
+<div id="app" style="display:none;">
+
 <header>
   <div>
     <h1>📋 풍림전자 회수·A/S 현황판</h1>
     <div class="date" id="headerDate">로딩 중...</div>
+    <div class="user-pill" id="loginUserText">사용자 확인 전</div>
   </div>
   <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
 </header>
@@ -828,6 +937,8 @@ let collectMode  = 'delivery'; // 'delivery' | 'consult'
 let pendingFilter = '전체';
 let customDateFrom = null;
 let customDateTo   = null;
+let currentUser = null;
+let logData = null;
 
 // 오늘 날짜 세팅
 const today = new Date().toISOString().split('T')[0];
@@ -863,7 +974,7 @@ async function loadAll() {
     document.getElementById('dashboard-content').style.display = 'block';
   } catch(e) {
     document.getElementById('dashboard-loading').innerHTML =
-      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Google Sheets 공유 설정(링크가 있는 모든 사용자 → 뷰어)을 확인해주세요.</div>`;
+      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Google Sheet가 제한됨 상태이면 Apps Script 조회 API 연결이 필요합니다.</div>`;
   }
 }
 
@@ -1267,6 +1378,7 @@ function renderTable(rows, filter) {
         <span class="badge ${statusClass(완료)}" style="white-space:nowrap">${완료}</span>
         ${완료 !== '완료' ? `<button onclick="event.stopPropagation();openFromList(${realIdx})"
           style="background:#2980B9;color:white;border:none;padding:4px 12px;border-radius:12px;font-size:11px;cursor:pointer;white-space:nowrap">처리 ▶</button>` : ''}
+        <button class="log-btn" onclick="event.stopPropagation();toggleRowLogs(${realIdx})">로그보기 ▼</button>
         <span style="color:#aaa;font-size:11px">▼</span>
       </div>
       <div id="${detailId}" style="display:none;padding:10px 14px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
@@ -1283,7 +1395,15 @@ function renderTable(rows, filter) {
           <div><span style="color:#888">비고:</span> ${r[16]||'-'}</div>
         </div>
         ${r[11] ? `<div style="margin-top:8px"><span style="color:#888">CS내역/증상:</span> ${r[11]}</div>` : ''}
+        <div style="margin-top:8px;color:#777">
+          <span style="color:#888">접수자:</span> ${r[21]||'-'} 
+          <span style="color:#aaa;margin:0 6px">|</span>
+          <span style="color:#888">최종수정자:</span> ${r[23]||'-'} 
+          <span style="color:#aaa;margin:0 6px">|</span>
+          <span style="color:#888">최종수정시간:</span> ${r[24]||'-'}
+        </div>
       </div>
+      <div id="log-${realIdx}" class="log-panel"></div>
     </div>`;
   }).join('');
 
@@ -1304,6 +1424,92 @@ function openFromList(rowIdx) {
   showTab('process');
   setTimeout(() => selectProcessRow(rowIdx), 200);
 }
+
+
+// ─── 고객별 LOG 조회 ───────────────────────────
+async function fetchLogData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('LOG')}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+  return json.table.rows.map(r => r.c.map(cell => cell ? (cell.f || cell.v || '') : ''));
+}
+
+function safeJsonPreview(value) {
+  if (!value) return '';
+  try {
+    const obj = typeof value === 'string' ? JSON.parse(value) : value;
+    return JSON.stringify(obj, null, 2);
+  } catch (e) {
+    return String(value);
+  }
+}
+
+function toggleLogDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function toggleRowLogs(rowIdx) {
+  const panel = document.getElementById(`log-${rowIdx}`);
+  if (!panel) return;
+
+  if (panel.style.display === 'block') {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="color:#888">로그 불러오는 중...</div>';
+
+  try {
+    if (!logData) logData = await fetchLogData();
+
+    const targetRow = rowIdx + 2;
+    const logs = logData
+      .filter(r => String(r[4] || '').trim() === String(targetRow))
+      .sort((a, b) => String(b[0] || '').localeCompare(String(a[0] || '')));
+
+    if (logs.length === 0) {
+      panel.innerHTML = '<div style="color:#888">이 건에 대한 로그 기록이 없습니다.</div>';
+      return;
+    }
+
+    panel.innerHTML = `
+      <div style="font-weight:700;color:#1F4E79;margin-bottom:8px">🧾 작업 로그 — 대상행 ${targetRow}</div>
+      ${logs.map((r, i) => {
+        const detailId = `log-detail-${rowIdx}-${i}`;
+        const beforeText = safeJsonPreview(r[6]);
+        const afterText = safeJsonPreview(r[7]);
+        return `
+          <div class="log-item">
+            <div class="log-meta">
+              <span class="log-time">${r[0] || '-'}</span>
+              <span class="log-actor">${r[1] || '-'}</span>
+              <span style="color:#999;font-size:11px">${r[2] || ''}</span>
+              <span class="log-action">${r[3] || '-'}</span>
+            </div>
+            <button class="log-detail-toggle" onclick="toggleLogDetail('${detailId}')">변경 전/후 보기</button>
+            <div id="${detailId}" class="log-json">
+변경전:
+${beforeText || '{}'}
+
+변경후:
+${afterText || '{}'}
+            </div>
+          </div>`;
+      }).join('')}
+    `;
+  } catch (e) {
+    panel.innerHTML = `
+      <div style="color:#C0392B;line-height:1.6">
+        ❌ 로그 조회 실패: ${e.message}<br>
+        Google Sheet가 제한됨 상태이면 Apps Script에 LOG 조회 API를 추가해야 합니다.
+      </div>`;
+  }
+}
+
 
 // ─── Apps Script 호출 ──────────────────────────
 async function callAppsScript(action, data) {
@@ -1328,8 +1534,35 @@ function showError(id, msg) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
+async function checkAccessBeforeLoad() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL);
+    const result = await res.json();
+
+    if (result.status === 'ok') {
+      currentUser = result.user;
+      document.getElementById('auth-check').style.display = 'none';
+      document.getElementById('auth-denied').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('loginUserText').textContent =
+        `로그인: ${currentUser.name} (${currentUser.email})`;
+
+      loadAll();
+    } else {
+      document.getElementById('auth-check').style.display = 'none';
+      document.getElementById('auth-denied').style.display = 'block';
+      document.getElementById('app').style.display = 'none';
+    }
+  } catch (e) {
+    document.getElementById('auth-check').style.display = 'none';
+    document.getElementById('auth-denied').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+}
+
 // 초기 로드
-loadAll();
+checkAccessBeforeLoad();
 </script>
+</div>
 </body>
 </html>
