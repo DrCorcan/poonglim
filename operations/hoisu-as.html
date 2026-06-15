@@ -387,6 +387,60 @@
     opacity: 0.9;
     margin-top: 4px;
   }
+  .logout-btn {
+    margin-left: 8px;
+    border: 1px solid rgba(255,255,255,0.45);
+    background: rgba(255,255,255,0.12);
+    color: white;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .login-box {
+    max-width: 420px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+    text-align: left;
+  }
+  .login-box h2 {
+    text-align: center;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+  .login-box p {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .login-box input {
+    margin-bottom: 12px;
+  }
+  .login-btn {
+    width: 100%;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .login-error {
+    display: none;
+    margin-top: 12px;
+    background: #FDECEA;
+    color: #C0392B;
+    border: 1px solid #FFCDD2;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
   .log-btn {
     background: #F0F4F8;
     color: #1F4E79;
@@ -471,15 +525,26 @@
 <body>
 
 <div id="auth-check" class="auth-screen">
-  <h2>🔐 사용자 확인 중...</h2>
-  <p>Google 계정 로그인 및 사용 권한을 확인하고 있습니다.</p>
+  <div class="login-box">
+    <h2>🔐 풍림전자 업무포털 로그인</h2>
+    <p>등록된 이메일과 접속코드를 입력하세요.</p>
+    <label>이메일</label>
+    <input type="email" id="login-email" placeholder="예: name@gmail.com" autocomplete="username">
+    <label>접속코드</label>
+    <input type="password" id="login-code" placeholder="접속코드 4자리" autocomplete="current-password" onkeydown="if(event.key==='Enter') handleLogin()">
+    <button class="login-btn" id="login-btn" onclick="handleLogin()">로그인</button>
+    <div id="login-error" class="login-error"></div>
+    <div style="font-size:12px;color:#777;line-height:1.6;margin-top:14px;text-align:center">
+      접속이 안 되면 관리자에게 USER_MASTER 등록 이메일과 접속코드를 확인하세요.
+    </div>
+  </div>
 </div>
 
 <div id="auth-denied" class="auth-screen" style="display:none;">
   <h2 style="color:#C0392B;">⛔ 접근 권한이 없습니다</h2>
   <p>
-    이 페이지는 USER_MASTER에 등록된 사용자만 사용할 수 있습니다.<br>
-    관리자에게 Google 이메일 등록을 요청하세요.
+    이메일 또는 접속코드가 맞지 않습니다.<br>
+    관리자에게 등록 정보를 확인하세요.
   </p>
 </div>
 
@@ -939,6 +1004,101 @@ let customDateFrom = null;
 let customDateTo   = null;
 let currentUser = null;
 let logData = null;
+let authInfo = null;
+
+// ─── 로그인 정보 관리 ─────────────────────────────
+function getStoredAuth() {
+  try {
+    const raw = localStorage.getItem('poonglimAuth');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed.email || !parsed.accessCode) return null;
+    return parsed;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveStoredAuth(email, accessCode, user) {
+  authInfo = { email, accessCode, user };
+  localStorage.setItem('poonglimAuth', JSON.stringify(authInfo));
+}
+
+function clearStoredAuth() {
+  authInfo = null;
+  localStorage.removeItem('poonglimAuth');
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (!el) return;
+  el.textContent = '❌ ' + msg;
+  el.style.display = 'block';
+}
+
+function hideLoginError() {
+  const el = document.getElementById('login-error');
+  if (el) el.style.display = 'none';
+}
+
+function updateLoginUserText() {
+  const el = document.getElementById('loginUserText');
+  if (!el) return;
+  if (currentUser) {
+    el.innerHTML = `사용자: ${currentUser.name} (${currentUser.email}) <button class="logout-btn" onclick="logout()">로그아웃</button>`;
+  } else {
+    el.textContent = '사용자 확인 전';
+  }
+}
+
+async function handleLogin() {
+  hideLoginError();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const accessCode = document.getElementById('login-code').value.trim();
+  const btn = document.getElementById('login-btn');
+
+  if (!email || !accessCode) {
+    showLoginError('이메일과 접속코드를 모두 입력해주세요.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+
+  try {
+    const result = await jsonpRequest('login', null, { email, accessCode });
+    if (!result.success) throw new Error(result.message || '로그인 실패');
+
+    saveStoredAuth(email, accessCode, result.user);
+    currentUser = result.user;
+    updateLoginUserText();
+
+    document.getElementById('auth-check').style.display = 'none';
+    document.getElementById('auth-denied').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    await loadAll();
+  } catch (e) {
+    clearStoredAuth();
+    showLoginError(e.message || '로그인 실패');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '로그인';
+  }
+}
+
+function logout() {
+  clearStoredAuth();
+  currentUser = null;
+  logData = null;
+  allData = [];
+  updateLoginUserText();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-denied').style.display = 'none';
+  document.getElementById('auth-check').style.display = 'block';
+  document.getElementById('login-code').value = '';
+  hideLoginError();
+}
 
 // 오늘 날짜 세팅
 const today = new Date().toISOString().split('T')[0];
@@ -991,7 +1151,7 @@ function normalizeRows(rows) {
   });
 }
 
-function jsonpRequest(action, data) {
+function jsonpRequest(action, data, credentials) {
   return new Promise((resolve, reject) => {
     const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
     const script = document.createElement('script');
@@ -1016,7 +1176,14 @@ function jsonpRequest(action, data) {
       reject(new Error('Apps Script JSONP 호출 실패'));
     };
 
+    const auth = credentials || authInfo;
     let url = `${APPS_SCRIPT_URL}?action=${encodeURIComponent(action)}&callback=${encodeURIComponent(callbackName)}&t=${Date.now()}`;
+
+    if (auth && auth.email && auth.accessCode) {
+      url += `&email=${encodeURIComponent(auth.email)}`;
+      url += `&accessCode=${encodeURIComponent(auth.accessCode)}`;
+    }
+
     if (data !== undefined && data !== null) {
       url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
     }
@@ -1035,8 +1202,7 @@ async function fetchData() {
 
   if (result.user) {
     currentUser = result.user;
-    const userEl = document.getElementById('loginUserText');
-    if (userEl) userEl.textContent = `로그인: ${currentUser.name} (${currentUser.email})`;
+    updateLoginUserText();
   }
 
   return normalizeRows(result.rows || []);
@@ -1055,7 +1221,7 @@ async function loadAll() {
     document.getElementById('dashboard-content').style.display = 'block';
   } catch(e) {
     document.getElementById('dashboard-loading').innerHTML =
-      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Apps Script JSONP 조회 API 또는 사용자 권한을 확인해주세요.</div>`;
+      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>로그인 정보, 접속코드 또는 Apps Script 조회 API를 확인해주세요.</div>`;
   }
 }
 
@@ -1618,16 +1784,41 @@ function showError(id, msg) {
 }
 
 async function checkAccessBeforeLoad() {
-  // GitHub Pages(ops.corcan.co.kr)에서 Apps Script GET 인증 확인은
-  // 브라우저/쿠키 정책 때문에 정상 사용자도 실패할 수 있습니다.
-  // 따라서 화면은 먼저 열고, 저장 시 doPost에서 USER_MASTER 등록자를 최종 검사합니다.
-  document.getElementById('auth-check').style.display = 'none';
-  document.getElementById('auth-denied').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+  const stored = getStoredAuth();
 
-  // 사용자 표시는 getData JSONP 호출이 성공하면 fetchData() 안에서 자동 반영됩니다.
-  // GitHub Pages에서 일반 fetch 인증 호출은 브라우저 정책으로 실패할 수 있어 사용하지 않습니다.
-  loadAll();
+  if (!stored) {
+    document.getElementById('auth-check').style.display = 'block';
+    document.getElementById('auth-denied').style.display = 'none';
+    document.getElementById('app').style.display = 'none';
+    return;
+  }
+
+  authInfo = stored;
+  if (stored.email) document.getElementById('login-email').value = stored.email;
+
+  document.getElementById('auth-check').style.display = 'block';
+  document.getElementById('auth-denied').style.display = 'none';
+  document.getElementById('app').style.display = 'none';
+
+  try {
+    const result = await jsonpRequest('login', null, stored);
+    if (!result.success) throw new Error(result.message || '로그인 실패');
+
+    currentUser = result.user;
+    saveStoredAuth(stored.email, stored.accessCode, result.user);
+    updateLoginUserText();
+
+    document.getElementById('auth-check').style.display = 'none';
+    document.getElementById('auth-denied').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    await loadAll();
+  } catch (e) {
+    clearStoredAuth();
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('auth-check').style.display = 'block';
+    showLoginError('저장된 로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.');
+  }
 }
 
 // 초기 로드
