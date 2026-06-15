@@ -1324,21 +1324,73 @@ function calcDashboard(rows) {
   document.getElementById('todo-as처리').textContent = as처리중;
 }
 
-// ─── 탭 전환 ───────────────────────────────────
-function showTab(tab) {
+// ─── 탭 전환 / 자동 최신화 ─────────────────────
+function setListLoading(isLoading, message) {
+  const el = document.getElementById('list-loading');
+  if (!el) return;
+  el.style.display = isLoading ? 'block' : 'none';
+  if (isLoading) {
+    el.innerHTML = `<span class="spinner"></span>${message || '최신 데이터 불러오는 중...'}`;
+  }
+}
+
+async function refreshDataForCurrentView(options = {}) {
+  const renderList = options.renderList !== false;
+  const renderProcess = options.renderProcess !== false;
+
+  try {
+    allData = await fetchData();
+    updateHeaderDate();
+    calcDashboard(allData);
+
+    if (renderProcess) {
+      renderPendingList();
+    }
+
+    if (renderList) {
+      renderTable(allData, currentFilter);
+    }
+
+    return true;
+  } catch (e) {
+    if (renderList) {
+      document.getElementById('list-table').innerHTML =
+        `<div class="empty" style="color:#C0392B">❌ 최신 데이터 로드 실패: ${e.message}</div>`;
+    } else {
+      alert('최신 데이터 로드 실패: ' + e.message);
+    }
+    return false;
+  }
+}
+
+async function refreshListAndRender(message) {
+  setListLoading(true, message || '최신 목록 불러오는 중...');
+  const ok = await refreshDataForCurrentView({ renderList: true, renderProcess: true });
+  setListLoading(false);
+  return ok;
+}
+
+async function showTab(tab) {
   ['dashboard','collect','process','list'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-tab').forEach((t,i) => {
     t.classList.toggle('active', ['dashboard','collect','process','list'][i] === tab);
   });
-  if (tab === 'process') renderPendingList();
-  if (tab === 'list')    renderTable(allData, currentFilter);
+
+  if (tab === 'process') {
+    await refreshDataForCurrentView({ renderList: false, renderProcess: true });
+  }
+
+  if (tab === 'list') {
+    await refreshListAndRender('전체 목록 최신 데이터 불러오는 중...');
+  }
 }
 
-function goToList(filter) {
+async function goToList(filter) {
   currentFilter = filter || '전체';
-  showTab('list');
+  await showTab('list');
+
   // 필터 버튼 활성화 (탭 내 버튼과 매핑)
   const btnMap = {'전체':'전체','미처리':'미처리','반품':'반품','교환':'교환','A/S':'A/S','AS입금':'청구/입금','완료':'완료'};
   const btnLabel = btnMap[filter] || null;
@@ -1348,8 +1400,8 @@ function goToList(filter) {
   renderTable(allData, currentFilter);
 }
 
-function goToProcess(type) {
-  showTab('process');
+async function goToProcess(type) {
+  await showTab('process');
   pendingFilter = (type === '상담' || type === '처리중' || type === '입금') ? 'A/S' : '전체';
   renderPendingList(type);
 }
@@ -1608,25 +1660,25 @@ async function submitProcess() {
 }
 
 // ─── 탭4: 전체 목록 ────────────────────────────
-function searchByDate() {
+async function searchByDate() {
   customDateFrom = document.getElementById('search-from').value;
   customDateTo   = document.getElementById('search-to').value;
   if (!customDateFrom || !customDateTo) { alert('시작일과 종료일을 모두 입력해주세요.'); return; }
-  renderTable(allData, currentFilter);
+  await refreshListAndRender('기간 조회 최신 데이터 불러오는 중...');
 }
 
-function resetDateSearch() {
+async function resetDateSearch() {
   customDateFrom = null; customDateTo = null;
   document.getElementById('search-from').value = '';
   document.getElementById('search-to').value   = '';
-  renderTable(allData, currentFilter);
+  await refreshListAndRender('최근 90일 최신 데이터 불러오는 중...');
 }
 
-function filterList(filter, btn) {
+async function filterList(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll('#tab-list .filter-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  renderTable(allData, filter);
+  await refreshListAndRender('필터 기준 최신 데이터 불러오는 중...');
 }
 
 function renderTable(rows, filter) {
@@ -1885,7 +1937,10 @@ function getRowsForDownload() {
   return currentRenderedRows && currentRenderedRows.length ? currentRenderedRows : [];
 }
 
-function downloadCurrentListExcel() {
+async function downloadCurrentListExcel() {
+  const ok = await refreshListAndRender('엑셀 다운로드 전 최신 데이터 확인 중...');
+  if (!ok) return;
+
   const headers = [
     '접수일','구분','채널','고객명','연락처','상품명','수량','주문번호','회수송장번호','택배접수일','택배입고일',
     'CS내역/증상','불량여부','처리결과','ERP처리','완료여부','비고','수리비용','입금확인','출고송장','수리완료일',
@@ -1897,7 +1952,10 @@ function downloadCurrentListExcel() {
   downloadExcelFile(`풍림전자_AS제품회수_${filterName}_${getDownloadDateText()}.xls`, headers, rows);
 }
 
-function downloadSabangnetExcel() {
+async function downloadSabangnetExcel() {
+  const ok = await refreshListAndRender('사방넷 양식 다운로드 전 최신 데이터 확인 중...');
+  if (!ok) return;
+
   const headers = [
     '일자','고객명','우편번호','주소','연락처1','연락처2','상품명','모델명','수량','주문번호','배송메세지','결제가격','공급가','택배비'
   ];
