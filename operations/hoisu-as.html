@@ -47,6 +47,8 @@
     font-size: 13px;
   }
   .refresh-btn:hover { background: rgba(255,255,255,0.25); }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .guide-link { text-decoration: none; display: inline-block; }
 
   .container { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
 
@@ -556,7 +558,10 @@
     <div class="date" id="headerDate">로딩 중...</div>
     <div class="user-pill" id="loginUserText">사용자 확인 전</div>
   </div>
-  <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
+  <div class="header-actions">
+    <a class="refresh-btn guide-link" href="./hoisu-as-guide.html" target="_blank" rel="noopener">📘 업무 매뉴얼</a>
+    <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
+  </div>
 </header>
 
 <div class="container">
