@@ -952,13 +952,60 @@ function updateHeaderDate() {
 }
 
 // ─── 데이터 로드 ───────────────────────────────
+// Google Sheet가 '제한됨' 상태이므로 HTML에서 시트를 직접 읽지 않고
+// Apps Script 조회 API를 통해 데이터를 가져옵니다.
+function normalizeDateCell(value, withTime=false) {
+  if (!value) return '';
+  if (typeof value !== 'string') return value;
+
+  // Apps Script JSON 응답의 Date 값 예: 2025-03-09T15:00:00.000Z
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+
+    return withTime ? `${yyyy}-${mm}-${dd} ${hh}:${mi}` : `${yyyy}-${mm}-${dd}`;
+  }
+
+  return value;
+}
+
+function normalizeRows(rows) {
+  return (rows || []).map(r => {
+    const row = Array.isArray(r) ? [...r] : [];
+
+    // 날짜 컬럼: 접수일(A), 택배접수일(J), 택배입고일(K), 수리완료일(U)
+    [0, 9, 10, 20].forEach(idx => {
+      row[idx] = normalizeDateCell(row[idx], false);
+    });
+
+    // 최종수정시간(Y)
+    row[24] = normalizeDateCell(row[24], true);
+
+    return row;
+  });
+}
+
 async function fetchData() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  const res  = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
-  const rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.f || cell.v || '') : ''));
-  return rows;
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=getData`);
+  const result = await res.json();
+
+  if (!result.success) {
+    throw new Error(result.message || '데이터 조회 실패');
+  }
+
+  if (result.user) {
+    currentUser = result.user;
+    const userEl = document.getElementById('loginUserText');
+    if (userEl) userEl.textContent = `로그인: ${currentUser.name} (${currentUser.email})`;
+  }
+
+  return normalizeRows(result.rows || []);
 }
 
 async function loadAll() {
@@ -974,7 +1021,7 @@ async function loadAll() {
     document.getElementById('dashboard-content').style.display = 'block';
   } catch(e) {
     document.getElementById('dashboard-loading').innerHTML =
-      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Google Sheet가 제한됨 상태이면 Apps Script 조회 API 연결이 필요합니다.</div>`;
+      `<div style="color:#C0392B">❌ 데이터 로드 실패: ${e.message}<br><br>Apps Script 조회 API 또는 사용자 권한을 확인해주세요.</div>`;
   }
 }
 
@@ -1428,11 +1475,18 @@ function openFromList(rowIdx) {
 
 // ─── 고객별 LOG 조회 ───────────────────────────
 async function fetchLogData() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('LOG')}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
-  return json.table.rows.map(r => r.c.map(cell => cell ? (cell.f || cell.v || '') : ''));
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=getLogs`);
+  const result = await res.json();
+
+  if (!result.success) {
+    throw new Error(result.message || '로그 조회 실패');
+  }
+
+  return (result.rows || []).map(r => {
+    const row = Array.isArray(r) ? [...r] : [];
+    row[0] = normalizeDateCell(row[0], true);
+    return row;
+  });
 }
 
 function safeJsonPreview(value) {
@@ -1505,7 +1559,7 @@ ${afterText || '{}'}
     panel.innerHTML = `
       <div style="color:#C0392B;line-height:1.6">
         ❌ 로그 조회 실패: ${e.message}<br>
-        Google Sheet가 제한됨 상태이면 Apps Script에 LOG 조회 API를 추가해야 합니다.
+        Apps Script LOG 조회 API 또는 사용자 권한을 확인해주세요.
       </div>`;
   }
 }
