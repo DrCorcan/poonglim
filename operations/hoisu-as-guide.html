@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>풍림전자 A/S 및 제품 회수 업무 매뉴얼</title>
+<style>
+  :root {
+    --navy:#1F4E79;
+    --blue:#2980B9;
+    --green:#27AE60;
+    --orange:#E67E22;
+    --red:#C0392B;
+    --dark:#2C3E50;
+    --gray:#6B7280;
+    --light:#F4F6F8;
+    --white:#FFFFFF;
+    --border:#DDE1E7;
+    --yellow:#FFF8D6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Apple SD Gothic Neo','Malgun Gothic',Arial,sans-serif;
+    background:var(--light);
+    color:var(--dark);
+    line-height:1.65;
+  }
+  header{
+    background:linear-gradient(135deg,#1F4E79,#173B5C);
+    color:white;
+    padding:22px 28px;
+  }
+  header .wrap{max-width:1180px;margin:0 auto;display:flex;justify-content:space-between;gap:20px;align-items:center;}
+  h1{font-size:24px;font-weight:800;margin-bottom:4px;}
+  header p{font-size:13px;opacity:.85;}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  .btn{
+    display:inline-block;
+    text-decoration:none;
+    border-radius:8px;
+    padding:8px 13px;
+    font-size:13px;
+    font-weight:700;
+    border:1px solid rgba(255,255,255,.35);
+    color:white;
+    background:rgba(255,255,255,.13);
+    white-space:nowrap;
+  }
+  .btn:hover{background:rgba(255,255,255,.23)}
+  .container{max-width:1180px;margin:0 auto;padding:22px 24px 60px;}
+  .notice{
+    background:#FFFDF5;
+    border:1px solid #E7DDBF;
+    border-left:5px solid var(--orange);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:18px;
+    font-size:14px;
+  }
+  .grid{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start;}
+  nav{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    position:sticky;
+    top:16px;
+  }
+  nav h3{font-size:13px;color:var(--navy);margin-bottom:10px;}
+  nav a{
+    display:block;
+    color:#374151;
+    text-decoration:none;
+    padding:7px 8px;
+    border-radius:7px;
+    font-size:13px;
+  }
+  nav a:hover{background:#EEF5FB;color:var(--navy);font-weight:700;}
+  section{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px;
+    margin-bottom:18px;
+  }
+  h2{
+    color:var(--navy);
+    font-size:19px;
+    padding-bottom:10px;
+    margin-bottom:16px;
+    border-bottom:2px solid #EAF0F6;
+  }
+  h3{font-size:15px;color:var(--dark);margin:16px 0 8px;}
+  p{font-size:14px;margin:6px 0;}
+  ul,ol{padding-left:22px;margin:8px 0;}
+  li{font-size:14px;margin:4px 0;}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px;}
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px;background:#FAFBFC;}
+  .card strong{display:block;color:var(--navy);font-size:14px;margin-bottom:6px;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;margin:2px 4px 2px 0;}
+  .b-blue{background:#E8F4FD;color:#2980B9}.b-green{background:#E8F5E9;color:#27AE60}.b-orange{background:#FFF3E0;color:#E67E22}.b-red{background:#FDECEA;color:#C0392B}.b-gray{background:#EEF0F2;color:#56606B}.b-yellow{background:#FFF9C4;color:#A06A00}
+  table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:13px;}
+  th{background:#F0F4F8;text-align:left;color:#263746;font-weight:800;padding:9px 10px;border:1px solid var(--border);white-space:nowrap;}
+  td{padding:9px 10px;border:1px solid var(--border);vertical-align:top;}
+  tr:nth-child(even) td{background:#FCFDFE;}
+  .flow{display:grid;gap:8px;margin:10px 0;}
+  .step{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;background:#FAFBFC;padding:12px;}
+  .num{min-width:30px;height:30px;background:var(--navy);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}
+  .step b{color:var(--navy)}
+  .code{background:#F8FAFC;border:1px solid #E6ECF2;border-radius:8px;padding:10px 12px;font-family:Consolas,monospace;font-size:13px;white-space:pre-wrap;margin:8px 0;}
+  .good{border-left:5px solid var(--green);background:#F1FBF4;padding:11px 13px;border-radius:8px;margin:9px 0;font-size:13px;}
+  .warn{border-left:5px solid var(--red);background:#FFF5F4;padding:11px 13px;border-radius:8px;margin:9px 0;font-size:13px;}
+  .small{font-size:12px;color:var(--gray);}
+  footer{max-width:1180px;margin:0 auto;padding:0 24px 30px;color:#6B7280;font-size:12px;}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}nav{position:static}.cards{grid-template-columns:1fr}header .wrap{display:block}.top-actions{justify-content:flex-start;margin-top:12px}section{padding:16px}.container{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div>
+      <h1>📘 풍림전자 A/S 및 제품 회수 업무 매뉴얼</h1>
+      <p>Return & After-Service Management Guide · Google Sheets + ops.corcan.co.kr 운영 기준</p>
+    </div>
+    <div class="top-actions">
+      <a class="btn" href="./hoisu-as.html">← 현황판으로 이동</a>
+      <a class="btn" href="https://ops.corcan.co.kr/operations/hoisu-as.html">운영 페이지 열기</a>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="notice">
+    <b>핵심 원칙:</b> Google Sheets가 원본 데이터이고, 웹 현황판은 직원이 조회·입력·수정·다운로드하는 업무 화면입니다. 수정 이력은 LOG 시트에 남습니다.
+  </div>
+
+  <div class="grid">
+    <nav>
+      <h3>목차</h3>
+      <a href="#overview">1. 시스템 개요</a>
+      <a href="#login">2. 로그인·권한</a>
+      <a href="#sheet">3. 원본 시트 구조</a>
+      <a href="#dashboard">4. 현황판 보는 법</a>
+      <a href="#collect">5. 정보수집</a>
+      <a href="#process">6. 처리 입력</a>
+      <a href="#billing">7. 청구·입금 관리</a>
+      <a href="#list">8. 전체 목록·수정</a>
+      <a href="#download">9. 엑셀 다운로드</a>
+      <a href="#sabang">10. 사방넷 업로드 양식</a>
+      <a href="#status">11. 완료 판정 기준</a>
+      <a href="#roles">12. 역할 분담</a>
+      <a href="#trouble">13. 문제 해결</a>
+    </nav>
+
+    <main>
+      <section id="overview">
+        <h2>1. 시스템 개요</h2>
+        <p>풍림전자 A/S 및 제품 회수 업무는 <b>Google Sheets</b>를 원본 DB로 사용하고, <b>ops.corcan.co.kr</b> 웹 화면에서 조회·입력·수정합니다.</p>
+        <div class="cards">
+          <div class="card"><strong>Google Sheets</strong>원본 데이터 저장소. 경영관리실이 최종 관리합니다.</div>
+          <div class="card"><strong>ops.corcan.co.kr</strong>직원이 접속하는 웹 현황판. 입력, 조회, 다운로드를 수행합니다.</div>
+          <div class="card"><strong>Apps Script</strong>웹 화면의 입력값을 Google Sheets에 저장하고 데이터를 불러옵니다.</div>
+        </div>
+      </section>
+
+      <section id="login">
+        <h2>2. 로그인·권한</h2>
+        <p>웹 현황판은 Google 로그인 이메일 자동 확인이 아니라, <b>USER_MASTER</b> 시트의 이메일과 접속코드로 인증합니다.</p>
+        <table>
+          <tr><th>USER_MASTER 컬럼</th><th>설명</th></tr>
+          <tr><td>이메일</td><td>직원 로그인 이메일</td></tr>
+          <tr><td>이름</td><td>접수자·수정자·LOG에 표시될 이름</td></tr>
+          <tr><td>사용여부</td><td>Y이면 사용 가능, N이면 접속 차단</td></tr>
+          <tr><td>접속코드</td><td>4자리일 필요 없음. 입력값과 시트 값이 정확히 일치하면 로그인 가능</td></tr>
+        </table>
+        <div class="good">직원 퇴사 또는 권한 중지는 USER_MASTER의 사용여부를 <b>N</b>으로 바꾸면 됩니다.</div>
+      </section>
+
+      <section id="sheet">
+        <h2>3. Google Sheets 원본 데이터 구조</h2>
+        <p>원본 시트명은 <b>회수및AS입력장</b>입니다. 현재 기준 컬럼은 A~AA까지 사용합니다.</p>
+        <table>
+          <tr><th>범위</th><th>주요 컬럼</th><th>설명</th></tr>
+          <tr><td>A~Q</td><td>접수일, 구분, 채널, 고객명, 연락처, 상품명, 주문번호, 회수송장, CS내역, 처리결과, ERP처리, 완료여부, 비고</td><td>업무 기본 정보</td></tr>
+          <tr><td>R~U</td><td>수리비용, 입금확인, 출고송장, 수리완료일</td><td>정산·출고·완료 관리</td></tr>
+          <tr><td>V~Y</td><td>접수자, 접수자이메일, 최종수정자, 최종수정시간</td><td>자동 기록 영역</td></tr>
+          <tr><td>Z</td><td>주소</td><td>사방넷 업로드 양식의 주소로 사용</td></tr>
+          <tr><td>AA</td><td>택배비</td><td>택배비만 청구하는 케이스 및 사방넷 택배비로 사용</td></tr>
+        </table>
+        <div class="warn">중간에 컬럼을 삽입하면 프로그램 컬럼 번호가 밀릴 수 있습니다. 새 항목은 가능하면 맨 오른쪽에 추가합니다.</div>
+      </section>
+
+      <section id="dashboard">
+        <h2>4. 현황판 보는 법</h2>
+        <p>현황판은 반품/교환, A/S, 오늘 처리할 일을 카드 숫자로 보여줍니다. 숫자를 누르면 해당 조건의 전체 목록으로 이동합니다.</p>
+        <table>
+          <tr><th>카드</th><th>의미</th></tr>
+          <tr><td>회수 미입고</td><td>접수되었지만 제품 입고가 아직 확인되지 않은 건</td></tr>
+          <tr><td>입고완료/처리대기</td><td>제품은 입고됐지만 처리결과 입력이 필요한 건</td></tr>
+          <tr><td>A/S 청구/입금</td><td>수리비용 또는 택배비가 있고, 아직 입금확인/무상/관리제외가 아닌 건</td></tr>
+          <tr><td>완료</td><td>처리결과 또는 출고송장 기준으로 완료된 건</td></tr>
+        </table>
+        <p class="small">전체 목록, 필터, 다운로드 시 최신 데이터를 자동 재조회하도록 되어 있습니다.</p>
+      </section>
+
+      <section id="collect">
+        <h2>5. 정보수집: 택배 입고 / 상담 접수</h2>
+        <h3>택배 입고</h3>
+        <div class="flow">
+          <div class="step"><div class="num">1</div><div><b>회수 송장번호 입력</b><br>기존 반품·교환·A/S 건과 자동 매칭됩니다.</div></div>
+          <div class="step"><div class="num">2</div><div><b>입고일, 고객 정보, 주소 입력</b><br>주소는 Z열 주소에 저장됩니다.</div></div>
+          <div class="step"><div class="num">3</div><div><b>저장</b><br>기존 건이면 입고 처리, 매칭 실패 시 신규 건으로 추가됩니다.</div></div>
+        </div>
+        <h3>상담 접수</h3>
+        <p>A/S 상담이 들어오면 고객명, 연락처, 채널, 상품명, 증상을 입력하고 저장합니다. 주소를 알고 있으면 함께 입력합니다.</p>
+      </section>
+
+      <section id="process">
+        <h2>6. 처리 입력</h2>
+        <p>처리 입력 화면은 제품 확인 후 실제 조치 내용을 기록하는 곳입니다. 완료 건도 전체 목록에서 <b>수정 ▶</b> 버튼으로 다시 수정할 수 있습니다.</p>
+        <table>
+          <tr><th>구역</th><th>입력 내용</th></tr>
+          <tr><td>기본 정보</td><td>고객명, 연락처, 채널, 상품명, 수량, 주소</td></tr>
+          <tr><td>입고 확인</td><td>회수송장, 상태 확인, 택배입고일, CS내역/증상</td></tr>
+          <tr><td>처리 결과</td><td>처리결과, 수리비용, 택배비, 청구·입금 상태, 수리완료일</td></tr>
+          <tr><td>출고 정보</td><td>출고송장번호, 출고일</td></tr>
+        </table>
+      </section>
+
+      <section id="billing">
+        <h2>7. 청구·입금 관리</h2>
+        <p>유상 A/S 또는 택배비 청구가 필요한 경우 <b>수리비용 또는 택배비</b>를 입력합니다.</p>
+        <table>
+          <tr><th>입금확인 값</th><th>의미</th><th>현황판 청구/입금 포함 여부</th></tr>
+          <tr><td><span class="badge b-yellow">빈칸</span></td><td>금액은 있으나 아직 상태 입력 전</td><td>포함</td></tr>
+          <tr><td><span class="badge b-orange">청구필요</span></td><td>거래처/고객에게 아직 청구 전</td><td>포함</td></tr>
+          <tr><td><span class="badge b-orange">청구완료</span></td><td>청구는 했고 입금 대기</td><td>포함</td></tr>
+          <tr><td><span class="badge b-green">입금확인</span></td><td>실제 입금 확인 완료</td><td>제외</td></tr>
+          <tr><td><span class="badge b-blue">무상</span></td><td>청구할 비용 없음</td><td>제외</td></tr>
+          <tr><td><span class="badge b-gray">관리제외</span></td><td>과거/이관 데이터 등 청구 관리 대상 제외</td><td>제외</td></tr>
+        </table>
+        <div class="code">청구/입금 대상 조건:
+(수리비용 &gt; 0 또는 택배비 &gt; 0)
+그리고 입금확인 값이 빈칸 / 청구필요 / 청구완료 / 미확인</div>
+      </section>
+
+      <section id="list">
+        <h2>8. 전체 목록·필터·수정</h2>
+        <p>전체 목록에서는 최근 90일 기준으로 데이터를 보여주며, 기간 조회로 과거 데이터도 확인할 수 있습니다.</p>
+        <table>
+          <tr><th>필터</th><th>용도</th></tr>
+          <tr><td>전체</td><td>현재 기간의 모든 데이터</td></tr>
+          <tr><td>미처리</td><td>완료여부가 완료가 아닌 건</td></tr>
+          <tr><td>반품 / 교환 / A/S</td><td>구분별 조회</td></tr>
+          <tr><td>청구/입금</td><td>수리비용 또는 택배비가 있고 입금 확인이 필요한 건</td></tr>
+          <tr><td>완료</td><td>완료 처리된 건</td></tr>
+        </table>
+        <p>완료 건도 <b>수정 ▶</b> 버튼으로 다시 열 수 있으며, 저장 시 LOG에 변경 이력이 남습니다.</p>
+      </section>
+
+      <section id="download">
+        <h2>9. 엑셀 다운로드</h2>
+        <p>전체 목록에서 원하는 필터를 선택한 뒤 다운로드하면 현재 조건에 맞는 데이터가 내려받아집니다.</p>
+        <div class="cards">
+          <div class="card"><strong>현재 목록 엑셀</strong>화면에 필터된 목록을 원본 컬럼 전체 기준으로 다운로드합니다. LOG 이력은 제외됩니다.</div>
+          <div class="card"><strong>사방넷 업로드 양식</strong>사방넷 등록 양식 헤더에 맞춰 변환하여 다운로드합니다.</div>
+          <div class="card"><strong>다운로드 전 자동 최신화</strong>다운로드 버튼 클릭 시 최신 데이터를 다시 불러온 뒤 파일을 만듭니다.</div>
+        </div>
+      </section>
+
+      <section id="sabang">
+        <h2>10. 사방넷 업로드 양식 다운로드</h2>
+        <p>사방넷 업로드 파일은 버튼 클릭 시 자동으로 헤더를 생성하고, 우리 원본 컬럼을 아래처럼 매핑합니다.</p>
+        <table>
+          <tr><th>사방넷 컬럼</th><th>원본 시트 값</th></tr>
+          <tr><td>일자</td><td>수리완료일, 없으면 다운로드일</td></tr>
+          <tr><td>고객명</td><td>고객명</td></tr>
+          <tr><td>우편번호</td><td>빈칸</td></tr>
+          <tr><td>주소</td><td>Z열 주소</td></tr>
+          <tr><td>연락처1</td><td>연락처</td></tr>
+          <tr><td>연락처2</td><td>빈칸</td></tr>
+          <tr><td>상품명</td><td>상품명</td></tr>
+          <tr><td>모델명</td><td>빈칸 또는 담당자가 사방넷 파일에서 수기 입력</td></tr>
+          <tr><td>수량</td><td>수량</td></tr>
+          <tr><td>주문번호</td><td>주문번호</td></tr>
+          <tr><td>배송메세지</td><td>CS내역/증상 또는 비고</td></tr>
+          <tr><td>결제가격</td><td>수리비용 + 택배비</td></tr>
+          <tr><td>공급가</td><td>수리비용</td></tr>
+          <tr><td>택배비</td><td>AA열 택배비</td></tr>
+        </table>
+        <div class="good">택배비만 청구하는 경우: 수리비용은 빈칸 또는 0, 택배비만 입력하면 결제가격은 택배비로 계산됩니다.</div>
+      </section>
+
+      <section id="status">
+        <h2>11. 처리결과·완료 판정 기준</h2>
+        <table>
+          <tr><th>처리결과</th><th>완료 판정</th><th>설명</th></tr>
+          <tr><td>수리발송</td><td>출고송장 입력 시 완료</td><td>수리 후 고객에게 택배 발송</td></tr>
+          <tr><td>교환발송</td><td>출고송장 입력 시 완료</td><td>교환품을 택배 발송</td></tr>
+          <tr><td>환불처리</td><td>선택 즉시 완료</td><td>환불 처리 종결</td></tr>
+          <tr><td>양품화완료</td><td>선택 즉시 완료</td><td>회수품을 양품으로 정리 완료</td></tr>
+          <tr><td>불량보관</td><td>선택 즉시 완료</td><td>불량품으로 분류하여 보관, 추후 폐기 가능</td></tr>
+          <tr><td>본사내방수리완료</td><td>선택 즉시 완료</td><td>고객 본사 방문 후 현장 수리 완료</td></tr>
+          <tr><td>폐기</td><td>선택 즉시 완료</td><td>제품 폐기 처리</td></tr>
+          <tr><td>고객협의완료</td><td>선택 즉시 완료</td><td>고객과 협의하여 종결</td></tr>
+        </table>
+      </section>
+
+      <section id="roles">
+        <h2>12. 역할 분담</h2>
+        <table>
+          <tr><th>역할</th><th>주요 업무</th></tr>
+          <tr><td>대표/관리자</td><td>현황 조회, 기준 결정, 예외 건 확인</td></tr>
+          <tr><td>경영관리실</td><td>Google Sheets 원본 관리, ERP 처리, 청구/입금 확인, 직원 계정 관리</td></tr>
+          <tr><td>택배 담당</td><td>택배 입고 입력, 송장·입고일·주소 입력</td></tr>
+          <tr><td>A/S 담당</td><td>증상 확인, 처리결과, 수리비용, 택배비, 출고송장 입력</td></tr>
+        </table>
+      </section>
+
+      <section id="trouble">
+        <h2>13. 문제 해결</h2>
+        <table>
+          <tr><th>문제</th><th>확인 방법</th></tr>
+          <tr><td>로그인이 안 됨</td><td>USER_MASTER의 이메일, 사용여부 Y, 접속코드 확인. 직원 브라우저의 사이트 데이터 삭제 후 재로그인.</td></tr>
+          <tr><td>데이터가 최신이 아님</td><td>전체 목록 탭/필터/다운로드 시 자동 최신화됩니다. 그래도 이상하면 상단 새로고침 또는 Ctrl+F5.</td></tr>
+          <tr><td>청구/입금 숫자가 이상함</td><td>수리비용 또는 택배비가 있는지, 입금확인이 입금확인/무상/관리제외로 되어 있지 않은지 확인.</td></tr>
+          <tr><td>사방넷 양식 주소가 비어 있음</td><td>Z열 주소가 입력되어 있는지 확인.</td></tr>
+          <tr><td>완료 건 수정 필요</td><td>전체 목록에서 완료 필터 선택 후 수정 ▶ 버튼으로 수정.</td></tr>
+        </table>
+        <div class="warn">Google Sheets 원본 데이터를 직접 수정할 때는 컬럼 위치를 임의로 바꾸지 마세요. 프로그램 저장 위치와 다운로드 매핑이 달라질 수 있습니다.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<footer>
+  풍림전자주식회사 · 경영관리실 · 회수/A/S 관리 업무 매뉴얼 · 2026년 6월 기준
+</footer>
+</body>
+</html>
