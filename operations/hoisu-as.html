@@ -897,7 +897,7 @@
         <div style="font-size:11px;font-weight:700;color:white;padding:5px 10px;background:#E67E22;border-radius:4px;margin:12px 0 8px">
           🔧 처리 결과
         </div>
-        <div class="form-row three">
+        <div class="form-row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr;">
           <div>
             <label>처리결과</label>
             <select id="proc-처리결과">
@@ -914,7 +914,11 @@
           </div>
           <div>
             <label>수리비용</label>
-            <input type="number" id="proc-수리비용" placeholder="0 (무상이면 비워둠)">
+            <input type="number" id="proc-수리비용" placeholder="수리비">
+          </div>
+          <div>
+            <label>택배비</label>
+            <input type="number" id="proc-택배비" placeholder="택배비">
           </div>
           <div>
             <label>청구/입금 상태</label>
@@ -1249,14 +1253,16 @@ function parseMoney(value) {
 
 // 청구/입금 확인이 필요한 상태
 // 기준:
-// 1) 수리비용이 0보다 있어야 함
+// 1) 수리비용 + 택배비 합계가 0보다 커야 함
 // 2) 입금확인 칸이 빈칸 / 청구필요 / 청구완료 / 기존 미확인 이면 카운트
 // 3) 입금확인 / 기존 확인 / 무상 / 관리제외 는 카운트 제외
-function isBillingPending(costValue, statusValue) {
+function isBillingPending(costValue, statusValue, shippingValue) {
   const cost = parseMoney(costValue);
+  const shipping = parseMoney(shippingValue);
+  const total = cost + shipping;
   const status = String(statusValue || '').trim();
 
-  if (cost <= 0) return false;
+  if (total <= 0) return false;
 
   const excluded = ['입금확인', '확인', '무상', '관리제외'];
   if (excluded.includes(status)) return false;
@@ -1290,7 +1296,7 @@ function calcDashboard(rows) {
       as전체++;
       if (완료여부 === '진행중') as상담++;
       if (완료여부 === '입고완료/처리대기' || 완료여부 === '처리중') as처리중++;
-      if (isBillingPending(r[17], 입금확인)) as입금++;
+      if (isBillingPending(r[17], 입금확인, r[26])) as입금++;
       if (완료여부 === '완료') as완료++;
     } else if (구분 === '반품' || 구분 === '교환') {
       전체반품++;
@@ -1474,7 +1480,7 @@ function renderPendingList(type) {
     // type별 세부 필터
     if (type === '상담')   return 완료 === '진행중';
     if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '처리중';
-    if (type === '입금')   return isBillingPending(r[17], 입금확인);
+    if (type === '입금')   return isBillingPending(r[17], 입금확인, r[26]);
     return true;
   });
 
@@ -1538,6 +1544,7 @@ function selectProcessRow(rowIdx) {
   if (r[13]) document.getElementById('proc-처리결과').value  = r[13];
   if (r[14]) document.getElementById('proc-erp').value       = r[14];
   if (r[17]) document.getElementById('proc-수리비용').value  = r[17];
+  if (r[26]) document.getElementById('proc-택배비').value = r[26];
   document.getElementById('proc-입금확인').value = r[18] ? normalizeBillingStatus(r[18]) : ''; // S열=18
   if (r[19]) document.getElementById('proc-출고송장').value  = r[19];
   document.getElementById('proc-주소').value = r[25] || '';
@@ -1552,7 +1559,7 @@ function closeProcessPanel() {
   document.getElementById('process-panel').style.display = 'none';
   foundRowIndex = -1;
   ['proc-고객명','proc-연락처','proc-채널','proc-상품명','proc-수량',
-   'proc-회수송장','proc-cs내역','proc-출고송장','proc-수리비용','proc-주소'].forEach(id => {
+   'proc-회수송장','proc-cs내역','proc-출고송장','proc-수리비용','proc-택배비','proc-주소'].forEach(id => {
     document.getElementById(id).value = '';
   });
   ['proc-택배입고일','proc-수리완료일','proc-출고일'].forEach(id => {
@@ -1582,6 +1589,7 @@ async function submitProcess() {
     불량여부:   document.getElementById('proc-상태확인').value,
     처리결과:   document.getElementById('proc-처리결과').value,
     수리비용:   document.getElementById('proc-수리비용').value,
+    택배비:     document.getElementById('proc-택배비').value,
     입금확인:   document.getElementById('proc-입금확인').value,
     수리완료일: document.getElementById('proc-수리완료일').value,
     출고송장:   document.getElementById('proc-출고송장').value.trim(),
@@ -1645,7 +1653,7 @@ function renderTable(rows, filter) {
       // A/S 기반
       if (filter === 'AS완료')   return 구분==='A/S' && 완료==='완료';
       if (filter === 'AS전체')   return 구분==='A/S';
-      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인);
+      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인, r[26]);
       // 일반
       if (filter === '미처리')   return 완료 !== '완료';
       if (filter === '완료')     return 완료 === '완료';
@@ -1693,6 +1701,7 @@ function renderTable(rows, filter) {
           <div><span style="color:#888">처리결과:</span> ${r[13]||'-'}</div>
           <div><span style="color:#888">ERP처리:</span> ${r[14]||'-'}</div>
           <div><span style="color:#888">수리비용:</span> ${r[17]||'-'}</div>
+          <div><span style="color:#888">택배비:</span> ${r[26]||'-'}</div>
           <div><span style="color:#888">청구/입금:</span> ${r[18]||'-'}</div>
           <div><span style="color:#888">비고:</span> ${r[16]||'-'}</div>
         </div>
@@ -1880,7 +1889,7 @@ function downloadCurrentListExcel() {
   const headers = [
     '접수일','구분','채널','고객명','연락처','상품명','수량','주문번호','회수송장번호','택배접수일','택배입고일',
     'CS내역/증상','불량여부','처리결과','ERP처리','완료여부','비고','수리비용','입금확인','출고송장','수리완료일',
-    '접수자','접수자이메일','최종수정자','최종수정시간','주소'
+    '접수자','접수자이메일','최종수정자','최종수정시간','주소','택배비'
   ];
 
   const rows = getRowsForDownload().map(r => headers.map((_, idx) => r[idx] || ''));
@@ -1894,22 +1903,28 @@ function downloadSabangnetExcel() {
   ];
 
   const todayText = new Date().toISOString().split('T')[0];
-  const rows = getRowsForDownload().map(r => [
-    r[20] || todayText,     // 일자: 수리완료일, 없으면 오늘
-    r[3] || '',            // 고객명
-    '',                    // 우편번호
-    r[25] || '',           // 주소: Z열
-    r[4] || '',            // 연락처1
-    '',                    // 연락처2
-    r[5] || '',            // 상품명
-    '',                    // 모델명
-    r[6] || '',            // 수량
-    r[7] || '',            // 주문번호
-    r[11] || r[16] || '',  // 배송메세지
-    '',                    // 결제가격
-    '',                    // 공급가
-    ''                     // 택배비
-  ]);
+  const rows = getRowsForDownload().map(r => {
+    const supply = parseMoney(r[17]);     // 공급가 = 수리비용
+    const shipping = parseMoney(r[26]);   // 택배비 = AA열 택배비
+    const payment = supply + shipping;    // 결제가격 = 공급가 + 택배비
+
+    return [
+      r[20] || todayText,                 // 일자: 수리완료일, 없으면 오늘
+      r[3] || '',                         // 고객명
+      '',                                 // 우편번호
+      r[25] || '',                        // 주소: Z열
+      r[4] || '',                         // 연락처1
+      '',                                 // 연락처2
+      r[5] || '',                         // 상품명
+      '',                                 // 모델명
+      r[6] || '',                         // 수량
+      r[7] || '',                         // 주문번호
+      r[11] || r[16] || '',               // 배송메세지
+      payment > 0 ? payment : '',         // 결제가격
+      supply > 0 ? supply : '',           // 공급가
+      shipping > 0 ? shipping : ''        // 택배비
+    ];
+  });
 
   downloadExcelFile(`사방넷_AS업로드_${getDownloadDateText()}.xls`, headers, rows);
 }
