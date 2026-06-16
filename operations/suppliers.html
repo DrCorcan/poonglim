@@ -813,6 +813,77 @@ function renderStockDetail(model){
   panel.style.display='block';
   setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
 }
+function filterOrders(f,btn){
+  currentOrderFilter=f;
+  document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderOrders();
+}
+function resetOrderFilter(){
+  const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);
+  setDR('o-from','o-to',from,to);renderOrders();
+}
+function clearOrderFilter(){
+  document.getElementById('o-from').value='';
+  document.getElementById('o-to').value='';
+  renderOrders();
+}
+
+function renderOrders(){
+  const from=document.getElementById('o-from').value;
+  const to=document.getElementById('o-to').value;
+  const f=currentOrderFilter;
+
+  let rows=allOrders.filter(r=>{
+    const d=fmtD(r['접수일']);
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    if(f==='CS')return r['CS여부']==='Y';
+    if(f==='전체')return true;
+    return r['완료여부']===f;
+  });
+
+  const wrap=document.getElementById('order-list');
+  if(!rows.length){wrap.innerHTML='<div class="empty">조회 결과 없음</div>';return;}
+
+  wrap.innerHTML=`<div style="padding:10px 16px;font-size:12px;color:var(--gray);display:flex;justify-content:space-between">
+    <span>총 ${rows.length}건</span>
+    <span style="color:var(--blue);font-size:11px">행 클릭 → CS 입력</span>
+  </div><div style="padding:0 0 12px">`+
+  rows.map(r=>{
+    const isCS=r['CS여부']==='Y';
+    const amt=r['발주금액_VAT포함']?wfmt(r['발주금액_VAT포함']):'—';
+    const sno=r['사방넷주문번호']||'';
+    const csContent=r['CS내용']||'';
+    const detailId='od-'+sno;
+    const hasOrder=r['오더번호']&&String(r['오더번호']).trim();
+    return`<div style="border-bottom:1px solid #F0F0F0;">
+      <div style="display:flex;align-items:center;padding:10px 16px;gap:10px;cursor:pointer;${isCS?'background:#FEF9E7;border-left:3px solid var(--orange);':''}" onclick="toggleOD('${detailId}')">
+        <span style="font-size:12px;color:var(--gray);min-width:86px;flex-shrink:0">${fmtD(r['접수일'])}</span>
+        <span class="${bdg(r['완료여부'])}">${r['완료여부']||'—'}</span>
+        <span style="font-weight:600;min-width:130px;font-size:12px;flex-shrink:0">${r['모델코드']||''}</span>
+        <span style="color:var(--dark);flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</span>
+        <span style="font-size:12px;color:var(--dark);flex-shrink:0">${amt}</span>
+        ${isCS?`<span style="color:var(--orange);font-weight:700;font-size:11px;flex-shrink:0">●CS</span>`:''}
+        <button onclick="event.stopPropagation();openCS('${sno}','${r['CS여부']||''}',${JSON.stringify(csContent)})" style="background:var(--blue);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">CS</button>
+        <span style="color:var(--gray);font-size:11px;flex-shrink:0">▼</span>
+      </div>
+      <div id="${detailId}" style="display:none;padding:10px 16px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px">
+          <div><span style="color:var(--gray)">오더번호: </span>${hasOrder?r['오더번호']:'<span style="color:var(--red)">미입력</span>'}</div>
+          <div><span style="color:var(--gray)">수량: </span>${r['수량']||1}</div>
+          <div><span style="color:var(--gray)">설치점: </span>${r['설치점코드']||'—'}</div>
+          <div><span style="color:var(--gray)">납기요구일: </span>${fmtD(r['납기요구일'])}</div>
+          <div><span style="color:var(--gray)">우편번호: </span>${r['실구매자우편번호']||'—'}</div>
+          <div style="grid-column:span 3"><span style="color:var(--gray)">주소: </span>${r['실구매자주소']||'—'}</div>
+        </div>
+        ${r['물류메시지']?`<div><span style="color:var(--gray)">물류메시지: </span>${r['물류메시지']}</div>`:''}
+        ${isCS&&csContent?`<div style="margin-top:6px;padding:6px 10px;background:#FEF9E7;border-radius:4px"><span style="color:var(--orange);font-weight:700">CS내용: </span>${csContent}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
 function toggleOD(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 // ── 오더번호 미입력 전용 뷰 ──
