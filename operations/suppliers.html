@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>풍림 매입처 관리</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:   #1F4E79;
+    --blue:   #2980B9;
+    --green:  #27AE60;
+    --orange: #E67E22;
+    --red:    #C0392B;
+    --purple: #8E44AD;
+    --dark:   #2C3E50;
+    --gray:   #7F8C8D;
+    --light:  #F4F6F8;
+    --border: #DDE1E7;
+  }
+  body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; }
+
+  /* 헤더 */
+  header { background: var(--navy); color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 17px; font-weight: 700; }
+  header .sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+  .hd-right { display: flex; align-items: center; gap: 8px; }
+  .vendor-btn { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .vendor-btn:hover { background: rgba(255,255,255,0.15); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-w { background: #2ECC71; } .dot-s { background: #9B59B6; }
+  .refresh-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 5px 13px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .refresh-btn:hover { background: rgba(255,255,255,0.25); }
+
+  .container { padding: 18px 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* 탭 */
+  .nav-tabs { display: flex; gap: 8px; margin-bottom: 18px; margin-top: 6px; flex-wrap: wrap; }
+  .nav-tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: white; color: var(--gray); transition: all .2s; }
+  .nav-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  /* 섹션 타이틀 */
+  .section-title { font-size: 14px; font-weight: 700; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; margin-top: 20px; }
+  .section-title.navy  { background: var(--navy); }
+  .section-title.blue  { background: var(--blue); }
+  .section-title.green { background: var(--green); }
+  .section-title.dark  { background: var(--dark); }
+
+  /* 카드 그리드 (현황판) */
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 4px; }
+  .card { padding: 14px 10px; text-align: center; border-right: 1px solid var(--border); cursor: pointer; transition: background .15s; }
+  .card:last-child { border-right: none; }
+  .card:hover { background: #F0F4F8; }
+  .card-label { font-size: 11px; color: var(--gray); margin-bottom: 6px; line-height: 1.4; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+  .card-num { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+  .card-num.red    { color: var(--red); }
+  .card-num.orange { color: var(--orange); }
+  .card-num.green  { color: var(--green); }
+  .card-num.blue   { color: var(--blue); }
+  .card-num.purple { color: var(--purple); }
+  .card-num.dark   { color: var(--dark); }
+  .card-num.gray   { color: var(--gray); }
+  .card-desc { font-size: 11px; color: var(--gray); }
+  .card-hint { font-size: 11px; color: #888; padding: 7px 16px; background: #FFFDE7; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 4px; font-style: italic; }
+
+  /* 테이블 */
+  .table-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 16px; }
+  .table-header { padding: 11px 16px; background: var(--navy); color: white; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-tab { padding: 4px 11px; border-radius: 12px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); color: white; background: transparent; transition: all .2s; }
+  .filter-tab.active, .filter-tab:hover { background: white; color: var(--navy); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #F0F4F8; padding: 9px 12px; text-align: left; font-weight: 600; color: var(--dark); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid #F0F0F0; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8FAFC; }
+
+  /* 배지 */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-new    { background: #EBF5FB; color: #2980B9; }
+  .badge-jungoo { background: #D6EAF8; color: #1A6FA0; }
+  .badge-done   { background: #E9F7EF; color: #27AE60; }
+  .badge-stock  { background: #FEF9E7; color: #E67E22; }
+  .badge-cancel { background: #FDEDEC; color: #C0392B; }
+  .badge-happy  { background: #F5EEF8; color: #8E44AD; }
+  .badge-wait   { background: #FEF9E7; color: #E67E22; }
+
+  /* 폼 */
+  .form-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .form-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--navy); padding-bottom: 10px; border-bottom: 2px solid var(--light); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
+  label span { color: var(--red); }
+  input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; transition: border-color .2s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--navy); }
+  textarea { resize: vertical; min-height: 70px; }
+  .submit-btn { width: 100%; padding: 11px; background: var(--navy); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; font-family: inherit; }
+  .submit-btn:hover { background: #163d5f; }
+  .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .note-box { background: #FEF9E7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #633806; margin-bottom: 12px; line-height: 1.6; border: 1px solid #F9A825; }
+
+  /* 서브뷰 */
+  .subview { display: none; }
+  .subview.active { display: block; }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 2px solid var(--border); background: white; color: var(--gray); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+  .back-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+  /* ── 가용재고 상단 모델 카드 ── */
+  .model-card-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .model-card {
+    background: white; border: 2px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    cursor: pointer; transition: all .15s;
+    min-width: 140px; text-align: center;
+  }
+  .model-card:hover { border-color: var(--green); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .model-card.selected { border-color: var(--green); background: #F0FBF4; }
+  .model-card-name { font-size: 11px; color: var(--gray); margin-bottom: 4px; font-weight: 600; }
+  .model-card-qty { font-size: 32px; font-weight: 800; color: var(--green); line-height: 1; }
+  .model-card-unit { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .model-card-pts { font-size: 11px; color: var(--blue); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; }
+
+  /* ── 가용재고 하단 세부 테이블 ── */
+  .stock-detail-panel {
+    background: white; border: 1px solid var(--border);
+    border-radius: 8px; margin-top: 16px; overflow: hidden;
+  }
+  .stock-detail-header {
+    background: var(--green); color: white;
+    padding: 10px 16px; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* 오더번호 미입력 뷰 */
+  .order-input-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 12px; }
+  .order-input-header { padding: 11px 16px; background: var(--red); color: white; font-size: 13px; font-weight: 700; }
+  .order-input-row { display: flex; align-items: center; padding: 10px 16px; gap: 10px; border-bottom: 1px solid #F0F0F0; flex-wrap: wrap; }
+  .order-input-row:last-child { border-bottom: none; }
+  .order-input-info { flex: 1; min-width: 200px; }
+  .save-btn { padding: 6px 16px; background: var(--navy); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .save-btn:hover { background: #163d5f; }
+  .save-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* 기간 조회 */
+  .search-bar { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 11px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .search-bar span { font-size: 13px; font-weight: 600; color: var(--dark); }
+
+  /* 차트 */
+  .chart-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 12px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; max-height: 100px; overflow-y: auto; }
+  .chip { padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--light); color: var(--gray); font-size: 12px; cursor: pointer; }
+  .chip:hover { border-color: var(--navy); color: var(--navy); }
+  .chip.on { border-color: var(--navy); color: var(--navy); background: #EBF5FB; }
+
+  /* 로딩/빈값 */
+  .loading { text-align: center; padding: 36px; color: var(--gray); font-size: 14px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--navy); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; padding: 28px; color: var(--gray); font-size: 13px; }
+  .success-msg { display: none; background: #E9F7EF; color: var(--green); border: 1px solid #A9DFBF; border-radius: 8px; padding: 11px 16px; font-size: 13px; font-weight: 600; margin-top: 12px; text-align: center; }
+  .error-msg { display: none; background: #FDEDEC; color: var(--red); border: 1px solid #FADBD8; border-radius: 8px; padding: 11px 16px; font-size: 13px; margin-top: 12px; text-align: center; }
+
+  @media (max-width: 768px) {
+    .cards { grid-template-columns: repeat(3, 1fr); }
+    .container { padding: 12px 14px; }
+    .model-card-grid { gap: 8px; }
+    .model-card { min-width: 110px; padding: 10px 12px; }
+  }
+  @media (max-width: 480px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📦 풍림 매입처 관리</h1>
+    <div class="sub" id="headerDate">로딩 중...</div>
+  </div>
+  <div class="hd-right">
+    <div class="vendor-btn" onclick="showVendor('winsei')"><span class="dot dot-w"></span>윈세이</div>
+    <div class="vendor-btn" onclick="showVendor('starion')"><span class="dot dot-s"></span>스타리온</div>
+    <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
+  </div>
+</header>
+
+<!-- ══════════ 캐리어 메인 ══════════ -->
+<div id="mainView">
+<div class="container">
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('dashboard')">📊 현황판</button>
+    <button class="nav-tab" onclick="showTab('stock')">📦 가용재고</button>
+    <button class="nav-tab" onclick="showTab('orders')">📋 발주현황</button>
+    <button class="nav-tab" onclick="showTab('cancel')">❌ 취소처리</button>
+    <button class="nav-tab" onclick="showTab('csInput')">🚨 CS입력</button>
+    <button class="nav-tab" onclick="showTab('price')">📈 단가추이</button>
+  </div>
+
+  <!-- 탭0: 현황판 -->
+  <div id="tab-dashboard">
+    <div id="dash-loading" class="loading"><span class="spinner"></span>데이터 불러오는 중...</div>
+    <div id="dash-content" style="display:none">
+
+      <!-- 1단: 캐리어 에어컨 발주 현황 -->
+      <div class="section-title navy">📦 캐리어 에어컨 발주 현황</div>
+      <div class="cards">
+        <div class="card" onclick="goToOrders('신규')">
+          <div class="card-label">🆕 신규<br>오늘 발주 대상</div>
+          <div class="card-num red" id="s-new">—</div>
+          <div class="card-desc">발주서 생성 필요</div>
+        </div>
+        <div class="card" onclick="goToNoOrder()">
+          <div class="card-label">🔴 오더번호<br>미입력</div>
+          <div class="card-num red" id="s-noorder">—</div>
+          <div class="card-desc">발주 후 확인 필요</div>
+        </div>
+        <div class="card" onclick="goToOrders('발주완료')">
+          <div class="card-label">✅ 발주완료<br>오더번호 있음</div>
+          <div class="card-num green" id="s-done">—</div>
+          <div class="card-desc">정상 처리됨</div>
+        </div>
+        <div class="card" onclick="goToOrders('기존재고')">
+          <div class="card-label">🟡 기존재고<br>선매입 사용</div>
+          <div class="card-num orange" id="s-stock">—</div>
+          <div class="card-desc">선매입재고 출고</div>
+        </div>
+        <div class="card" onclick="goToStock()">
+          <div class="card-label">📦 가용재고<br>대기중 수량</div>
+          <div class="card-num blue" id="s-avail">—</div>
+          <div class="card-desc">즉시 사용 가능</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 카드 클릭 시 해당 발주현황으로 이동</div>
+
+      <!-- 2단: 이번달 발주 현황 -->
+      <div class="section-title blue" style="margin-top:16px">💰 이번달 발주 현황</div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card" onclick="goToOrdersThisMonth()">
+          <div class="card-label">📅 이번달<br>발주건수</div>
+          <div class="card-num blue" id="s-monthcnt">—</div>
+          <div class="card-desc">발주완료 기준</div>
+        </div>
+        <div class="card" onclick="goToOrdersThisMonth()">
+          <div class="card-label">💰 이번달<br>발주금액</div>
+          <div class="card-num dark" id="s-amt" style="font-size:20px;padding-top:6px">—</div>
+          <div class="card-desc">VAT 포함</div>
+        </div>
+        <div class="card" onclick="goToOrders('전체')">
+          <div class="card-label">📊 전체<br>주문건수</div>
+          <div class="card-num dark" id="s-total">—</div>
+          <div class="card-desc">취소 포함 전체</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 카드 클릭 시 이번달 발주완료 건 조회</div>
+
+      <!-- 3단: 취소 및 CS 내역 -->
+      <div class="section-title dark" style="margin-top:16px">📋 취소 및 CS 내역</div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card" onclick="goToOrders('주문취소')">
+          <div class="card-label">🚫 주문취소<br>발주 전 취소</div>
+          <div class="card-num gray" id="s-ordercancelled">—</div>
+          <div class="card-desc">재고 영향 없음</div>
+        </div>
+        <div class="card" onclick="goToOrders('취소재고')">
+          <div class="card-label">❌ 취소재고<br>재고 복구됨</div>
+          <div class="card-num gray" id="s-stockcancelled">—</div>
+          <div class="card-desc">선매입재고 복구</div>
+        </div>
+        <div class="card" onclick="showTab('csInput')">
+          <div class="card-label">🚨 CS 진행<br>처리 필요</div>
+          <div class="card-num orange" id="s-cs">—</div>
+          <div class="card-desc">클릭하여 입력</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 카드 클릭 시 해당 발주현황 또는 CS 입력으로 이동</div>
+
+    </div>
+  </div>
+
+  <!-- 탭1: 가용재고 -->
+  <div id="tab-stock" style="display:none">
+    <div class="section-title green" style="border-radius:8px;margin-top:0">
+      📦 선매입재고 가용현황 — 사용상태 = 대기중
+    </div>
+
+    <!-- 상단: 모델 카드 -->
+    <div id="model-card-grid" class="model-card-grid">
+      <div class="loading"><span class="spinner"></span>로딩 중...</div>
+    </div>
+
+    <!-- 하단: 세부 테이블 (선택 후 표시) -->
+    <div id="stock-detail-panel" class="stock-detail-panel" style="display:none">
+      <div class="stock-detail-header">
+        <span id="stock-detail-title">세부 내역</span>
+        <span style="font-size:12px;opacity:.8">클릭한 모델의 대기중 재고 전체</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>설치점코드</th>
+            <th>설치점주소</th>
+            <th>오더번호</th>
+            <th>납기요구일</th>
+            <th>매입단가(VAT-)</th>
+            <th>수량</th>
+          </tr>
+        </thead>
+        <tbody id="stock-detail-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 탭2: 발주현황 -->
+  <div id="tab-orders" style="display:none">
+    <div class="search-bar">
+      <span>📅 기간 조회</span>
+      <input type="date" id="o-from" style="width:140px">
+      <span style="color:var(--gray)">~</span>
+      <input type="date" id="o-to" style="width:140px">
+      <button onclick="renderOrders()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
+      <button onclick="resetOrderFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
+      <button onclick="clearOrderFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">전체 기간</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <span>발주원장</span>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterOrders('전체',this)">전체</button>
+          <button class="filter-tab" onclick="filterOrders('신규',this)">신규</button>
+          <button class="filter-tab" onclick="filterOrders('발주중',this)">발주중</button>
+          <button class="filter-tab" onclick="filterOrders('발주완료',this)">발주완료</button>
+          <button class="filter-tab" onclick="filterOrders('기존재고',this)">기존재고</button>
+          <button class="filter-tab" onclick="filterOrders('주문취소',this)">주문취소</button>
+          <button class="filter-tab" onclick="filterOrders('취소재고',this)">취소재고</button>
+          <button class="filter-tab" onclick="filterOrders('CS',this)">CS진행</button>
+        </div>
+      </div>
+      <div id="order-list"></div>
+    </div>
+  </div>
+
+  <!-- 탭2-B: 오더번호 미입력 전용 뷰 -->
+  <div id="tab-noorder" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-size:14px;font-weight:700;color:var(--red)">🔴 오더번호 미입력 건 — 수동 입력</div>
+      <button onclick="showTab('orders')" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">← 발주현황으로</button>
+    </div>
+    <div class="order-input-wrap">
+      <div class="order-input-header">발주중 + 기존재고 중 오더번호 공란인 건 — 저장 시 발주완료로 자동 변경</div>
+      <div id="noorder-list"><div class="loading"><span class="spinner"></span>로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- 탭3: CS 입력 -->
+  <div id="tab-csInput" style="display:none">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div class="form-card" style="flex:1;min-width:300px;max-width:500px">
+        <h3>🚨 CS 입력 / 수정</h3>
+        <div class="form-row full">
+          <div>
+            <label>사방넷 주문번호 <span>*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="csInputNo" placeholder="예: 2124977241" style="flex:1">
+              <button onclick="searchCSInput()" style="background:var(--navy);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap">조회</button>
+            </div>
+          </div>
+        </div>
+        <div id="csInputPreview" style="display:none;background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">완료여부</span><strong id="cip-status"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">모델코드</span><span id="cip-model"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">구매자</span><span id="cip-buyer"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">채널</span><span id="cip-channel"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">현재 CS여부</span><strong id="cip-csyn" style="color:var(--orange)"></strong></div>
+        </div>
+        <div id="csInputFormRow" style="display:none">
+          <div class="form-row full" style="margin-bottom:10px">
+            <div>
+              <label>CS 여부</label>
+              <select id="csInput-yn">
+                <option value="Y">Y — CS 진행중</option>
+                <option value="">해제 (CS 완료)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full" style="margin-bottom:14px">
+            <div>
+              <label>CS 내용</label>
+              <textarea id="csInput-content" rows="4" placeholder="CS 내용 입력 (증상, 조치내용 등)"></textarea>
+            </div>
+          </div>
+          <button class="submit-btn" onclick="saveCSInput()" style="background:var(--orange)">CS 저장</button>
+        </div>
+        <div class="success-msg" id="csInput-success"></div>
+        <div class="error-msg" id="csInput-error"></div>
+      </div>
+      <div class="form-card" style="flex:1;min-width:240px">
+        <h3>📋 CS 진행 현황</h3>
+        <div id="csListPanel">
+          <div class="empty">CS 진행 건이 없습니다</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭4: 취소처리 -->
+  <div id="tab-cancel" style="display:none">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div class="form-card" style="flex:1;min-width:300px;max-width:500px">
+        <h3>❌ 주문 취소 처리</h3>
+        <div class="form-row full">
+          <div>
+            <label>사방넷 주문번호 <span>*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="cancelNo" placeholder="예: 2124977241" style="flex:1">
+              <button onclick="searchCancel()" style="background:var(--navy);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap">조회</button>
+            </div>
+          </div>
+        </div>
+        <div id="cancelPreview" style="display:none;background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">완료여부</span><strong id="pv-status"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">모델코드</span><span id="pv-model"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">구매자</span><span id="pv-buyer"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">설치점</span><span id="pv-point"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">채널</span><span id="pv-channel"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">처리방식</span><strong id="pv-action" style="color:var(--orange)"></strong></div>
+        </div>
+        <div id="cancelConfirmRow" style="display:none;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="cancelChk" onchange="document.getElementById('cancelBtn').disabled=!this.checked">
+            위 내용을 확인했으며 취소 처리합니다
+          </label>
+        </div>
+        <button class="submit-btn" id="cancelBtn" onclick="doCancel()" disabled style="background:var(--red)">취소 완료 처리</button>
+        <div class="success-msg" id="cancel-success"></div>
+        <div class="error-msg" id="cancel-error"></div>
+      </div>
+      <div class="form-card" style="flex:1;min-width:240px">
+        <h3>📌 취소 처리 규칙</h3>
+        <div class="note-box"><strong>신규 발주 취소</strong><br>→ 발주원장 완료여부 = 취소재고<br>→ 선매입재고상세 새 항목 추가 (대기중)<br>→ 선매입재고현황 수량 +1</div>
+        <div class="note-box"><strong>기존재고 취소</strong><br>→ 발주원장 완료여부 = 취소재고<br>→ 선매입재고상세 해당 행 사용중 → 대기중<br>→ 선매입재고현황 수량 +1</div>
+        <p style="font-size:12px;color:var(--gray);margin-top:8px">※ 로컬 발주서 생성은 배치파일로 직접 실행하세요.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭4: 단가추이 -->
+  <div id="tab-price" style="display:none">
+    <div class="chart-wrap">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+        <input type="text" id="modelSearch" placeholder="모델코드 검색..." oninput="filterChips()" style="width:220px">
+        <select id="channelFilter" onchange="filterChips()" style="width:140px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+          <option value="">채널 전체</option>
+          <option value="벤더">벤더공통</option>
+          <option value="홈쇼핑">홈쇼핑</option>
+          <option value="VRF">VRF이마트</option>
+        </select>
+        <span id="selectedModelLabel" style="font-size:13px;color:var(--navy);font-weight:600"></span>
+      </div>
+      <div class="chips" id="modelChips"></div>
+      <canvas id="priceChart" style="width:100%;height:260px;display:block"></canvas>
+      <div class="table-wrap" style="margin-top:14px">
+        <table>
+          <thead><tr><th>연월</th><th>카테고리</th><th>평형</th><th>모델코드</th><th>판매가격</th><th>공급가(설치포함,VAT-)</th><th>공급가(설치제외,VAT-)</th></tr></thead>
+          <tbody id="priceBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+</div><!-- /mainView -->
+
+<!-- ══════════ 윈세이 서브뷰 ══════════ -->
+<div class="subview" id="winseiView">
+<div class="container">
+  <div class="back-btn" onclick="showMain()">← 캐리어 메인으로</div>
+  <div class="section-title blue" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
+    <span class="dot dot-w"></span> 윈세이 발주현황
+  </div>
+  <div class="cards" style="margin-top:0">
+    <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="w-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
+    <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="w-done">—</div><div class="card-desc">발주 완료</div></div>
+    <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
+  </div>
+  <div class="search-bar" style="margin-top:16px">
+    <span>📅 기간 조회</span>
+    <input type="date" id="wf-from" style="width:140px">
+    <span style="color:var(--gray)">~</span>
+    <input type="date" id="wf-to" style="width:140px">
+    <button onclick="renderWinsei()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
+    <button onclick="resetWinseiFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
+    <select id="wf-status" onchange="renderWinsei()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+      <option value="">전체 상태</option><option value="발주대기">발주대기</option><option value="발주완료">발주완료</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th></tr></thead>
+    <tbody id="winseiBody"><tr><td colspan="8" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ 스타리온 서브뷰 ══════════ -->
+<div class="subview" id="starionView">
+<div class="container">
+  <div class="back-btn" onclick="showMain()">← 캐리어 메인으로</div>
+  <div class="section-title dark" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
+    <span class="dot dot-s"></span> 스타리온 발주현황
+  </div>
+  <div class="cards" style="margin-top:0;grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="card-label">🔵 해피콜대기</div><div class="card-num purple" id="st-happy">—</div><div class="card-desc">해피콜 진행 중</div></div>
+    <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="st-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
+    <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">발주 완료</div></div>
+    <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc"></div></div>
+  </div>
+  <div class="search-bar" style="margin-top:16px">
+    <span>📅 기간 조회</span>
+    <input type="date" id="sf-from" style="width:140px">
+    <span style="color:var(--gray)">~</span>
+    <input type="date" id="sf-to" style="width:140px">
+    <button onclick="renderStarion()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
+    <button onclick="resetStarionFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
+    <select id="sf-status" onchange="renderStarion()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+      <option value="">전체 상태</option><option value="해피콜대기">해피콜대기</option><option value="발주대기">발주대기</option><option value="발주완료">발주완료</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th></tr></thead>
+    <tbody id="starionBody"><tr><td colspan="8" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+  </div>
+</div>
+</div>
+
+<!-- 발주전취소 안내 모달 -->
+<div id="preOrderCancelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:10px;padding:28px;width:480px;max-width:95vw">
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--navy)">📌 발주중 상태 취소 안내</div>
+    <div style="font-size:13px;color:var(--gray);margin-bottom:20px">오더번호가 없는 발주중 건입니다</div>
+
+    <div style="background:#E9F7EF;border:1px solid #A9DFBF;border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;line-height:1.8">
+      <strong style="color:var(--green)">✅ 캐리어에 발주하기 전 취소라면</strong><br>
+      발주 전 취소로 처리됩니다.<br>
+      <span style="color:var(--gray)">재고에 전혀 영향을 미치지 않습니다.</span>
+    </div>
+
+    <div style="background:#FEF9E7;border:1px solid #F9A825;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.8">
+      <strong style="color:var(--orange)">⚠️ 캐리어에 이미 발주해서 오더번호가 있다면</strong><br>
+      지금 취소를 중단하고, <strong>오더번호를 먼저 입력</strong>해 주세요.<br>
+      <span style="color:var(--gray)">오더번호 입력 후 취소해야 설치점 보관 재고로 복구됩니다.</span>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closePreOrderCancelModal()" style="padding:10px 20px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:13px;font-weight:600">닫기 (취소 중단)</button>
+      <button onclick="confirmPreOrderCancel()" style="padding:10px 20px;background:var(--red);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">발주 전 취소 진행</button>
+    </div>
+  </div>
+</div>
+
+<!-- CS 모달 -->
+<div id="csModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:10px;padding:24px;width:420px;max-width:95vw">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--navy)">CS 내용 입력/수정</div>
+    <input type="hidden" id="cs-no">
+    <div style="margin-bottom:10px"><label>사방넷 주문번호</label><div id="cs-no-label" style="font-weight:700;padding:6px 0;font-size:14px"></div></div>
+    <div class="form-row full" style="margin-bottom:10px"><div><label>CS 여부</label>
+      <select id="cs-yn"><option value="Y">Y — CS 진행중</option><option value="">해제</option></select></div></div>
+    <div class="form-row full" style="margin-bottom:14px"><div><label>CS 내용</label>
+      <textarea id="cs-content" rows="3" placeholder="CS 내용 입력"></textarea></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeCS()" style="padding:8px 18px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:13px">취소</button>
+      <button onclick="saveCS()" style="padding:8px 18px;background:var(--navy);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">저장</button>
+    </div>
+    <div class="success-msg" id="cs-success"></div>
+    <div class="error-msg" id="cs-error"></div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbx9ibo2XK7OF4F-eqpXqBCoVpRE8Tq3dqXEKwziIuO0VWh1sGUi1UYNtEf6qEQYD5J7Bw/exec";
+
+let allOrders=[], allStock=[], allPrices=[], allWinsei=[], allStarion=[];
+let currentOrderFilter='전체', selectedModel='', cancelTarget=null;
+let selectedStockModel = null;
+
+// ── 유틸 ──
+function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function fmtD(v){if(!v)return'';const s=String(v).trim();if(/^\d{8}$/.test(s))return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8);if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const d=new Date(v);if(!isNaN(d))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return String(v).slice(0,10);}
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function setDR(fId,tId,from,to){document.getElementById(fId).value=fmt(from);document.getElementById(tId).value=fmt(to);}
+function showMsgBox(id,msg,isSuccess){const el=document.getElementById(id);if(!el)return;el.textContent=(isSuccess?'✅ ':'❌ ')+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
+function bdg(s){const m={'신규':'badge-new','발주중':'badge-jungoo','발주완료':'badge-done','기존재고':'badge-stock','주문취소':'badge-cancel','취소재고':'badge-cancel','해피콜대기':'badge-happy','발주대기':'badge-wait'};return'badge '+(m[s]||'');}
+function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleString();}
+
+async function apiCall(params){
+  const r=await fetch(API+"?"+new URLSearchParams(params));
+  const d=await r.json();
+  if(d&&d.error)throw new Error(d.error);
+  return d;
+}
+
+function updateHeaderDate(){
+  const now=new Date();
+  document.getElementById('headerDate').textContent=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+}
+
+// ── 전체 로딩 ──
+async function loadAll(){
+  updateHeaderDate();
+  document.getElementById('dash-loading').style.display='block';
+  document.getElementById('dash-content').style.display='none';
+  try{
+    const [summary,stock,orders,prices,winsei,starion]=await Promise.all([
+      apiCall({action:'getCarrierSummary'}),
+      apiCall({action:'getCarrierStock'}),
+      apiCall({action:'getCarrierOrders'}),
+      apiCall({action:'getPriceHistory'}),
+      apiCall({action:'getWinseiOrders'}),
+      apiCall({action:'getStarionOrders'}),
+    ]);
+
+    setText('s-new',      summary.newCount??0);
+    setText('s-ordering', summary.ordering??0);
+    setText('s-noorder',  summary.noOrderNo??0);
+    setText('s-noorder2', summary.noOrderNo??0);
+    setText('s-done',     summary.done??0);
+    setText('s-stock',    summary.existingStock??0);
+    setText('s-avail',    summary.availTotal??0);
+    setText('s-ordercancelled', summary.orderCancelled??0);
+    setText('s-stockcancelled',  summary.stockCancelled??0);
+    setText('s-cs',       summary.csCount??0);
+    setText('s-total',    summary.total??0);
+    setText('s-monthcnt', summary.thisMonthCount??0);
+    const amt=summary.thisMonthAmt??0;
+    setText('s-amt', amt?'₩'+Math.round(amt).toLocaleString():'—');
+
+    allOrders  = Array.isArray(orders)  ? orders  : [];
+    allStock   = Array.isArray(stock)   ? stock   : [];
+    allPrices  = Array.isArray(prices)  ? prices  : [];
+    allWinsei  = Array.isArray(winsei)  ? winsei  : [];
+    allStarion = Array.isArray(starion) ? starion : [];
+
+    // 윈세이/스타리온 기본 날짜: 최근 3개월
+    const to=new Date(),from3=new Date();from3.setMonth(from3.getMonth()-3);
+    setDR('wf-from','wf-to',from3,to);
+    setDR('sf-from','sf-to',from3,to);
+    // 발주현황: 기본 전체 기간
+    document.getElementById('o-from').value='';
+    document.getElementById('o-to').value='';
+
+    renderStock();
+    renderOrders();
+    renderPriceChips();
+    renderWinsei();
+    renderStarion();
+
+    document.getElementById('dash-loading').style.display='none';
+    document.getElementById('dash-content').style.display='block';
+  }catch(e){
+    document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
+  }
+}
+
+// ── 탭 전환 + 탭별 재로딩 ──
+function showTab(tab){
+  ['dashboard','stock','orders','noorder','cancel','csInput','price'].forEach(t=>{
+    const el=document.getElementById('tab-'+t);
+    if(el)el.style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('#mainView .nav-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['dashboard','stock','orders','cancel','csInput','price'][i]===tab);
+  });
+  if(tab==='stock')   refreshStock();
+  if(tab==='orders')  refreshOrders();
+  if(tab==='noorder') renderNoOrder();
+  if(tab==='csInput') renderCSList();
+  if(tab==='price')   setTimeout(drawChart,50);
+}
+
+async function refreshStock(){
+  try{const d=await apiCall({action:'getCarrierStock'});allStock=Array.isArray(d)?d:[];selectedStockModel=null;renderStock();}catch(e){}
+}
+async function refreshOrders(){
+  try{
+    const [orders,summary]=await Promise.all([apiCall({action:'getCarrierOrders'}),apiCall({action:'getCarrierSummary'})]);
+    allOrders=Array.isArray(orders)?orders:[];
+    setText('s-new',summary.newCount??0);setText('s-ordering',summary.ordering??0);
+    setText('s-noorder',summary.noOrderNo??0);setText('s-noorder2',summary.noOrderNo??0);
+    setText('s-done',summary.done??0);setText('s-stock',summary.existingStock??0);
+    setText('s-ordercancelled',summary.orderCancelled??0);
+    setText('s-stockcancelled',summary.stockCancelled??0);setText('s-cs',summary.csCount??0);setText('s-total',summary.total??0);
+    renderOrders();
+  }catch(e){}
+}
+
+// ── 현황판 카드 이동 ──
+function goToOrders(filter){
+  currentOrderFilter=filter;
+  document.getElementById('o-from').value='';
+  document.getElementById('o-to').value='';
+  showTab('orders');
+  document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>{
+    const lb=t.textContent.trim();
+    t.classList.toggle('active',filter==='전체'?lb==='전체':filter==='CS'?lb==='CS진행':lb===filter);
+  });
+  renderOrders();
+}
+function goToNoOrder(){showTab('noorder');renderNoOrder();}
+function goToOrdersThisMonth(){
+  const now=new Date();
+  const from=new Date(now.getFullYear(),now.getMonth(),1);
+  const to=new Date(now.getFullYear(),now.getMonth()+1,0);
+  document.getElementById('o-from').value=fmt(from);
+  document.getElementById('o-to').value=fmt(to);
+  currentOrderFilter='발주완료';
+  showTab('orders');
+  renderOrders();
+}
+function goToStock(){showTab('stock');}
+
+// ── 가용재고: 상단 모델 카드 ──
+function renderStock(){
+  const grid=document.getElementById('model-card-grid');
+  document.getElementById('stock-detail-panel').style.display='none';
+  if(!allStock.length){grid.innerHTML='<div class="empty">가용 재고 없음</div>';return;}
+
+  const map={};
+  allStock.forEach(r=>{
+    const m=r['모델코드']||'?';
+    if(!map[m])map[m]={model:m,points:new Set(),qty:0,rows:[]};
+    map[m].qty+=parseInt(r['수량'])||1;
+    if(r['설치점코드'])map[m].points.add(r['설치점코드']);
+    map[m].rows.push(r);
+  });
+
+  grid.innerHTML=Object.values(map).sort((a,b)=>b.qty-a.qty).map(it=>`
+    <div class="model-card ${selectedStockModel===it.model?'selected':''}" onclick="selectStockModel('${it.model}')">
+      <div class="model-card-name">${it.model}</div>
+      <div class="model-card-qty">${it.qty}</div>
+      <div class="model-card-unit">대 대기중</div>
+      <div class="model-card-pts">설치점 ${it.points.size}곳</div>
+    </div>`).join('');
+
+  if(selectedStockModel) renderStockDetail(selectedStockModel);
+}
+
+// ── 가용재고: 하단 세부 테이블 ──
+function selectStockModel(model){
+  selectedStockModel=model;
+  // 카드 선택 표시 갱신
+  document.querySelectorAll('.model-card').forEach(c=>{
+    c.classList.toggle('selected',c.querySelector('.model-card-name').textContent===model);
+  });
+  renderStockDetail(model);
+}
+
+function renderStockDetail(model){
+  const rows=allStock.filter(r=>(r['모델코드']||'?')===model);
+  const panel=document.getElementById('stock-detail-panel');
+  const tbody=document.getElementById('stock-detail-body');
+  setText('stock-detail-title',`📋 ${model} — 세부 내역 (${rows.length}건)`);
+
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="6" class="empty">데이터 없음</td></tr>';
+  } else {
+    tbody.innerHTML=rows.map(r=>`<tr>
+      <td>${r['설치점코드']||'—'}</td>
+      <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['설치점주소']||'—'}</td>
+      <td>${r['오더번호']||'<span style="color:var(--red)">미입력</span>'}</td>
+      <td>${fmtD(r['납기요구일'])||'—'}</td>
+      <td>${r['매입단가(VAT-)']?wfmt(r['매입단가(VAT-)']):'—'}</td>
+      <td style="text-align:center">${r['수량']||1}</td>
+    </tr>`).join('');
+  }
+  panel.style.display='block';
+  // 패널 위치로 스크롤
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+
+// ── 발주현황 ──
+function filterOrders(f,btn){
+  currentOrderFilter=f;
+  document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>t.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderOrders();
+}
+function resetOrderFilter(){
+  const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);
+  setDR('o-from','o-to',from,to);renderOrders();
+}
+function clearOrderFilter(){
+  document.getElementById('o-from').value='';
+  document.getElementById('o-to').value='';
+  renderOrders();
+}
+
+function renderOrders(){
+  const from=document.getElementById('o-from').value;
+  const to=document.getElementById('o-to').value;
+  const f=currentOrderFilter;
+
+  let rows=allOrders.filter(r=>{
+    const d=fmtD(r['접수일']);
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    if(f==='CS')return r['CS여부']==='Y';
+    if(f==='전체')return true;
+    return r['완료여부']===f;
+  });
+
+  const wrap=document.getElementById('order-list');
+  if(!rows.length){wrap.innerHTML='<div class="empty">조회 결과 없음</div>';return;}
+
+  wrap.innerHTML=`<div style="padding:10px 16px;font-size:12px;color:var(--gray);display:flex;justify-content:space-between">
+    <span>총 ${rows.length}건</span>
+    <span style="color:var(--blue);font-size:11px">행 클릭 → CS 입력</span>
+  </div><div style="padding:0 0 12px">`+
+  rows.map(r=>{
+    const isCS=r['CS여부']==='Y';
+    const amt=r['발주금액_VAT포함']?wfmt(r['발주금액_VAT포함']):'—';
+    const sno=r['사방넷주문번호']||'';
+    const csContent=r['CS내용']||'';
+    const detailId='od-'+sno;
+    const hasOrder=r['오더번호']&&String(r['오더번호']).trim();
+    return`<div style="border-bottom:1px solid #F0F0F0;">
+      <div style="display:flex;align-items:center;padding:10px 16px;gap:10px;cursor:pointer;${isCS?'background:#FEF9E7;border-left:3px solid var(--orange);':''}" onclick="toggleOD('${detailId}')">
+        <span style="font-size:12px;color:var(--gray);min-width:86px;flex-shrink:0">${fmtD(r['접수일'])}</span>
+        <span class="${bdg(r['완료여부'])}">${r['완료여부']||'—'}</span>
+        <span style="font-weight:600;min-width:130px;font-size:12px;flex-shrink:0">${r['모델코드']||''}</span>
+        <span style="color:var(--dark);flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</span>
+        <span style="font-size:12px;color:var(--dark);flex-shrink:0">${amt}</span>
+        ${isCS?`<span style="color:var(--orange);font-weight:700;font-size:11px;flex-shrink:0">●CS</span>`:''}
+        <button onclick="event.stopPropagation();openCS('${sno}','${r['CS여부']||''}',${JSON.stringify(csContent)})" style="background:var(--blue);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">CS</button>
+        <span style="color:var(--gray);font-size:11px;flex-shrink:0">▼</span>
+      </div>
+      <div id="${detailId}" style="display:none;padding:10px 16px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px">
+          <div><span style="color:var(--gray)">오더번호: </span>${hasOrder?r['오더번호']:'<span style="color:var(--red)">미입력</span>'}</div>
+          <div><span style="color:var(--gray)">수량: </span>${r['수량']||1}</div>
+          <div><span style="color:var(--gray)">설치점: </span>${r['설치점코드']||'—'}</div>
+          <div><span style="color:var(--gray)">납기요구일: </span>${fmtD(r['납기요구일'])}</div>
+          <div><span style="color:var(--gray)">우편번호: </span>${r['실구매자우편번호']||'—'}</div>
+          <div style="grid-column:span 3"><span style="color:var(--gray)">주소: </span>${r['실구매자주소']||'—'}</div>
+        </div>
+        ${r['물류메시지']?`<div><span style="color:var(--gray)">물류메시지: </span>${r['물류메시지']}</div>`:''}
+        ${isCS&&csContent?`<div style="margin-top:6px;padding:6px 10px;background:#FEF9E7;border-radius:4px"><span style="color:var(--orange);font-weight:700">CS내용: </span>${csContent}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function toggleOD(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+
+// ── 오더번호 미입력 전용 뷰 ──
+function renderNoOrder(){
+  const targets=allOrders.filter(r=>{
+    const 완=(r['완료여부']||'').trim();
+    return(완==='발주중'||완==='기존재고')&&!String(r['오더번호']||'').trim();
+  });
+  const wrap=document.getElementById('noorder-list');
+  if(!targets.length){wrap.innerHTML='<div class="empty">✅ 오더번호 미입력 건이 없습니다</div>';return;}
+  wrap.innerHTML=targets.map(r=>{
+    const sno=String(r['사방넷주문번호']||'');
+    const 완=r['완료여부']||'';
+    return`<div class="order-input-row">
+      <div class="order-input-info">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span class="${bdg(완)}">${완}</span>
+          <strong style="font-size:13px">${r['모델코드']||''}</strong>
+          <span style="font-size:12px;color:var(--gray)">${fmtD(r['접수일'])}</span>
+        </div>
+        <div style="font-size:12px;color:var(--dark)">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px">사방넷: ${sno} | 설치점: ${r['설치점코드']||'—'}</div>
+        <div id="nm-${sno}" style="font-size:12px;margin-top:4px;display:none"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <input type="text" id="ni-${sno}" placeholder="오더번호 입력" style="width:150px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;">
+        <button id="nb-${sno}" class="save-btn" onclick="saveOrderNo('${sno}')">저장</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveOrderNo(sno){
+  const orderNo=document.getElementById('ni-'+sno).value.trim();
+  const msg=document.getElementById('nm-'+sno);
+  const btn=document.getElementById('nb-'+sno);
+  if(!orderNo){msg.style.display='block';msg.style.color='var(--red)';msg.textContent='오더번호를 입력하세요';return;}
+  btn.disabled=true;btn.textContent='저장 중...';
+  try{
+    await apiCall({action:'updateOrderNo',saBangNo:sno,orderNo});
+    msg.style.display='block';msg.style.color='var(--green)';msg.textContent='✅ 저장 완료 — 발주완료로 변경됨';
+    const idx=allOrders.findIndex(r=>String(r['사방넷주문번호'])===sno);
+    if(idx>=0){allOrders[idx]['오더번호']=orderNo;allOrders[idx]['완료여부']='발주완료';}
+    setTimeout(()=>{
+      renderNoOrder();
+      const remaining=allOrders.filter(r=>{const 완=(r['완료여부']||'').trim();return(완==='발주중'||완==='기존재고')&&!String(r['오더번호']||'').trim();}).length;
+      setText('s-noorder',remaining);setText('s-noorder2',remaining);
+    },1500);
+  }catch(e){btn.disabled=false;btn.textContent='저장';msg.style.display='block';msg.style.color='var(--red)';msg.textContent='❌ 오류: '+e.message;}
+}
+
+// ── 취소처리 ──
+function searchCancel(){
+  const no=document.getElementById('cancelNo').value.trim();
+  if(!no)return;
+  cancelTarget=null;
+  document.getElementById('cancelBtn').disabled=true;
+  document.getElementById('cancelPreview').style.display='none';
+  document.getElementById('cancelConfirmRow').style.display='none';
+  document.getElementById('cancelChk').checked=false;
+  const found=allOrders.find(r=>String(r['사방넷주문번호'])===no);
+  if(!found){showMsgBox('cancel-error','주문번호를 찾을 수 없습니다.');return;}
+  if(found['완료여부']==='취소재고'){
+    showMsgBox('cancel-error','이미 취소 처리된 건입니다.');
+    return;
+  }
+  cancelTarget=found;
+  const 완=found['완료여부']||'';
+  setText('pv-status',완);setText('pv-model',found['모델코드']||'');setText('pv-buyer',found['실구매자명']||'');
+  setText('pv-point',found['설치점코드']||'');setText('pv-channel',found['채널']||'');
+  const 오더 = String(found['오더번호']||'').trim();
+  let 처리방식 = '';
+  if(완==='기존재고')          처리방식 = '기존재고 복구 (선매입재고 대기중 전환)';
+  else if(!오더)               처리방식 = '🚫 주문취소 (재고 영향 없음) — 오더번호 있으면 먼저 입력';
+  else                         처리방식 = '신규발주 취소 (선매입재고 새 항목 추가)';
+  setText('pv-action', 처리방식);
+  document.getElementById('cancelPreview').style.display='block';
+  document.getElementById('cancelConfirmRow').style.display='block';
+}
+async function doCancel(){
+  if(!cancelTarget)return;
+
+  // [v5] 발주중 + 오더번호 없음 → 안내 모달 먼저 표시
+  const 완료 = (cancelTarget['완료여부']||'').trim();
+  const 오더 = String(cancelTarget['오더번호']||'').trim();
+  if(완료==='발주중' && !오더){
+    document.getElementById('preOrderCancelModal').style.display='flex';
+    return;
+  }
+  await _execCancel();
+}
+
+function closePreOrderCancelModal(){
+  document.getElementById('preOrderCancelModal').style.display='none';
+  document.getElementById('cancelBtn').disabled=false;
+}
+
+async function confirmPreOrderCancel(){
+  document.getElementById('preOrderCancelModal').style.display='none';
+  await _execCancel();
+}
+
+async function _execCancel(){
+  if(!cancelTarget)return;
+  const no=String(cancelTarget['사방넷주문번호']);
+  document.getElementById('cancelBtn').disabled=true;
+  try{
+    const result = await apiCall({action:'cancelCarrierOrder',saBangNo:no});
+    // 발주전 취소 메시지 분기
+    const msg = result.result==='주문취소'
+      ? '✅ 주문취소 완료 — 재고에 영향 없습니다'
+      : '✅ 취소재고 처리 완료 — 선매입재고에 복구되었습니다';
+    // 로컬 데이터 즉시 업데이트 (화면 깜빡임 없이)
+    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===no);
+    if(idx>=0) allOrders[idx]['완료여부'] = result.result==='주문취소' ? '주문취소' : '취소재고';
+
+    cancelTarget=null;
+    document.getElementById('cancelNo').value='';
+    document.getElementById('cancelPreview').style.display='none';
+    document.getElementById('cancelConfirmRow').style.display='none';
+    document.getElementById('cancelChk').checked=false;
+
+    // 성공 메시지 표시 후 현황판만 갱신
+    showMsgBox('cancel-success', msg, true);
+
+    // 2초 후 전체 갱신 (메시지 보이는 동안 유지)
+    setTimeout(()=>loadAll(), 2000);
+  }catch(e){
+    showMsgBox('cancel-error','오류: '+e.message);
+    document.getElementById('cancelBtn').disabled=false;
+  }
+}
+
+// ── CS 모달 ──
+function openCS(sno,yn,content){
+  document.getElementById('cs-no').value=sno;setText('cs-no-label',sno);
+  document.getElementById('cs-yn').value=yn||'';document.getElementById('cs-content').value=content||'';
+  document.getElementById('csModal').style.display='flex';
+}
+function closeCS(){document.getElementById('csModal').style.display='none';}
+
+// ── CS 입력 탭 ──
+function searchCSInput(){
+  const no = document.getElementById('csInputNo').value.trim();
+  if(!no) return;
+  document.getElementById('csInputPreview').style.display='none';
+  document.getElementById('csInputFormRow').style.display='none';
+
+  const found = allOrders.find(r=>String(r['사방넷주문번호'])===no);
+  if(!found){
+    showMsgBox('csInput-error','주문번호를 찾을 수 없습니다.');
+    return;
+  }
+  setText('cip-status',  found['완료여부']||'—');
+  setText('cip-model',   found['모델코드']||'—');
+  setText('cip-buyer',   found['실구매자명']||'—');
+  setText('cip-channel', found['채널']||'—');
+  const csyn = found['CS여부']||'';
+  setText('cip-csyn', csyn==='Y'?'Y (CS 진행중)':'없음');
+  document.getElementById('csInput-yn').value = csyn;
+  document.getElementById('csInput-content').value = found['CS내용']||'';
+  document.getElementById('csInputPreview').style.display='block';
+  document.getElementById('csInputFormRow').style.display='block';
+}
+
+async function saveCSInput(){
+  const no      = document.getElementById('csInputNo').value.trim();
+  const csYn    = document.getElementById('csInput-yn').value;
+  const content = document.getElementById('csInput-content').value;
+  if(!no){showMsgBox('csInput-error','주문번호를 입력하세요.');return;}
+  try{
+    await apiCall({action:'updateCS', saBangNo:no, csYn, csContent:content});
+    // 로컬 데이터 즉시 반영
+    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===no);
+    if(idx>=0){allOrders[idx]['CS여부']=csYn;allOrders[idx]['CS내용']=content;}
+    showMsgBox('csInput-success','✅ CS가 저장되었습니다.',true);
+    renderCSList();
+    // 현황판 CS 카운트 갱신
+    const csCnt = allOrders.filter(r=>r['CS여부']==='Y').length;
+    setText('s-cs', csCnt);
+    // 미리보기 갱신
+    setText('cip-csyn', csYn==='Y'?'Y (CS 진행중)':'없음');
+  }catch(e){showMsgBox('csInput-error','저장 오류: '+e.message);}
+}
+
+function renderCSList(){
+  const csRows = allOrders.filter(r=>r['CS여부']==='Y');
+  const panel  = document.getElementById('csListPanel');
+  if(!csRows.length){
+    panel.innerHTML='<div class="empty">CS 진행 건이 없습니다</div>';
+    return;
+  }
+  panel.innerHTML = csRows.map(r=>`
+    <div style="padding:10px 0;border-bottom:1px solid #F0F0F0;font-size:12px;cursor:pointer"
+         onclick="document.getElementById('csInputNo').value='${r['사방넷주문번호']}';searchCSInput()">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span>
+        <strong>${r['모델코드']||''}</strong>
+        <span style="color:var(--gray)">${fmtD(r['접수일'])}</span>
+      </div>
+      <div style="color:var(--dark)">${r['실구매자명']||''} (${r['채널']||''})</div>
+      ${r['CS내용']?`<div style="margin-top:4px;padding:4px 8px;background:#FEF9E7;border-radius:4px;color:var(--orange)">${r['CS내용']}</div>`:''}
+    </div>`).join('');
+}
+
+async function saveCS(){
+  const no=document.getElementById('cs-no').value;
+  const csYn=document.getElementById('cs-yn').value;
+  const content=document.getElementById('cs-content').value;
+  try{
+    await apiCall({action:'updateCS',saBangNo:no,csYn,csContent:content});
+    showMsgBox('cs-success','저장 완료!',true);
+    setTimeout(()=>{closeCS();loadAll();},1200);
+  }catch(e){showMsgBox('cs-error','저장 오류: '+e.message);}
+}
+
+// ── 단가추이 ──
+function filterChips(){
+  const q=document.getElementById('modelSearch').value.toLowerCase();
+  const ch=document.getElementById('channelFilter').value;
+  const models=[...new Set(allPrices.filter(r=>(!ch||(r['카테고리']||'').includes(ch))).map(r=>r['모델코드']))].sort().filter(m=>!q||m.toLowerCase().includes(q)).slice(0,60);
+  document.getElementById('modelChips').innerHTML=models.map(m=>`<div class="chip ${m===selectedModel?'on':''}" onclick="selectModel('${m}')">${m}</div>`).join('');
+}
+function renderPriceChips(){filterChips();}
+function selectModel(m){selectedModel=m;setText('selectedModelLabel',m?'선택: '+m:'');filterChips();renderPriceTable();drawChart();}
+function renderPriceTable(){
+  const rows=selectedModel?allPrices.filter(r=>r['모델코드']===selectedModel):[];
+  const tbody=document.getElementById('priceBody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" class="empty">모델을 선택하세요</td></tr>';return;}
+  tbody.innerHTML=rows.sort((a,b)=>a['연월']>b['연월']?1:-1).map(r=>`
+    <tr><td>${r['연월']||''}</td><td>${r['카테고리']||''}</td><td>${r['평형']||''}</td><td>${r['모델코드']||''}</td>
+    <td>${r['판매가격']?wfmt(r['판매가격']):'—'}</td>
+    <td>${r['공급가_설치포함_VAT제외']?wfmt(r['공급가_설치포함_VAT제외']):'—'}</td>
+    <td>${r['공급가_설치제외_VAT제외']?wfmt(r['공급가_설치제외_VAT제외']):'—'}</td></tr>`).join('');
+}
+function drawChart(){
+  const canvas=document.getElementById('priceChart');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.parentElement.offsetWidth-40;canvas.height=260;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const rows=selectedModel?allPrices.filter(r=>r['모델코드']===selectedModel).sort((a,b)=>a['연월']>b['연월']?1:-1):[];
+  const W=canvas.width,H=260,P={t:20,r:20,b:44,l:100};
+  if(!rows.length){ctx.fillStyle='#7F8C8D';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('모델을 선택하면 단가 추이 차트가 표시됩니다',W/2,H/2);return;}
+  const vals=rows.map(r=>parseInt(r['공급가_설치포함_VAT제외'])||0);
+  const mn=Math.min(...vals)*0.95,mx=Math.max(...vals)*1.05;
+  const xs=i=>P.l+i*(W-P.l-P.r)/Math.max(rows.length-1,1);
+  const ys=v=>H-P.b-(v-mn)/(mx-mn||1)*(H-P.t-P.b);
+  ctx.strokeStyle='#DDE1E7';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=P.t+(H-P.t-P.b)*i/4;ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(W-P.r,y);ctx.stroke();ctx.fillStyle='#7F8C8D';ctx.font='11px sans-serif';ctx.textAlign='right';ctx.fillText('₩'+(Math.round(mx-(mx-mn)*i/4)).toLocaleString(),P.l-6,y+4);}
+  rows.forEach((r,i)=>{ctx.fillStyle='#7F8C8D';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(r['연월'],xs(i),H-P.b+16);});
+  ctx.strokeStyle='#2980B9';ctx.lineWidth=2.5;ctx.beginPath();rows.forEach((_,i)=>i===0?ctx.moveTo(xs(i),ys(vals[i])):ctx.lineTo(xs(i),ys(vals[i])));ctx.stroke();
+  rows.forEach((_,i)=>{ctx.fillStyle='#2980B9';ctx.beginPath();ctx.arc(xs(i),ys(vals[i]),4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#2C3E50';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText('₩'+Math.round(vals[i]).toLocaleString(),xs(i),ys(vals[i])-10);});
+}
+
+// ── 윈세이/스타리온 ──
+function renderWinsei(){
+  const status=document.getElementById('wf-status').value;
+  const from=document.getElementById('wf-from').value;
+  const to=document.getElementById('wf-to').value;
+  const rows=allWinsei.filter(r=>{if(status&&r['완료여부']!==status)return false;const d=fmtD(r['접수일']);if(from&&d<from)return false;if(to&&d>to)return false;return true;});
+  setText('w-wait',allWinsei.filter(r=>r['완료여부']==='발주대기').length);
+  setText('w-done',allWinsei.filter(r=>r['완료여부']==='발주완료').length);
+  setText('w-total',allWinsei.length);
+  const tbody=document.getElementById('winseiBody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">조회 결과 없음</td></tr>';return;}
+  tbody.innerHTML=rows.map(r=>`<tr><td>${fmtD(r['접수일'])}</td><td><span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span></td><td>${r['점포명']||''}</td><td>${r['고객명']||''}</td><td>${r['모델코드']||''}</td><td>${r['수량']||1}</td><td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td><td>${r['사방넷주문번호']||''}</td></tr>`).join('');
+}
+function resetWinseiFilter(){document.getElementById('wf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('wf-from','wf-to',from,to);renderWinsei();}
+
+function renderStarion(){
+  const status=document.getElementById('sf-status').value;
+  const from=document.getElementById('sf-from').value;
+  const to=document.getElementById('sf-to').value;
+  const rows=allStarion.filter(r=>{if(status&&r['완료여부']!==status)return false;const d=fmtD(r['접수일']);if(from&&d<from)return false;if(to&&d>to)return false;return true;});
+  setText('st-happy',allStarion.filter(r=>r['완료여부']==='해피콜대기').length);
+  setText('st-wait',allStarion.filter(r=>r['완료여부']==='발주대기').length);
+  setText('st-done',allStarion.filter(r=>r['완료여부']==='발주완료').length);
+  setText('st-total',allStarion.length);
+  const tbody=document.getElementById('starionBody');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">조회 결과 없음</td></tr>';return;}
+  tbody.innerHTML=rows.map(r=>`<tr><td>${fmtD(r['접수일'])}</td><td><span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span></td><td>${r['점포명']||''}</td><td>${r['고객명']||''}</td><td>${r['모델코드']||''}</td><td>${r['수량']||1}</td><td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td><td>${r['사방넷주문번호']||''}</td></tr>`).join('');
+}
+function resetStarionFilter(){document.getElementById('sf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('sf-from','sf-to',from,to);renderStarion();}
+
+// ── 뷰 전환 ──
+function showVendor(v){
+  document.getElementById('mainView').style.display='none';
+  document.getElementById('winseiView').classList.remove('active');
+  document.getElementById('starionView').classList.remove('active');
+  document.getElementById(v==='winsei'?'winseiView':'starionView').classList.add('active');
+  if(v==='winsei'){apiCall({action:'getWinseiOrders'}).then(d=>{allWinsei=Array.isArray(d)?d:[];renderWinsei();}).catch(()=>{});}
+  if(v==='starion'){apiCall({action:'getStarionOrders'}).then(d=>{allStarion=Array.isArray(d)?d:[];renderStarion();}).catch(()=>{});}
+}
+function showMain(){
+  document.getElementById('mainView').style.display='';
+  document.getElementById('winseiView').classList.remove('active');
+  document.getElementById('starionView').classList.remove('active');
+}
+
+loadAll();
+</script>
+</body>
+</html>
