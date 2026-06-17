@@ -186,7 +186,7 @@
   .badge-as     { background: #E8F4FD; color: #2980B9; }
   .badge-진행중  { background: #FFF3E0; color: #E67E22; }
   .badge-입고완료 { background: #FFF9C4; color: #F57F17; }
-  .badge-처리중  { background: #E8F4FD; color: #2980B9; }
+  .badge-출고대기 { background: #E8F4FD; color: #2980B9; }
   .badge-완료   { background: #E8F5E9; color: #27AE60; }
 
   .loading {
@@ -590,15 +590,15 @@
           <div class="card-num red" id="cnt-미입고">-</div>
           <div class="card-desc">입고 확인 필요</div>
         </div>
-        <div class="card" onclick="goToList('입고완료')">
-          <div class="card-label">🟡 입고완료<br>처리 대기</div>
+        <div class="card" onclick="goToList('처리대기')">
+          <div class="card-label">🟡 입고완료<br>판정/처리 필요</div>
           <div class="card-num orange" id="cnt-처리대기">-</div>
-          <div class="card-desc">ERP 처리 필요</div>
+          <div class="card-desc">양품·불량 판정 + 처리결과 입력</div>
         </div>
-        <div class="card" onclick="goToList('처리중')">
-          <div class="card-label">🟠 처리결정<br>대기</div>
+        <div class="card" onclick="goToList('출고대기')">
+          <div class="card-label">🟠 출고대기<br>(처리결과 입력됨)</div>
           <div class="card-num orange" id="cnt-처리결정">-</div>
-          <div class="card-desc">처리결과 선택 필요</div>
+          <div class="card-desc">출고송장 입력 필요</div>
         </div>
         <div class="card" onclick="goToList('처리완료')">
           <div class="card-label">✅ 처리완료<br>(ERP까지)</div>
@@ -650,10 +650,10 @@
           <div class="card-num red" id="todo-미입고">-</div>
           <div class="card-desc">택배 도착 확인 ▶</div>
         </div>
-        <div class="card" onclick="goToList('입고완료')">
-          <div class="card-label">🟡 ERP 미처리</div>
+        <div class="card" onclick="goToList('처리대기')">
+          <div class="card-label">🟡 판정/처리 필요</div>
           <div class="card-num orange" id="todo-erp">-</div>
-          <div class="card-desc">ERP 처리 필요 ▶</div>
+          <div class="card-desc">양품·불량 판정 ▶</div>
         </div>
         <div class="card" onclick="goToList('AS입금')">
           <div class="card-label">💰 AS 청구/입금</div>
@@ -704,6 +704,21 @@
             <label>택배 입고일 <span>*</span></label>
             <input type="date" id="col-입고일">
           </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>택배사</label>
+            <select id="col-택배사">
+              <option value="">선택</option>
+              <option>CJ대한통운</option>
+              <option>롯데택배</option>
+              <option>한진택배</option>
+              <option>우체국택배</option>
+              <option>로젠택배</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div></div>
         </div>
         <div class="search-result" id="col-match-result">
           조회 결과: <strong id="col-match-text"></strong>
@@ -877,6 +892,24 @@
             <input type="text" id="proc-회수송장" placeholder="송장번호">
           </div>
           <div>
+            <label>택배사</label>
+            <select id="proc-택배사">
+              <option value="">선택</option>
+              <option>CJ대한통운</option>
+              <option>롯데택배</option>
+              <option>한진택배</option>
+              <option>우체국택배</option>
+              <option>로젠택배</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <div>
+            <label>택배입고일</label>
+            <input type="date" id="proc-택배입고일">
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
             <label>상태 확인</label>
             <select id="proc-상태확인">
               <option value="">선택</option>
@@ -886,10 +919,7 @@
               <option>양품</option>
             </select>
           </div>
-          <div>
-            <label>택배입고일</label>
-            <input type="date" id="proc-택배입고일">
-          </div>
+          <div></div>
         </div>
         <div class="form-row full">
           <div>
@@ -1284,6 +1314,14 @@ function normalizeBillingStatus(value) {
   return v;
 }
 
+// 기존 데이터 호환: 과거 값 '처리중'을 신규 명칭 '출고대기'로 화면에서 매핑
+// (v15: 시트에 남아있는 과거 '처리중' 값도 같은 의미로 인식)
+function normalizeCompleteStatus(value) {
+  const v = String(value || '').trim();
+  if (v === '처리중') return '출고대기';
+  return v;
+}
+
 // ─── 현황판 계산 ───────────────────────────────
 function calcDashboard(rows) {
   let 미입고=0, 처리대기=0, 처리결정=0, 처리완료=0, 전체반품=0;
@@ -1292,7 +1330,7 @@ function calcDashboard(rows) {
   rows.forEach(r => {
     const 접수일  = String(r[0]||'');
     const 구분    = String(r[1]||'').trim();
-    const 완료여부 = String(r[15]||'').trim();
+    const 완료여부 = normalizeCompleteStatus(r[15]);
     const erp처리 = String(r[14]||'').trim();
     const 입금확인 = String(r[18]||'').trim();
     if (!접수일.startsWith('2026')) return;
@@ -1300,14 +1338,14 @@ function calcDashboard(rows) {
     if (구분 === 'A/S') {
       as전체++;
       if (완료여부 === '진행중') as상담++;
-      if (완료여부 === '입고완료/처리대기' || 완료여부 === '처리중') as처리중++;
+      if (완료여부 === '입고완료/처리대기' || 완료여부 === '출고대기') as처리중++;
       if (isBillingPending(r[17], 입금확인, r[26])) as입금++;
       if (완료여부 === '완료') as완료++;
     } else if (구분 === '반품' || 구분 === '교환') {
       전체반품++;
       if (완료여부 === '진행중') 미입고++;
       if (완료여부 === '입고완료/처리대기') 처리대기++;
-      if (완료여부 === '처리중') 처리결정++;
+      if (완료여부 === '출고대기') 처리결정++;
       if (완료여부 === '완료' && erp처리 === 'Y') 처리완료++;
     }
   });
@@ -1466,6 +1504,7 @@ async function submitCollect() {
       await callAppsScript('updateDelivery', {
         송장번호:   송장,
         택배입고일: 입고일,
+        택배사:    document.getElementById('col-택배사').value,
         불량여부:  document.getElementById('col-상태확인').value,
         CS내역:   document.getElementById('col-cs').value.trim(),
         비고:     document.getElementById('col-비고').value.trim(),
@@ -1515,6 +1554,7 @@ function resetCollectForm() {
     document.getElementById(id).value = '';
   });
   document.getElementById('col-상태확인').value = '';
+  document.getElementById('col-택배사').value = '';
   document.getElementById('col-입고일').value  = today;
   document.getElementById('col-접수일').value  = today;
   document.getElementById('col-match-result').style.display = 'none';
@@ -1527,7 +1567,7 @@ function renderPendingList(type) {
   const pending = allData.filter(r => {
     const 접수일  = String(r[0]||'');
     const 구분    = String(r[1]||'').trim();
-    const 완료    = String(r[15]||'').trim();
+    const 완료    = normalizeCompleteStatus(r[15]);
     const 입금확인 = String(r[18]||'').trim();
     if (!접수일.startsWith('2026')) return false;
     if (완료 === '완료') return false;
@@ -1536,7 +1576,7 @@ function renderPendingList(type) {
 
     // type별 세부 필터
     if (type === '상담')   return 완료 === '진행중';
-    if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '처리중';
+    if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '출고대기';
     if (type === '입금')   return isBillingPending(r[17], 입금확인, r[26]);
     return true;
   });
@@ -1549,10 +1589,11 @@ function renderPendingList(type) {
   }
 
   const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
-  const statusClass = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','처리중':'badge-처리중','완료':'badge-완료'}[s]||'');
+  const statusClass = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','출고대기':'badge-출고대기','완료':'badge-완료'}[s]||'');
 
   wrap.innerHTML = pending.map(r => {
     const realIdx = allData.indexOf(r);
+    const 완료표시 = normalizeCompleteStatus(r[15]);
     return `
     <div class="pending-item" onclick="selectProcessRow(${realIdx})" data-rowidx="${realIdx}" id="pending-${realIdx}">
       <span style="font-size:11px;color:#888;min-width:82px;flex-shrink:0">${r[0]||''}</span>
@@ -1560,7 +1601,7 @@ function renderPendingList(type) {
       <span style="font-weight:700;min-width:70px;flex-shrink:0">${r[3]||'(이름없음)'}</span>
       <span style="color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[5]||'상품미상'}</span>
       <span style="font-size:11px;color:#888;flex-shrink:0">${r[2]||''}</span>
-      <span class="badge ${statusClass(String(r[15]||'').trim())}" style="flex-shrink:0">${r[15]||''}</span>
+      <span class="badge ${statusClass(완료표시)}" style="flex-shrink:0">${완료표시}</span>
       <span style="background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px;flex-shrink:0">선택 ▶</span>
     </div>`;
   }).join('');
@@ -1587,7 +1628,7 @@ function selectProcessRow(rowIdx) {
 
   // 패널 채우기
   document.getElementById('process-result-text').innerHTML =
-    `<strong>${r[3]||'이름없음'}</strong> | ${r[2]||''} | ${r[5]||'상품미상'} | 상태: <strong style="color:#E67E22">${r[15]||''}</strong>`;
+    `<strong>${r[3]||'이름없음'}</strong> | ${r[2]||''} | ${r[5]||'상품미상'} | 상태: <strong style="color:#E67E22">${normalizeCompleteStatus(r[15])}</strong>`;
 
   document.getElementById('proc-고객명').value   = r[3]  || '';
   document.getElementById('proc-연락처').value   = r[4]  || '';
@@ -1605,6 +1646,7 @@ function selectProcessRow(rowIdx) {
   document.getElementById('proc-입금확인').value = r[18] ? normalizeBillingStatus(r[18]) : ''; // S열=18
   if (r[19]) document.getElementById('proc-출고송장').value  = r[19];
   document.getElementById('proc-주소').value = r[25] || '';
+  document.getElementById('proc-택배사').value = r[27] || '';
 
   document.getElementById('process-panel').style.display = 'block';
   setTimeout(() => {
@@ -1622,7 +1664,7 @@ function closeProcessPanel() {
   ['proc-택배입고일','proc-수리완료일','proc-출고일'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  ['proc-상태확인','proc-처리결과','proc-erp','proc-입금확인'].forEach(id => {
+  ['proc-상태확인','proc-처리결과','proc-erp','proc-입금확인','proc-택배사'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.querySelectorAll('.pending-item').forEach(el => {
@@ -1642,6 +1684,7 @@ async function submitProcess() {
     수량:       document.getElementById('proc-수량').value,
     회수송장:   document.getElementById('proc-회수송장').value.trim(),
     택배입고일: document.getElementById('proc-택배입고일').value,
+    택배사:     document.getElementById('proc-택배사').value,
     cs내역:     document.getElementById('proc-cs내역').value.trim(),
     불량여부:   document.getElementById('proc-상태확인').value,
     처리결과:   document.getElementById('proc-처리결과').value,
@@ -1699,12 +1742,13 @@ function renderTable(rows, filter) {
   if (filter !== '전체') {
     filtered = filtered.filter(r => {
       const 구분   = String(r[1]||'').trim();
-      const 완료   = String(r[15]||'').trim();
+      const 완료   = normalizeCompleteStatus(r[15]);
       const erp    = String(r[14]||'').trim();
       const 입금확인 = String(r[18]||'').trim();
       // 완료여부 기반
       if (filter === '진행중')   return (구분==='반품'||구분==='교환') && 완료==='진행중';
-      if (filter === '입고완료') return (구분==='반품'||구분==='교환') && 완료==='입고완료/처리대기';
+      if (filter === '처리대기') return (구분==='반품'||구분==='교환') && 완료==='입고완료/처리대기';
+      if (filter === '출고대기') return (구분==='반품'||구분==='교환') && 완료==='출고대기';
       if (filter === '처리완료') return (구분==='반품'||구분==='교환') && 완료==='완료' && erp==='Y';
       if (filter === '전체반품') return 구분==='반품' || 구분==='교환';
       // A/S 기반
@@ -1719,7 +1763,7 @@ function renderTable(rows, filter) {
   }
 
   const badgeClass   = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
-  const statusClass  = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','처리중':'badge-처리중','완료':'badge-완료'}[s]||'');
+  const statusClass  = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','출고대기':'badge-출고대기','완료':'badge-완료'}[s]||'');
 
   currentRenderedRows = filtered;
 
@@ -1730,7 +1774,7 @@ function renderTable(rows, filter) {
 
   const makeCards = list => list.map(r => {
     const realIdx = allData.indexOf(r);
-    const 완료 = String(r[15]||'').trim();
+    const 완료 = normalizeCompleteStatus(r[15]);
     const detailId = `detail-${realIdx}`;
     return `
     <div style="background:white;border:1px solid #DDE1E7;border-radius:8px;margin-bottom:8px;overflow:hidden">
@@ -1754,6 +1798,7 @@ function renderTable(rows, filter) {
           <div><span style="color:#888">주문번호:</span> ${r[7]||'-'}</div>
           <div><span style="color:#888">택배접수일:</span> ${r[9]||'-'}</div>
           <div><span style="color:#888">택배입고일:</span> ${r[10]||'-'}</div>
+          <div><span style="color:#888">택배사:</span> ${r[27]||'-'}</div>
           <div><span style="color:#888">상태확인:</span> ${r[12]||'-'}</div>
           <div><span style="color:#888">처리결과:</span> ${r[13]||'-'}</div>
           <div><span style="color:#888">ERP처리:</span> ${r[14]||'-'}</div>
@@ -1949,7 +1994,7 @@ async function downloadCurrentListExcel() {
   const headers = [
     '접수일','구분','채널','고객명','연락처','상품명','수량','주문번호','회수송장번호','택배접수일','택배입고일',
     'CS내역/증상','불량여부','처리결과','ERP처리','완료여부','비고','수리비용','입금확인','출고송장','수리완료일',
-    '접수자','접수자이메일','최종수정자','최종수정시간','주소','택배비'
+    '접수자','접수자이메일','최종수정자','최종수정시간','주소','택배비','택배사'
   ];
 
   const rows = getRowsForDownload().map(r => headers.map((_, idx) => r[idx] || ''));
