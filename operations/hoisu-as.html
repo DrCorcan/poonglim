@@ -584,7 +584,7 @@
     <div id="dashboard-content" style="display:none">
 
       <div class="section-title dark">🗓 오늘의 접수·처리 현황 — <span id="todayDateLabel"></span></div>
-      <div class="cards" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="cards" style="grid-template-columns: repeat(5, 1fr)">
         <div class="card" onclick="goToList('오늘접수')">
           <div class="card-label">📥 오늘 접수</div>
           <div class="card-num blue" id="cnt-오늘접수">-</div>
@@ -605,8 +605,13 @@
           <div class="card-num green" id="cnt-오늘완료">-</div>
           <div class="card-desc">출고일이 오늘 + 완료 상태</div>
         </div>
+        <div class="card" onclick="goToList('오늘개인입금확인')">
+          <div class="card-label">💰 오늘 개인고객<br>입금확인</div>
+          <div class="card-num green" id="cnt-오늘개인입금">-</div>
+          <div class="card-desc">입금확인일 기준</div>
+        </div>
       </div>
-      <div class="card-hint">→ 접수/입고/출고/완료 — 오늘 실제로 발생한 이벤트 기준 (구분: 반품·교환·A/S 전체 포함)</div>
+      <div class="card-hint">→ 접수/입고/출고/완료/입금확인 — 오늘 실제로 발생한 이벤트 기준 (구분: 반품·교환·A/S 전체 포함)</div>
 
       <div class="section-title red">📋 처리 대기 목록 (반품 · 교환 · A/S 전체 통합)</div>
       <div class="cards">
@@ -668,7 +673,7 @@
           <div class="section-title red" style="border-radius:0 8px 0 0">✅ 오늘 할 일</div>
           <div class="cards" style="grid-template-columns: repeat(1, 1fr); border-radius:0 0 8px 0; border-left:none">
             <div class="card" onclick="goToList('오늘할일전체')">
-              <div class="card-label">A/S <br>처리 대상</div>
+              <div class="card-label">A/S 직원<br>처리 대상</div>
               <div class="card-num red" id="cnt-오늘할일">-</div>
               <div class="card-desc">판정대기 + 송장입력대기</div>
             </div>
@@ -963,8 +968,8 @@
             <label>청구/입금 상태</label>
             <select id="proc-입금확인">
               <option value="">선택</option>
-              <option>청구필요</option>
-              <option>청구완료</option>
+              <option>거래처 청구</option>
+              <option>개인고객 청구</option>
               <option>입금확인</option>
               <option>무상</option>
               <option>관리제외</option>
@@ -1295,30 +1300,40 @@ function parseMoney(value) {
 }
 
 // 청구/입금 확인이 필요한 상태
+// v17: 입금확인일(AC열)이 비어있으면 미확인, 채워져 있으면 확인된 것으로 판단.
+// S열(입금확인)은 더 이상 '입금확인'이라는 완료 상태를 직접 담지 않고
+// 거래처청구/개인고객청구/무상/관리제외 같은 "누구에게 받을지" 정보만 담는다.
 // 기준:
 // 1) 수리비용 + 택배비 합계가 0보다 커야 함
-// 2) 입금확인 칸이 빈칸 / 청구필요 / 청구완료 / 기존 미확인 이면 카운트
-// 3) 입금확인 / 기존 확인 / 무상 / 관리제외 는 카운트 제외
-function isBillingPending(costValue, statusValue, shippingValue) {
+// 2) 무상/관리제외는 항상 제외
+// 3) 입금확인일이 비어있으면 확인 필요로 카운트
+function isBillingPending(costValue, statusValue, shippingValue, paymentDateValue) {
   const cost = parseMoney(costValue);
   const shipping = parseMoney(shippingValue);
   const total = cost + shipping;
   const status = String(statusValue || '').trim();
+  const paymentDate = String(paymentDateValue || '').trim();
 
   if (total <= 0) return false;
 
-  const excluded = ['입금확인', '확인', '무상', '관리제외'];
+  const excluded = ['무상', '관리제외'];
   if (excluded.includes(status)) return false;
 
-  // 빈칸, 청구필요, 청구완료, 미확인은 모두 청구/입금 확인 필요
+  // 입금확인일이 이미 있으면 확인 완료 — 더 이상 대기 아님
+  if (paymentDate) return false;
+
   return true;
 }
 
-// 기존 데이터 호환: 과거 값인 "확인"/"미확인"을 새 상태값으로 화면에서 매핑
+// 기존 데이터 호환: 과거 값들을 새 상태값 체계로 화면에서 매핑
+// v17: 청구필요/청구완료 → 거래처청구로 일괄 간주 (과거엔 거래처/개인 구분이 없었으므로
+//      더 안전한 기본값인 '거래처 청구'로 매핑하고, 필요시 직원이 직접 정정)
 function normalizeBillingStatus(value) {
   const v = String(value || '').trim();
   if (v === '확인') return '입금확인';
-  if (v === '미확인') return '청구완료';
+  if (v === '미확인') return '거래처 청구';
+  if (v === '청구필요') return '거래처 청구';
+  if (v === '청구완료') return '거래처 청구';
   return v;
 }
 
@@ -1337,7 +1352,7 @@ function calcDashboard(rows) {
   // 참고용 — 구분별 누적 통계 (26년)
   let 구분반품=0, 구분교환=0, 구분as=0, 전체통합=0;
   // 오늘의 접수·처리 현황
-  let 오늘접수=0, 오늘입고=0, 오늘출고=0, 오늘완료=0;
+  let 오늘접수=0, 오늘입고=0, 오늘출고=0, 오늘완료=0, 오늘개인입금=0;
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1346,9 +1361,10 @@ function calcDashboard(rows) {
     const 구분    = String(r[1]||'').trim();
     const 완료여부 = normalizeCompleteStatus(r[15]);
     const erp처리 = String(r[14]||'').trim();
-    const 입금확인 = String(r[18]||'').trim();
+    const 입금확인 = normalizeBillingStatus(r[18]);
     const 택배입고일 = String(r[10]||'');
     const 출고일     = String(r[20]||''); // 수리완료일/출고일 공용 컬럼
+    const 입금확인일 = String(r[28]||''); // AC열 (v17 신규)
 
     // 오늘의 접수·처리 현황 (구분 전체 대상, 연도 무관 — 오늘 발생한 이벤트 기준)
     if (접수일 === todayStr) 오늘접수++;
@@ -1357,6 +1373,8 @@ function calcDashboard(rows) {
       오늘출고++;
       if (완료여부 === '완료') 오늘완료++;
     }
+    // 오늘 입금확인된 것 중, '개인고객 청구'였던 건만 카운트 (거래처 정산은 월단위라 제외)
+    if (입금확인일 === todayStr && 입금확인 === '개인고객 청구') 오늘개인입금++;
 
     // 통합 작업판 — 구분 무관, 연도 무관 (지금 살아있는 모든 미완료 건을 놓치지 않는 것이 목적)
     if (완료여부 === '진행중') 미입고전체++;
@@ -1370,7 +1388,7 @@ function calcDashboard(rows) {
         완료전체++;
       }
     }
-    if (isBillingPending(r[17], 입금확인, r[26])) 청구입금전체++;
+    if (isBillingPending(r[17], 입금확인, r[26], 입금확인일)) 청구입금전체++;
 
     // 참고용 구분별 통계는 26년 누적만 (연도 제한 유지)
     if (!접수일.startsWith('2026')) return;
@@ -1385,6 +1403,7 @@ function calcDashboard(rows) {
   document.getElementById('cnt-오늘입고').textContent = 오늘입고;
   document.getElementById('cnt-오늘출고').textContent = 오늘출고;
   document.getElementById('cnt-오늘완료').textContent = 오늘완료;
+  document.getElementById('cnt-오늘개인입금').textContent = 오늘개인입금;
 
   document.getElementById('cnt-미입고전체').textContent   = 미입고전체;
   document.getElementById('cnt-판정대기전체').textContent = 판정대기전체;
@@ -1609,7 +1628,7 @@ function renderPendingList(type) {
     // type별 세부 필터
     if (type === '상담')   return 완료 === '진행중';
     if (type === '처리중') return 완료 === '입고완료/처리대기' || 완료 === '출고대기';
-    if (type === '입금')   return isBillingPending(r[17], 입금확인, r[26]);
+    if (type === '입금')   return isBillingPending(r[17], 입금확인, r[26], r[28]);
     return true;
   });
 
@@ -1764,18 +1783,21 @@ async function filterList(filter, btn) {
 function renderTable(rows, filter) {
   // '오늘' 이벤트 기준 필터는 접수일이 오래된 건도 포함해야 하므로
   // 90일/기간 필터보다 먼저 처리하고 그대로 반환한다.
-  const todayEventFilters = ['오늘접수','오늘입고','오늘출고','오늘완료'];
+  const todayEventFilters = ['오늘접수','오늘입고','오늘출고','오늘완료','오늘개인입금확인'];
   if (todayEventFilters.includes(filter)) {
     const todayStr = new Date().toISOString().split('T')[0];
     const filtered = rows.filter(r => {
-      const 접수일    = String(r[0]||'');
-      const 택배입고일 = String(r[10]||'');
-      const 출고일     = String(r[20]||'');
-      const 완료       = normalizeCompleteStatus(r[15]);
+      const 접수일      = String(r[0]||'');
+      const 택배입고일   = String(r[10]||'');
+      const 출고일       = String(r[20]||'');
+      const 완료         = normalizeCompleteStatus(r[15]);
+      const 입금확인     = normalizeBillingStatus(r[18]);
+      const 입금확인일   = String(r[28]||'');
       if (filter === '오늘접수') return 접수일 === todayStr;
       if (filter === '오늘입고') return 택배입고일 === todayStr;
       if (filter === '오늘출고') return 출고일 === todayStr;
       if (filter === '오늘완료') return 출고일 === todayStr && 완료 === '완료';
+      if (filter === '오늘개인입금확인') return 입금확인일 === todayStr && 입금확인 === '개인고객 청구';
       return false;
     });
     currentRenderedRows = filtered;
@@ -1796,7 +1818,7 @@ function renderTable(rows, filter) {
       if (filter === '미입고전체')   return 완료 === '진행중';
       if (filter === '판정대기전체') return 완료 === '입고완료/처리대기';
       if (filter === '출고대기전체') return 완료 === '출고대기';
-      if (filter === '청구입금전체') return isBillingPending(r[17], 입금확인, r[26]);
+      if (filter === '청구입금전체') return isBillingPending(r[17], 입금확인, r[26], r[28]);
       if (filter === '오늘할일전체') return 완료 === '입고완료/처리대기' || 완료 === '출고대기';
       if (filter === '완료전체') {
         if (완료 !== '완료') return false;
@@ -1806,7 +1828,7 @@ function renderTable(rows, filter) {
       return false;
     });
     currentRenderedRows = filtered;
-    renderFilteredCards(filtered, '전체 기간 (작업 대기 기준)');
+    renderFilteredCards(filtered, '전체 기간 (작업 대기 기준)', filter);
     return;
   }
 
@@ -1828,7 +1850,7 @@ function renderTable(rows, filter) {
       // A/S 기반 (전체 목록 탭의 구분 필터용으로 유지)
       if (filter === 'AS완료')   return 구분==='A/S' && 완료==='완료';
       if (filter === 'AS전체')   return 구분==='A/S';
-      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인, r[26]);
+      if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인, r[26], r[28]);
       // 일반
       if (filter === '미처리')   return 완료 !== '완료';
       if (filter === '완료')     return 완료 === '완료';
@@ -1836,18 +1858,26 @@ function renderTable(rows, filter) {
     });
   }
 
-  renderFilteredCards(filtered, customDateFrom && customDateTo ? (customDateFrom+' ~ '+customDateTo) : '최근 90일');
+  renderFilteredCards(filtered, customDateFrom && customDateTo ? (customDateFrom+' ~ '+customDateTo) : '최근 90일', filter);
 }
 
-function renderFilteredCards(filtered, periodLabel) {
+function renderFilteredCards(filtered, periodLabel, filter) {
   const badgeClass   = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
   const statusClass  = s => ({'진행중':'badge-진행중','입고완료/처리대기':'badge-입고완료','출고대기':'badge-출고대기','완료':'badge-완료'}[s]||'');
 
+  const isBillingMode = (filter === '청구입금전체' || filter === 'AS입금');
 
   currentRenderedRows = filtered;
 
   if (filtered.length === 0) {
     document.getElementById('list-table').innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
+    return;
+  }
+
+  // ── 청구/입금 일괄확인 모드 ──
+  // 체크박스로 여러 건을 골라 합계를 보고, 거래처에서 받은 금액과 맞으면 한 번에 입금확인 처리.
+  if (isBillingMode) {
+    renderBillingChecklist(filtered, periodLabel);
     return;
   }
 
@@ -1906,6 +1936,132 @@ function renderFilteredCards(filtered, periodLabel) {
       <span style="color:#2980B9;font-size:11px">미완료 행 → 처리 ▶ 버튼</span>
     </div>
     <div style="padding:0 16px 16px">${makeCards(filtered)}</div>`;
+}
+
+// ── 청구/입금 일괄확인 화면 ──────────────────────
+// 거래처는 월 단위로 모아서 정산받으므로, 여러 건을 체크해서 합계를 맞춰보고
+// 한 번에 입금확인 처리할 수 있게 한다. 개인고객 건은 보통 한 건씩 체크해서 바로 확인한다.
+let billingCheckedSet = new Set();
+
+function renderBillingChecklist(filtered, periodLabel) {
+  billingCheckedSet = new Set();
+
+  const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
+  const typeClass = t => t === '거래처 청구' ? 'background:#FFF3E0;color:#E67E22' : 'background:#E8F4FD;color:#2980B9';
+
+  document.getElementById('list-table').innerHTML = `
+    <div style="padding:10px 16px;font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>${periodLabel} — 청구/입금 확인 대상 총 ${filtered.length}건</span>
+      <div style="display:flex;gap:6px">
+        <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterBillingType('전체',this)">전체</button>
+        <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterBillingType('거래처 청구',this)">거래처 청구</button>
+        <button class="filter-tab" style="color:var(--navy);border-color:var(--navy)" onclick="filterBillingType('개인고객 청구',this)">개인고객 청구</button>
+      </div>
+    </div>
+    <div id="billing-list-wrap" style="padding:0 16px"></div>
+    <div style="position:sticky;bottom:0;background:white;border-top:2px solid var(--navy);padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <span style="font-size:12px;color:#888">선택 <strong id="billing-checked-count" style="color:#2980B9">0</strong>건</span>
+      <span style="font-size:14px;font-weight:700;color:#2C3E50">합계 <span id="billing-checked-sum" style="color:#C0392B">0</span>원</span>
+      <button id="billing-confirm-btn" onclick="confirmBillingChecked()" disabled
+        style="margin-left:auto;background:#27AE60;color:white;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;opacity:0.5">
+        ✅ 선택 항목 입금확인 처리
+      </button>
+    </div>
+  `;
+
+  window.__billingFiltered = filtered;
+  window.__billingTypeFilter = '전체';
+  renderBillingRows();
+}
+
+function filterBillingType(type, btn) {
+  window.__billingTypeFilter = type;
+  document.querySelectorAll('#list-table .filter-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderBillingRows();
+}
+
+function renderBillingRows() {
+  const filtered = window.__billingFiltered || [];
+  const typeFilter = window.__billingTypeFilter || '전체';
+  const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
+  const typeStyle = t => t === '거래처 청구' ? 'background:#FFF3E0;color:#E67E22' : 'background:#E8F4FD;color:#2980B9';
+
+  const rows = filtered.filter(r => {
+    if (typeFilter === '전체') return true;
+    return normalizeBillingStatus(r[18]) === typeFilter;
+  });
+
+  const wrap = document.getElementById('billing-list-wrap');
+  if (!wrap) return;
+
+  if (rows.length === 0) {
+    wrap.innerHTML = '<div class="empty">해당 건이 없습니다.</div>';
+    updateBillingSummary();
+    return;
+  }
+
+  wrap.innerHTML = rows.map(r => {
+    const realIdx = allData.indexOf(r);
+    const cost = parseMoney(r[17]) + parseMoney(r[26]);
+    const 청구유형 = normalizeBillingStatus(r[18]) || '미지정';
+    const checked = billingCheckedSet.has(realIdx) ? 'checked' : '';
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #F0F0F0;font-size:12px">
+      <input type="checkbox" ${checked} onchange="toggleBillingCheck(${realIdx}, ${cost}, this.checked)" style="width:16px;height:16px;flex-shrink:0">
+      <span style="color:#888;min-width:82px;flex-shrink:0">${r[0]||''}</span>
+      <span class="badge ${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
+      <span style="font-weight:700;min-width:70px;flex-shrink:0">${r[3]||'(이름없음)'}</span>
+      <span style="color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[2]||''} · ${r[5]||'상품미상'}</span>
+      <span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap;${typeStyle(청구유형)}">${청구유형}</span>
+      <span style="font-weight:700;min-width:80px;text-align:right;flex-shrink:0">${cost.toLocaleString()}원</span>
+      <button onclick="openFromList(${realIdx})" style="background:#2980B9;color:white;border:none;padding:4px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">상세 ▶</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleBillingCheck(realIdx, cost, isChecked) {
+  if (isChecked) billingCheckedSet.add(realIdx);
+  else billingCheckedSet.delete(realIdx);
+  updateBillingSummary();
+}
+
+function updateBillingSummary() {
+  let sum = 0;
+  billingCheckedSet.forEach(idx => {
+    const r = allData[idx];
+    if (r) sum += parseMoney(r[17]) + parseMoney(r[26]);
+  });
+  document.getElementById('billing-checked-count').textContent = billingCheckedSet.size;
+  document.getElementById('billing-checked-sum').textContent = sum.toLocaleString();
+  const btn = document.getElementById('billing-confirm-btn');
+  if (btn) {
+    btn.disabled = billingCheckedSet.size === 0;
+    btn.style.opacity = billingCheckedSet.size === 0 ? '0.5' : '1';
+  }
+}
+
+async function confirmBillingChecked() {
+  if (billingCheckedSet.size === 0) return;
+  const btn = document.getElementById('billing-confirm-btn');
+  const indices = Array.from(billingCheckedSet);
+
+  if (!confirm(`선택한 ${indices.length}건을 입금확인 처리하시겠습니까?`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+
+  try {
+    const result = await callAppsScript('bulkConfirmPayment', { rowIndexList: indices });
+    billingCheckedSet = new Set();
+    await loadAll();
+    await goToList('청구입금전체');
+    alert('✅ ' + (result.message || '처리되었습니다.'));
+  } catch (e) {
+    alert('❌ ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '✅ 선택 항목 입금확인 처리';
+  }
 }
 
 function toggleDetail(id) {
