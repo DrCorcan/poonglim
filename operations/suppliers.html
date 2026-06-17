@@ -180,6 +180,10 @@
   <div class="hd-right">
     <div class="vendor-btn" onclick="showVendor('winsei')"><span class="dot dot-w"></span>윈세이</div>
     <div class="vendor-btn" onclick="showVendor('starion')"><span class="dot dot-s"></span>스타리온</div>
+    <a href="./suppliers-manual.html" target="_blank"
+       style="background:rgba(255,255,255,0.15);color:white;border:none;padding:5px 13px;border-radius:6px;font-size:13px;text-decoration:none;display:inline-block">
+      📖 업무 매뉴얼
+    </a>
     <button class="refresh-btn" onclick="loadAll()">🔄 새로고침</button>
   </div>
 </header>
@@ -1320,10 +1324,20 @@ function renderWinsei(){
   tbody.innerHTML=rows.map(r=>{
     const 송장 = String(r['송장번호']||'').trim();
     const 완 = r['완료여부']||'';
-    const 송장표시 = 완==='발주완료' && !송장
-      ? '<span style="color:var(--red);font-size:11px;font-weight:700">미입력</span>'
+    const sno = String(r['사방넷주문번호']||'');
+    const isMissing = 완==='발주완료' && !송장;
+    const 송장표시 = isMissing
+      ? `<div style="display:flex;align-items:center;gap:6px">
+           <input type="text" id="wtrack-${sno}" placeholder="송장번호 입력"
+             style="width:120px;padding:4px 8px;font-size:11px;border:1px solid #E74C3C;border-radius:4px;outline:none">
+           <button onclick="saveWinseiTracking('${sno}')"
+             style="padding:3px 10px;background:var(--navy);color:white;border:none;border-radius:4px;font-size:11px;cursor:pointer;white-space:nowrap">
+             저장
+           </button>
+           <span id="wmsg-${sno}" style="font-size:11px;display:none"></span>
+         </div>`
       : (송장 || '—');
-    const rowBg = 완==='발주완료' && !송장 ? 'background:#FEF9E7;' : '';
+    const rowBg = isMissing ? 'background:#FEF9E7;' : '';
     return `<tr style="${rowBg}">
       <td>${fmtD(r['접수일'])}</td>
       <td><span class="${bdg(완)}">${완}</span></td>
@@ -1332,7 +1346,7 @@ function renderWinsei(){
       <td>${r['모델코드']||''}</td>
       <td>${r['수량']||1}</td>
       <td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td>
-      <td>${r['사방넷주문번호']||''}</td>
+      <td>${sno}</td>
       <td>${송장표시}</td>
     </tr>`;
   }).join('');
@@ -1342,6 +1356,40 @@ function filterWinseiNoTracking(){
   document.getElementById('wf-status').value='송장미입력';
   renderWinsei();
 }
+async function saveWinseiTracking(sno){
+  const input = document.getElementById('wtrack-'+sno);
+  const msg   = document.getElementById('wmsg-'+sno);
+  const trackNo = (input?.value||'').trim();
+
+  if(!trackNo){
+    if(msg){ msg.style.display='inline'; msg.style.color='var(--red)'; msg.textContent='번호 입력 필요'; }
+    return;
+  }
+
+  if(input) input.disabled = true;
+
+  try{
+    await apiCall({action:'updateWinseiTracking', saBangNo:sno, trackingNo:trackNo});
+
+    // 로컬 데이터 즉시 반영
+    const idx = allWinsei.findIndex(r=>String(r['사방넷주문번호'])===sno);
+    if(idx>=0) allWinsei[idx]['송장번호'] = trackNo;
+
+    if(msg){ msg.style.display='inline'; msg.style.color='var(--green)'; msg.textContent='✅ 저장됨'; }
+
+    // 송장미입력 카운트 갱신
+    const noTrack = allWinsei.filter(r=>(r['완료여부']||'')==='발주완료' && !String(r['송장번호']||'').trim()).length;
+    setText('w-notrack', noTrack);
+
+    // 1.5초 후 화면 갱신
+    setTimeout(()=>renderWinsei(), 1500);
+
+  }catch(e){
+    if(input) input.disabled = false;
+    if(msg){ msg.style.display='inline'; msg.style.color='var(--red)'; msg.textContent='❌ '+e.message; }
+  }
+}
+
 function resetWinseiFilter(){document.getElementById('wf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('wf-from','wf-to',from,to);renderWinsei();}
 
 function renderStarion(){
