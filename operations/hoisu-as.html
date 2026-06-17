@@ -608,96 +608,47 @@
       </div>
       <div class="card-hint">→ 접수/입고/출고/완료 — 오늘 실제로 발생한 이벤트 기준 (구분: 반품·교환·A/S 전체 포함)</div>
 
-      <div class="section-title red">📦 반품 / 교환 제품 회수 현황 (2026년~)</div>
+      <div class="section-title red">📋 처리 대기 목록 (반품 · 교환 · A/S 전체 통합)</div>
       <div class="cards">
-        <div class="card" onclick="goToList('진행중')">
-          <div class="card-label">🔴 미입고<br>회수 대기</div>
-          <div class="card-num red" id="cnt-미입고">-</div>
-          <div class="card-desc">입고 확인 필요</div>
+        <div class="card" onclick="goToList('미입고전체')">
+          <div class="card-label">🔴 미입고<br>(회수/택배 대기)</div>
+          <div class="card-num red" id="cnt-미입고전체">-</div>
+          <div class="card-desc">택배 도착 확인 필요</div>
         </div>
-        <div class="card" onclick="goToList('처리대기')">
+        <div class="card" onclick="goToList('판정대기전체')">
           <div class="card-label">🟡 입고완료<br>판정/처리 필요</div>
-          <div class="card-num orange" id="cnt-처리대기">-</div>
+          <div class="card-num orange" id="cnt-판정대기전체">-</div>
           <div class="card-desc">양품·불량 판정 + 처리결과 입력</div>
         </div>
-        <div class="card" onclick="goToList('출고대기')">
+        <div class="card" onclick="goToList('출고대기전체')">
           <div class="card-label">🟠 출고대기<br>(처리결과 입력됨)</div>
-          <div class="card-num orange" id="cnt-처리결정">-</div>
+          <div class="card-num orange" id="cnt-출고대기전체">-</div>
           <div class="card-desc">출고송장 입력 필요</div>
         </div>
-        <div class="card" onclick="goToList('처리완료')">
-          <div class="card-label">✅ 처리완료<br>(ERP까지)</div>
-          <div class="card-num green" id="cnt-처리완료">-</div>
-          <div class="card-desc">ERP 처리 완료</div>
+        <div class="card" onclick="goToList('청구입금전체')">
+          <div class="card-label">💰 청구/입금<br>확인 필요</div>
+          <div class="card-num orange" id="cnt-청구입금전체">-</div>
+          <div class="card-desc">비용 발생 + 미확인</div>
         </div>
-        <div class="card" onclick="goToList('전체반품')">
-          <div class="card-label">📊 26년<br>전체</div>
-          <div class="card-num dark" id="cnt-전체반품">-</div>
-          <div class="card-desc"></div>
-        </div>
-      </div>
-      <div class="card-hint">→ 카드 클릭 시 전체 목록 탭으로 이동</div>
-
-      <div class="section-title blue">🔧 A/S 현황</div>
-      <div class="cards">
-        <div class="card" onclick="goToProcess('상담')">
-          <div class="card-label">📞 상담접수<br>(미입고)</div>
-          <div class="card-num blue" id="cnt-as상담">-</div>
-          <div class="card-desc">택배 미입고</div>
-        </div>
-        <div class="card" onclick="goToProcess('처리중')">
-          <div class="card-label">🔧 입고<br>처리중</div>
-          <div class="card-num blue" id="cnt-as처리중">-</div>
-          <div class="card-desc">수리 진행중</div>
-        </div>
-        <div class="card" onclick="goToList('AS입금')">
-          <div class="card-label">💰 청구/입금<br>확인</div>
-          <div class="card-num orange" id="cnt-as입금">-</div>
-          <div class="card-desc">청구·입금 확인 필요</div>
-        </div>
-        <div class="card" onclick="goToList('AS완료')">
-          <div class="card-label">✅ 완료</div>
-          <div class="card-num green" id="cnt-as완료">-</div>
-          <div class="card-desc">출고 완료</div>
-        </div>
-        <div class="card" onclick="goToList('AS전체')">
-          <div class="card-label">📊 전체</div>
-          <div class="card-num gray" id="cnt-as전체">-</div>
-          <div class="card-desc"></div>
+        <div class="card" onclick="goToList('완료전체')">
+          <div class="card-label">✅ 처리완료</div>
+          <div class="card-num green" id="cnt-완료전체">-</div>
+          <div class="card-desc">출고/ERP까지 완료</div>
         </div>
       </div>
-      <div class="card-hint">→ 카드 클릭 시 처리 입력 탭으로 이동</div>
+      <div class="card-hint">→ 카드 클릭 시 전체 목록 탭으로 이동 (반품/교환/A/S 구분은 목록의 배지로 확인)</div>
 
-      <div class="section-title dark">📌 지금 처리 대기 중인 업무 (누적)</div>
-      <div class="cards">
-        <div class="card" onclick="goToList('진행중')">
-          <div class="card-label">🔴 제품 회수 미입고</div>
-          <div class="card-num red" id="todo-미입고">-</div>
-          <div class="card-desc">택배 도착 확인 ▶</div>
-        </div>
-        <div class="card" onclick="goToList('처리대기')">
-          <div class="card-label">🟡 판정/처리 필요</div>
-          <div class="card-num orange" id="todo-erp">-</div>
-          <div class="card-desc">양품·불량 판정 ▶</div>
-        </div>
-        <div class="card" onclick="goToList('AS입금')">
-          <div class="card-label">💰 AS 청구/입금</div>
-          <div class="card-num orange" id="todo-입금">-</div>
-          <div class="card-desc">청구·입금 확인 ▶</div>
-        </div>
-        <div class="card" onclick="goToProcess('상담')">
-          <div class="card-label">📞 AS 상담접수</div>
-          <div class="card-num blue" id="todo-상담">-</div>
-          <div class="card-desc">처리 결정 필요 ▶</div>
-        </div>
-        <div class="card" onclick="goToProcess('처리중')">
-          <div class="card-label">🔧 AS 처리중</div>
-          <div class="card-num blue" id="todo-as처리">-</div>
-          <div class="card-desc">수리 완료 확인 ▶</div>
-        </div>
+      <div class="section-title dark">📊 26년 누적 — 구분별 현황 (참고용)</div>
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-size:13px;color:#555;display:flex;gap:24px;flex-wrap:wrap">
+        <span>📦 반품 <strong id="cnt-구분반품" style="color:#C0392B">-</strong>건</span>
+        <span>🔁 교환 <strong id="cnt-구분교환" style="color:#E67E22">-</strong>건</span>
+        <span>🔧 A/S <strong id="cnt-구분as" style="color:#2980B9">-</strong>건</span>
+        <span style="color:#999">|</span>
+        <span>26년 전체 <strong id="cnt-전체통합" style="color:#2C3E50">-</strong>건</span>
       </div>
-      <div class="card-hint">→ 숫자가 0이면 오늘은 해당 업무 없음</div>
 
+    </div>
+  </div>
     </div>
   </div>
 
@@ -1353,8 +1304,11 @@ function normalizeCompleteStatus(value) {
 
 // ─── 현황판 계산 ───────────────────────────────
 function calcDashboard(rows) {
-  let 미입고=0, 처리대기=0, 처리결정=0, 처리완료=0, 전체반품=0;
-  let as상담=0, as처리중=0, as입금=0, as완료=0, as전체=0;
+  // 통합 작업판 (반품/교환/A/S 구분 없이 처리 단계로만 집계)
+  let 미입고전체=0, 판정대기전체=0, 출고대기전체=0, 완료전체=0, 청구입금전체=0;
+  // 참고용 — 구분별 누적 통계 (26년)
+  let 구분반품=0, 구분교환=0, 구분as=0, 전체통합=0;
+  // 오늘의 접수·처리 현황
   let 오늘접수=0, 오늘입고=0, 오늘출고=0, 오늘완료=0;
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -1376,21 +1330,27 @@ function calcDashboard(rows) {
       if (완료여부 === '완료') 오늘완료++;
     }
 
+    // 통합 작업판 — 구분 무관, 연도 무관 (지금 살아있는 모든 미완료 건을 놓치지 않는 것이 목적)
+    if (완료여부 === '진행중') 미입고전체++;
+    if (완료여부 === '입고완료/처리대기') 판정대기전체++;
+    if (완료여부 === '출고대기') 출고대기전체++;
+    if (완료여부 === '완료') {
+      // 반품/교환은 ERP처리까지 끝나야 완료로 집계, A/S는 완료 상태면 바로 집계
+      if (구분 === '반품' || 구분 === '교환') {
+        if (erp처리 === 'Y') 완료전체++;
+      } else {
+        완료전체++;
+      }
+    }
+    if (isBillingPending(r[17], 입금확인, r[26])) 청구입금전체++;
+
+    // 참고용 구분별 통계는 26년 누적만 (연도 제한 유지)
     if (!접수일.startsWith('2026')) return;
 
-    if (구분 === 'A/S') {
-      as전체++;
-      if (완료여부 === '진행중') as상담++;
-      if (완료여부 === '입고완료/처리대기' || 완료여부 === '출고대기') as처리중++;
-      if (isBillingPending(r[17], 입금확인, r[26])) as입금++;
-      if (완료여부 === '완료') as완료++;
-    } else if (구분 === '반품' || 구분 === '교환') {
-      전체반품++;
-      if (완료여부 === '진행중') 미입고++;
-      if (완료여부 === '입고완료/처리대기') 처리대기++;
-      if (완료여부 === '출고대기') 처리결정++;
-      if (완료여부 === '완료' && erp처리 === 'Y') 처리완료++;
-    }
+    전체통합++;
+    if (구분 === '반품') 구분반품++;
+    else if (구분 === '교환') 구분교환++;
+    else if (구분 === 'A/S') 구분as++;
   });
 
   document.getElementById('cnt-오늘접수').textContent = 오늘접수;
@@ -1398,21 +1358,16 @@ function calcDashboard(rows) {
   document.getElementById('cnt-오늘출고').textContent = 오늘출고;
   document.getElementById('cnt-오늘완료').textContent = 오늘완료;
 
-  document.getElementById('cnt-미입고').textContent  = 미입고;
-  document.getElementById('cnt-처리대기').textContent = 처리대기;
-  document.getElementById('cnt-처리결정').textContent = 처리결정;
-  document.getElementById('cnt-처리완료').textContent = 처리완료;
-  document.getElementById('cnt-전체반품').textContent = 전체반품;
-  document.getElementById('cnt-as상담').textContent  = as상담;
-  document.getElementById('cnt-as처리중').textContent = as처리중;
-  document.getElementById('cnt-as입금').textContent  = as입금;
-  document.getElementById('cnt-as완료').textContent  = as완료;
-  document.getElementById('cnt-as전체').textContent  = as전체;
-  document.getElementById('todo-미입고').textContent = 미입고;
-  document.getElementById('todo-erp').textContent    = 처리대기;
-  document.getElementById('todo-입금').textContent   = as입금;
-  document.getElementById('todo-상담').textContent   = as상담;
-  document.getElementById('todo-as처리').textContent = as처리중;
+  document.getElementById('cnt-미입고전체').textContent   = 미입고전체;
+  document.getElementById('cnt-판정대기전체').textContent = 판정대기전체;
+  document.getElementById('cnt-출고대기전체').textContent = 출고대기전체;
+  document.getElementById('cnt-청구입금전체').textContent = 청구입금전체;
+  document.getElementById('cnt-완료전체').textContent     = 완료전체;
+
+  document.getElementById('cnt-구분반품').textContent = 구분반품;
+  document.getElementById('cnt-구분교환').textContent = 구분교환;
+  document.getElementById('cnt-구분as').textContent   = 구분as;
+  document.getElementById('cnt-전체통합').textContent = 전체통합;
 }
 
 // ─── 탭 전환 / 자동 최신화 ─────────────────────
@@ -1613,11 +1568,9 @@ function resetCollectForm() {
 // ─── 탭3: 처리 대기 목록 ───────────────────────
 function renderPendingList(type) {
   const pending = allData.filter(r => {
-    const 접수일  = String(r[0]||'');
     const 구분    = String(r[1]||'').trim();
     const 완료    = normalizeCompleteStatus(r[15]);
     const 입금확인 = String(r[18]||'').trim();
-    if (!접수일.startsWith('2026')) return false;
     if (완료 === '완료') return false;
 
     if (pendingFilter !== '전체' && 구분 !== pendingFilter) return false;
@@ -1799,6 +1752,32 @@ function renderTable(rows, filter) {
     return;
   }
 
+  // 통합 작업판 필터 — 구분(반품/교환/A/S) 무관, 연도/기간 무관.
+  // "지금 처리해야 할 건은 절대 놓치지 않는다"가 목적이므로 90일 cutoff를 적용하지 않는다.
+  const workQueueFilters = ['미입고전체','판정대기전체','출고대기전체','청구입금전체','완료전체'];
+  if (workQueueFilters.includes(filter)) {
+    const filtered = rows.filter(r => {
+      const 구분     = String(r[1]||'').trim();
+      const 완료     = normalizeCompleteStatus(r[15]);
+      const erp      = String(r[14]||'').trim();
+      const 입금확인 = String(r[18]||'').trim();
+
+      if (filter === '미입고전체')   return 완료 === '진행중';
+      if (filter === '판정대기전체') return 완료 === '입고완료/처리대기';
+      if (filter === '출고대기전체') return 완료 === '출고대기';
+      if (filter === '청구입금전체') return isBillingPending(r[17], 입금확인, r[26]);
+      if (filter === '완료전체') {
+        if (완료 !== '완료') return false;
+        if (구분 === '반품' || 구분 === '교환') return erp === 'Y';
+        return true;
+      }
+      return false;
+    });
+    currentRenderedRows = filtered;
+    renderFilteredCards(filtered, '전체 기간 (작업 대기 기준)');
+    return;
+  }
+
   let filtered;
   if (customDateFrom && customDateTo) {
     filtered = rows.filter(r => { const d = String(r[0]||''); return d >= customDateFrom && d <= customDateTo; });
@@ -1814,13 +1793,7 @@ function renderTable(rows, filter) {
       const 완료   = normalizeCompleteStatus(r[15]);
       const erp    = String(r[14]||'').trim();
       const 입금확인 = String(r[18]||'').trim();
-      // 완료여부 기반
-      if (filter === '진행중')   return (구분==='반품'||구분==='교환') && 완료==='진행중';
-      if (filter === '처리대기') return (구분==='반품'||구분==='교환') && 완료==='입고완료/처리대기';
-      if (filter === '출고대기') return (구분==='반품'||구분==='교환') && 완료==='출고대기';
-      if (filter === '처리완료') return (구분==='반품'||구분==='교환') && 완료==='완료' && erp==='Y';
-      if (filter === '전체반품') return 구분==='반품' || 구분==='교환';
-      // A/S 기반
+      // A/S 기반 (전체 목록 탭의 구분 필터용으로 유지)
       if (filter === 'AS완료')   return 구분==='A/S' && 완료==='완료';
       if (filter === 'AS전체')   return 구분==='A/S';
       if (filter === 'AS입금')   return 구분==='A/S' && isBillingPending(r[17], 입금확인, r[26]);
@@ -1960,9 +1933,15 @@ async function toggleRowLogs(rowIdx) {
   try {
     if (!logData) logData = await fetchLogData();
 
-    const targetRow = rowIdx + 2;
+    // v16: LOG 식별자가 주문번호 기준으로 바뀜.
+    // 주문번호가 없는 건(A/S 상담접수 등)은 Apps Script가 '주문번호없음:고객명' 형태로 기록함.
+    const row = allData[rowIdx];
+    const orderNo = String((row && row[7]) || '').trim();
+    const customerName = String((row && row[3]) || '').trim();
+    const identifier = orderNo || `주문번호없음:${customerName}`;
+
     const logs = logData
-      .filter(r => String(r[4] || '').trim() === String(targetRow))
+      .filter(r => String(r[4] || '').trim() === identifier)
       .sort((a, b) => String(b[0] || '').localeCompare(String(a[0] || '')));
 
     if (logs.length === 0) {
@@ -1971,7 +1950,7 @@ async function toggleRowLogs(rowIdx) {
     }
 
     panel.innerHTML = `
-      <div style="font-weight:700;color:#1F4E79;margin-bottom:8px">🧾 작업 로그 — 대상행 ${targetRow}</div>
+      <div style="font-weight:700;color:#1F4E79;margin-bottom:8px">🧾 작업 로그 — ${orderNo ? '주문번호 ' + orderNo : customerName}</div>
       ${logs.map((r, i) => {
         const detailId = `log-detail-${rowIdx}-${i}`;
         const beforeText = safeJsonPreview(r[6]);
@@ -1997,8 +1976,7 @@ ${afterText || '{}'}
     `;
   } catch (e) {
     panel.innerHTML = `
-      <div style="color:#C0392B;line-height:1.6">
-        ❌ 로그 조회 실패: ${e.message}<br>
+      <div style="color:#C0392B;line-height:1.6">        ❌ 로그 조회 실패: ${e.message}<br>
         Apps Script LOG 조회 API 또는 사용자 권한을 확인해주세요.
       </div>`;
   }
