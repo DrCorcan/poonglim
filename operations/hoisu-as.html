@@ -639,16 +639,25 @@
       <div class="card-hint">→ 카드 클릭 시 전체 목록 탭으로 이동 (반품/교환/A/S 구분은 목록의 배지로 확인)</div>
 
       <div class="section-title dark">📊 26년 누적 — 구분별 현황 (참고용)</div>
-      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-size:13px;color:#555;display:flex;gap:24px;flex-wrap:wrap">
+      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;color:#555;display:flex;gap:18px;flex-wrap:wrap;align-items:center">
         <span>📦 반품 <strong id="cnt-구분반품" style="color:#C0392B">-</strong>건</span>
         <span>🔁 교환 <strong id="cnt-구분교환" style="color:#E67E22">-</strong>건</span>
         <span>🔧 A/S <strong id="cnt-구분as" style="color:#2980B9">-</strong>건</span>
-        <span style="color:#999">|</span>
+        <span style="color:#ccc">|</span>
         <span>26년 전체 <strong id="cnt-전체통합" style="color:#2C3E50">-</strong>건</span>
       </div>
 
-    </div>
-  </div>
+      <div class="section-title red" style="margin-top:28px">✅ 오늘 할 일 — A/S 직원 처리 목록</div>
+      <div style="background:white;border:1px solid var(--border);border-radius:0 0 8px 8px;padding:14px 16px;border-top:none">
+        <div style="font-size:12px;color:#888;margin-bottom:12px">반품·교환·A/S 구분 없이, 지금 손이 안 간 채로 남아있는 건을 전부 모았습니다. 처리가 끝나면 목록에서 자동으로 사라집니다.</div>
+
+        <div style="font-size:12px;font-weight:700;color:#E67E22;margin-bottom:6px">🟡 판정/처리 필요 (입고완료 — 양품·불량 정하고 처리방법 선택)</div>
+        <div id="todo-판정목록" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:18px;max-height:320px;overflow-y:auto"></div>
+
+        <div style="font-size:12px;font-weight:700;color:#2980B9;margin-bottom:6px">🟠 송장 입력 필요 (처리방법은 정함 — 출고송장만 넣으면 완료)</div>
+        <div id="todo-송장목록" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto"></div>
+      </div>
+
     </div>
   </div>
 
@@ -1368,6 +1377,49 @@ function calcDashboard(rows) {
   document.getElementById('cnt-구분교환').textContent = 구분교환;
   document.getElementById('cnt-구분as').textContent   = 구분as;
   document.getElementById('cnt-전체통합').textContent = 전체통합;
+
+  renderTodoLists(rows);
+}
+
+// ─── 오늘 할 일 목록 (A/S 직원 실무 화면, 현황 탭 맨 아래) ───
+// 구분(반품/교환/A/S) 무관, 연도/기간 무관 — 완료 안 된 건은 전부 노출되어야 함.
+function renderTodoLists(rows) {
+  const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
+
+  const 판정대기건 = [];
+  const 송장대기건 = [];
+
+  rows.forEach((r, idx) => {
+    const 완료 = normalizeCompleteStatus(r[15]);
+    if (완료 === '입고완료/처리대기') 판정대기건.push(idx);
+    if (완료 === '출고대기') 송장대기건.push(idx);
+  });
+
+  function renderOneList(containerId, indices, emptyMsg) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+
+    if (indices.length === 0) {
+      wrap.innerHTML = `<div style="padding:16px;text-align:center;color:#27AE60;font-size:13px">✅ ${emptyMsg}</div>`;
+      return;
+    }
+
+    wrap.innerHTML = indices.map(idx => {
+      const r = allData[idx];
+      return `
+      <div class="pending-item" onclick="openFromList(${idx})" id="todo-item-${idx}">
+        <span style="font-size:11px;color:#888;min-width:82px;flex-shrink:0">${r[10]||r[0]||''}</span>
+        <span class="badge ${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
+        <span style="font-weight:700;min-width:70px;flex-shrink:0">${r[3]||'(이름없음)'}</span>
+        <span style="color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[5]||'상품미상'}</span>
+        <span style="font-size:11px;color:#888;flex-shrink:0">${r[2]||''}</span>
+        <span style="background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px;flex-shrink:0">처리 ▶</span>
+      </div>`;
+    }).join('');
+  }
+
+  renderOneList('todo-판정목록', 판정대기건, '판정/처리 필요한 건이 없습니다.');
+  renderOneList('todo-송장목록', 송장대기건, '송장 입력이 필요한 건이 없습니다.');
 }
 
 // ─── 탭 전환 / 자동 최신화 ─────────────────────
