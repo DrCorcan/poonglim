@@ -638,25 +638,44 @@
       </div>
       <div class="card-hint">→ 카드 클릭 시 전체 목록 탭으로 이동 (반품/교환/A/S 구분은 목록의 배지로 확인)</div>
 
-      <div class="section-title dark">📊 26년 누적 — 구분별 현황 (참고용)</div>
-      <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;color:#555;display:flex;gap:18px;flex-wrap:wrap;align-items:center">
-        <span>📦 반품 <strong id="cnt-구분반품" style="color:#C0392B">-</strong>건</span>
-        <span>🔁 교환 <strong id="cnt-구분교환" style="color:#E67E22">-</strong>건</span>
-        <span>🔧 A/S <strong id="cnt-구분as" style="color:#2980B9">-</strong>건</span>
-        <span style="color:#ccc">|</span>
-        <span>26년 전체 <strong id="cnt-전체통합" style="color:#2C3E50">-</strong>건</span>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:0;margin-top:20px">
+        <div>
+          <div class="section-title dark" style="border-radius:8px 0 0 0">📊 26년 누적 — 구분별 현황 (참고용)</div>
+          <div class="cards" style="grid-template-columns: repeat(4, 1fr); border-radius:0 0 0 8px">
+            <div class="card" style="cursor:default">
+              <div class="card-label">📦 반품</div>
+              <div class="card-num red" id="cnt-구분반품">-</div>
+              <div class="card-desc">건</div>
+            </div>
+            <div class="card" style="cursor:default">
+              <div class="card-label">🔁 교환</div>
+              <div class="card-num orange" id="cnt-구분교환">-</div>
+              <div class="card-desc">건</div>
+            </div>
+            <div class="card" style="cursor:default">
+              <div class="card-label">🔧 A/S</div>
+              <div class="card-num blue" id="cnt-구분as">-</div>
+              <div class="card-desc">건</div>
+            </div>
+            <div class="card" style="cursor:default">
+              <div class="card-label">📊 26년 전체</div>
+              <div class="card-num dark" id="cnt-전체통합">-</div>
+              <div class="card-desc">건</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title red" style="border-radius:0 8px 0 0">✅ 오늘 할 일</div>
+          <div class="cards" style="grid-template-columns: repeat(1, 1fr); border-radius:0 0 8px 0; border-left:none">
+            <div class="card" onclick="goToList('오늘할일전체')">
+              <div class="card-label">A/S 직원<br>처리 대상</div>
+              <div class="card-num red" id="cnt-오늘할일">-</div>
+              <div class="card-desc">판정대기 + 송장입력대기</div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="section-title red" style="margin-top:28px">✅ 오늘 할 일 — A/S 직원 처리 목록</div>
-      <div style="background:white;border:1px solid var(--border);border-radius:0 0 8px 8px;padding:14px 16px;border-top:none">
-        <div style="font-size:12px;color:#888;margin-bottom:12px">반품·교환·A/S 구분 없이, 지금 손이 안 간 채로 남아있는 건을 전부 모았습니다. 처리가 끝나면 목록에서 자동으로 사라집니다.</div>
-
-        <div style="font-size:12px;font-weight:700;color:#E67E22;margin-bottom:6px">🟡 판정/처리 필요 (입고완료 — 양품·불량 정하고 처리방법 선택)</div>
-        <div id="todo-판정목록" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:18px;max-height:320px;overflow-y:auto"></div>
-
-        <div style="font-size:12px;font-weight:700;color:#2980B9;margin-bottom:6px">🟠 송장 입력 필요 (처리방법은 정함 — 출고송장만 넣으면 완료)</div>
-        <div id="todo-송장목록" style="border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto"></div>
-      </div>
+      <div class="card-hint">→ 카드 클릭 시 처리 대상 목록으로 이동</div>
 
     </div>
   </div>
@@ -1378,48 +1397,8 @@ function calcDashboard(rows) {
   document.getElementById('cnt-구분as').textContent   = 구분as;
   document.getElementById('cnt-전체통합').textContent = 전체통합;
 
-  renderTodoLists(rows);
-}
-
-// ─── 오늘 할 일 목록 (A/S 직원 실무 화면, 현황 탭 맨 아래) ───
-// 구분(반품/교환/A/S) 무관, 연도/기간 무관 — 완료 안 된 건은 전부 노출되어야 함.
-function renderTodoLists(rows) {
-  const badgeClass = g => ({'반품':'badge-반품','교환':'badge-교환','A/S':'badge-as'}[g]||'');
-
-  const 판정대기건 = [];
-  const 송장대기건 = [];
-
-  rows.forEach((r, idx) => {
-    const 완료 = normalizeCompleteStatus(r[15]);
-    if (완료 === '입고완료/처리대기') 판정대기건.push(idx);
-    if (완료 === '출고대기') 송장대기건.push(idx);
-  });
-
-  function renderOneList(containerId, indices, emptyMsg) {
-    const wrap = document.getElementById(containerId);
-    if (!wrap) return;
-
-    if (indices.length === 0) {
-      wrap.innerHTML = `<div style="padding:16px;text-align:center;color:#27AE60;font-size:13px">✅ ${emptyMsg}</div>`;
-      return;
-    }
-
-    wrap.innerHTML = indices.map(idx => {
-      const r = allData[idx];
-      return `
-      <div class="pending-item" onclick="openFromList(${idx})" id="todo-item-${idx}">
-        <span style="font-size:11px;color:#888;min-width:82px;flex-shrink:0">${r[10]||r[0]||''}</span>
-        <span class="badge ${badgeClass(String(r[1]||'').trim())}">${r[1]||''}</span>
-        <span style="font-weight:700;min-width:70px;flex-shrink:0">${r[3]||'(이름없음)'}</span>
-        <span style="color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[5]||'상품미상'}</span>
-        <span style="font-size:11px;color:#888;flex-shrink:0">${r[2]||''}</span>
-        <span style="background:#2980B9;color:white;padding:2px 10px;border-radius:10px;font-size:11px;flex-shrink:0">처리 ▶</span>
-      </div>`;
-    }).join('');
-  }
-
-  renderOneList('todo-판정목록', 판정대기건, '판정/처리 필요한 건이 없습니다.');
-  renderOneList('todo-송장목록', 송장대기건, '송장 입력이 필요한 건이 없습니다.');
+  // 오늘 할 일 = 판정/처리 필요 + 송장 입력 필요 (구분 무관, 연도/기간 무관)
+  document.getElementById('cnt-오늘할일').textContent = 판정대기전체 + 출고대기전체;
 }
 
 // ─── 탭 전환 / 자동 최신화 ─────────────────────
@@ -1806,7 +1785,7 @@ function renderTable(rows, filter) {
 
   // 통합 작업판 필터 — 구분(반품/교환/A/S) 무관, 연도/기간 무관.
   // "지금 처리해야 할 건은 절대 놓치지 않는다"가 목적이므로 90일 cutoff를 적용하지 않는다.
-  const workQueueFilters = ['미입고전체','판정대기전체','출고대기전체','청구입금전체','완료전체'];
+  const workQueueFilters = ['미입고전체','판정대기전체','출고대기전체','청구입금전체','완료전체','오늘할일전체'];
   if (workQueueFilters.includes(filter)) {
     const filtered = rows.filter(r => {
       const 구분     = String(r[1]||'').trim();
@@ -1818,6 +1797,7 @@ function renderTable(rows, filter) {
       if (filter === '판정대기전체') return 완료 === '입고완료/처리대기';
       if (filter === '출고대기전체') return 완료 === '출고대기';
       if (filter === '청구입금전체') return isBillingPending(r[17], 입금확인, r[26]);
+      if (filter === '오늘할일전체') return 완료 === '입고완료/처리대기' || 완료 === '출고대기';
       if (filter === '완료전체') {
         if (완료 !== '완료') return false;
         if (구분 === '반품' || 구분 === '교환') return erp === 'Y';
