@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>풍림 매입처 관리</title>
+<title>매입처 발주 관리 — 풍림전자</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -174,7 +174,7 @@
 
 <header>
   <div>
-    <h1>📦 풍림 매입처 관리</h1>
+    <h1>📦 매입처 발주 관리</h1>
     <div class="sub" id="headerDate">로딩 중...</div>
   </div>
   <div class="hd-right">
@@ -490,9 +490,10 @@
       </div>
       <div class="form-card" style="flex:1;min-width:240px">
         <h3>📌 취소 처리 규칙</h3>
-        <div class="note-box"><strong>신규 발주 취소</strong><br>→ 발주원장 완료여부 = 취소재고<br>→ 선매입재고상세 새 항목 추가 (대기중)<br>→ 선매입재고현황 수량 +1</div>
-        <div class="note-box"><strong>기존재고 취소</strong><br>→ 발주원장 완료여부 = 취소재고<br>→ 선매입재고상세 해당 행 사용중 → 대기중<br>→ 선매입재고현황 수량 +1</div>
-        <p style="font-size:12px;color:var(--gray);margin-top:8px">※ 로컬 발주서 생성은 배치파일로 직접 실행하세요.</p>
+        <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>🚫 발주 전 취소 (오더번호 없음)</strong><br>→ 발주원장 완료여부 = <b>주문취소</b><br>→ 재고에 영향 없음</div>
+        <div class="note-box"><strong>❌ 발주 후 취소 — 기존재고 (오더번호 있음)</strong><br>→ 발주원장 완료여부 = <b>취소재고</b><br>→ 선매입재고상세 해당 행 사용중 → 대기중<br>→ 선매입재고현황 수량 +1</div>
+        <div class="note-box"><strong>❌ 발주 후 취소 — 신규발주 (오더번호 있음)</strong><br>→ 발주원장 완료여부 = <b>취소재고</b><br>→ 선매입재고상세 새 항목 추가 (대기중)<br>→ 선매입재고현황 수량 +1</div>
+        <p style="font-size:12px;color:var(--gray);margin-top:8px">※ 핵심 기준: 오더번호 없음 → 주문취소 / 오더번호 있음 → 취소재고</p>
       </div>
     </div>
   </div>
@@ -531,9 +532,14 @@
   <div class="section-title blue" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-w"></span> 윈세이 발주현황
   </div>
-  <div class="cards" style="margin-top:0">
+  <div class="cards" style="margin-top:0;grid-template-columns:repeat(4,1fr)">
     <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="w-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
     <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="w-done">—</div><div class="card-desc">발주 완료</div></div>
+    <div class="card" onclick="filterWinseiNoTracking()" style="cursor:pointer">
+      <div class="card-label">🚚 송장미입력<br>확인 필요</div>
+      <div class="card-num red" id="w-notrack">—</div>
+      <div class="card-desc">클릭하여 확인</div>
+    </div>
     <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
   </div>
   <div class="search-bar" style="margin-top:16px">
@@ -544,11 +550,11 @@
     <button onclick="renderWinsei()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
     <button onclick="resetWinseiFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
     <select id="wf-status" onchange="renderWinsei()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
-      <option value="">전체 상태</option><option value="발주대기">발주대기</option><option value="발주완료">발주완료</option>
+      <option value="">전체 상태</option><option value="발주대기">발주대기</option><option value="발주완료">발주완료</option><option value="송장미입력">송장미입력</option>
     </select>
   </div>
   <div class="table-wrap">
-    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th></tr></thead>
+    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th></tr></thead>
     <tbody id="winseiBody"><tr><td colspan="8" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
   </div>
 </div>
@@ -579,7 +585,7 @@
     </select>
   </div>
   <div class="table-wrap">
-    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th></tr></thead>
+    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th></tr></thead>
     <tbody id="starionBody"><tr><td colspan="8" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
   </div>
 </div>
@@ -1285,13 +1291,56 @@ function renderWinsei(){
   const status=document.getElementById('wf-status').value;
   const from=document.getElementById('wf-from').value;
   const to=document.getElementById('wf-to').value;
-  const rows=allWinsei.filter(r=>{if(status&&r['완료여부']!==status)return false;const d=fmtD(r['접수일']);if(from&&d<from)return false;if(to&&d>to)return false;return true;});
-  setText('w-wait',allWinsei.filter(r=>r['완료여부']==='발주대기').length);
-  setText('w-done',allWinsei.filter(r=>r['완료여부']==='발주완료').length);
-  setText('w-total',allWinsei.length);
+
+  // 송장미입력: 발주완료 중 송장번호 공란
+  const noTrackRows = allWinsei.filter(r=>{
+    const 완 = (r['완료여부']||'').trim();
+    const 송장 = String(r['송장번호']||'').trim();
+    return 완==='발주완료' && !송장;
+  });
+  setText('w-wait',  allWinsei.filter(r=>r['완료여부']==='발주대기').length);
+  setText('w-done',  allWinsei.filter(r=>r['완료여부']==='발주완료').length);
+  setText('w-notrack', noTrackRows.length);
+  setText('w-total', allWinsei.length);
+
+  // 필터 — 송장미입력 가상필터
+  let rows = allWinsei.filter(r=>{
+    if(status==='송장미입력'){
+      return (r['완료여부']||'').trim()==='발주완료' && !String(r['송장번호']||'').trim();
+    }
+    if(status && r['완료여부']!==status) return false;
+    const d=fmtD(r['접수일']);
+    if(from&&d<from)return false;
+    if(to&&d>to)return false;
+    return true;
+  });
+
   const tbody=document.getElementById('winseiBody');
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">조회 결과 없음</td></tr>';return;}
-  tbody.innerHTML=rows.map(r=>`<tr><td>${fmtD(r['접수일'])}</td><td><span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span></td><td>${r['점포명']||''}</td><td>${r['고객명']||''}</td><td>${r['모델코드']||''}</td><td>${r['수량']||1}</td><td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td><td>${r['사방넷주문번호']||''}</td></tr>`).join('');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="9" class="empty">조회 결과 없음</td></tr>';return;}
+  tbody.innerHTML=rows.map(r=>{
+    const 송장 = String(r['송장번호']||'').trim();
+    const 완 = r['완료여부']||'';
+    const 송장표시 = 완==='발주완료' && !송장
+      ? '<span style="color:var(--red);font-size:11px;font-weight:700">미입력</span>'
+      : (송장 || '—');
+    const rowBg = 완==='발주완료' && !송장 ? 'background:#FEF9E7;' : '';
+    return `<tr style="${rowBg}">
+      <td>${fmtD(r['접수일'])}</td>
+      <td><span class="${bdg(완)}">${완}</span></td>
+      <td>${r['점포명']||''}</td>
+      <td>${r['고객명']||''}</td>
+      <td>${r['모델코드']||''}</td>
+      <td>${r['수량']||1}</td>
+      <td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td>
+      <td>${r['사방넷주문번호']||''}</td>
+      <td>${송장표시}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterWinseiNoTracking(){
+  document.getElementById('wf-status').value='송장미입력';
+  renderWinsei();
 }
 function resetWinseiFilter(){document.getElementById('wf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('wf-from','wf-to',from,to);renderWinsei();}
 
