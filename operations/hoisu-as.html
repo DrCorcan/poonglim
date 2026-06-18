@@ -1346,6 +1346,9 @@ function normalizeCompleteStatus(value) {
 }
 
 // ─── 현황판 계산 ───────────────────────────────
+// Apps Script의 완료_즉시 목록과 동일 — 출고송장 없이 선택 즉시 완료되는 처리결과
+const 완료_즉시_목록 = ['환불처리','양품화완료','불량보관','본사내방수리완료','폐기','고객협의완료'];
+
 function calcDashboard(rows) {
   // 통합 작업판 (반품/교환/A/S 구분 없이 처리 단계로만 집계)
   let 미입고전체=0, 판정대기전체=0, 출고대기전체=0, 완료전체=0, 청구입금전체=0;
@@ -1361,17 +1364,25 @@ function calcDashboard(rows) {
     const 구분    = String(r[1]||'').trim();
     const 완료여부 = normalizeCompleteStatus(r[15]);
     const erp처리 = String(r[14]||'').trim();
+    const 처리결과 = String(r[13]||'').trim();
     const 입금확인 = normalizeBillingStatus(r[18]);
     const 택배입고일 = String(r[10]||'');
     const 출고일     = String(r[20]||''); // 수리완료일/출고일 공용 컬럼
     const 입금확인일 = String(r[28]||''); // AC열 (v17 신규)
+    const 최종수정일 = String(r[24]||'').slice(0, 10); // 'yyyy-MM-dd HH:mm:ss' 중 날짜만
 
     // 오늘의 접수·처리 현황 (구분 전체 대상, 연도 무관 — 오늘 발생한 이벤트 기준)
     if (접수일 === todayStr) 오늘접수++;
     if (택배입고일 === todayStr) 오늘입고++;
-    if (출고일 === todayStr) {
-      오늘출고++;
-      if (완료여부 === '완료') 오늘완료++;
+    if (출고일 === todayStr) 오늘출고++;
+
+    // 오늘 처리완료 — 출고일이 오늘인 완료 건 + 출고 없이 즉시완료된 건(양품화완료 등, A/S는 출고가 없는 경우가 많음)
+    if (완료여부 === '완료') {
+      if (출고일 === todayStr) {
+        오늘완료++;
+      } else if (!출고일 && 완료_즉시_목록.includes(처리결과) && 최종수정일 === todayStr) {
+        오늘완료++;
+      }
     }
     // 오늘 입금확인된 것 중, '개인고객 청구'였던 건만 카운트 (거래처 정산은 월단위라 제외)
     if (입금확인일 === todayStr && 입금확인 === '개인고객 청구') 오늘개인입금++;
@@ -1791,12 +1802,19 @@ function renderTable(rows, filter) {
       const 택배입고일   = String(r[10]||'');
       const 출고일       = String(r[20]||'');
       const 완료         = normalizeCompleteStatus(r[15]);
+      const 처리결과     = String(r[13]||'').trim();
       const 입금확인     = normalizeBillingStatus(r[18]);
       const 입금확인일   = String(r[28]||'');
+      const 최종수정일   = String(r[24]||'').slice(0, 10);
       if (filter === '오늘접수') return 접수일 === todayStr;
       if (filter === '오늘입고') return 택배입고일 === todayStr;
       if (filter === '오늘출고') return 출고일 === todayStr;
-      if (filter === '오늘완료') return 출고일 === todayStr && 완료 === '완료';
+      if (filter === '오늘완료') {
+        if (완료 !== '완료') return false;
+        if (출고일 === todayStr) return true;
+        // 출고 없이 즉시완료된 건(양품화완료 등) — A/S는 출고가 따라오지 않는 경우가 많음
+        return !출고일 && 완료_즉시_목록.includes(처리결과) && 최종수정일 === todayStr;
+      }
       if (filter === '오늘개인입금확인') return 입금확인일 === todayStr && 입금확인 === '개인고객 청구';
       return false;
     });
