@@ -5,6 +5,245 @@
 ---
 
 
+## 2026-06-19 — v1.3 Apps Script 안전화 및 코드 보관
+
+### 1. Apps Script v3 코드 GitHub 공식 보관
+
+저장 위치:
+
+```text
+scripts/google-apps-script/sales-ledger/Code.gs
+```
+
+커밋 메시지:
+
+```text
+Add safe sales ledger Apps Script v3
+```
+
+반영 내용:
+
+```text
+풍림전자_매출관리원장 Apps Script 최신본을 GitHub에 공식 보관했다.
+설계 문서는 docs 폴더에, 실제 실행 코드는 scripts/google-apps-script/sales-ledger/Code.gs에 분리 보관한다.
+```
+
+운영 기준:
+
+```text
+docs/
+= 설계서, 변경이력, AI 인수인계 문서
+
+scripts/google-apps-script/sales-ledger/Code.gs
+= 실제 구글시트 Apps Script 최신 코드
+```
+
+---
+
+### 2. setupSalesLedger 안전화
+
+변경 내용:
+
+```text
+createOrResetSheet_ 함수에서 기존 시트가 있으면 아무것도 하지 않도록 수정했다.
+기존 sheet.clear() 방식은 운영 데이터 삭제 위험이 있어 제거했다.
+시트가 없을 때만 새로 만들고 헤더/서식을 적용한다.
+```
+
+확정 규칙:
+
+```text
+시트가 없으면:
+새 시트 생성
+헤더 입력
+1행 고정
+필터 생성
+기본 서식 적용
+
+시트가 이미 있으면:
+아무것도 하지 않는다.
+헤더를 덮어쓰지 않는다.
+데이터를 지우지 않는다.
+필터를 다시 만들지 않는다.
+```
+
+추가 보완:
+
+```text
+createStatusSheet_ 함수도 기존 99_상태값 시트가 있으면 아무것도 하지 않도록 수정했다.
+기존 필터가 있는 시트에 다시 필터를 만들면서 발생하던 오류를 방지했다.
+```
+
+운영 의미:
+
+```text
+setupSalesLedger는 이제 신규 탭 보완용으로 안전하게 실행할 수 있다.
+운영 중인 기존 탭의 데이터는 삭제되지 않는다.
+```
+
+---
+
+### 3. 92_품목마스터 / 93_거래처마스터 생성 확인
+
+확인 내용:
+
+```text
+92_품목마스터
+93_거래처마스터
+```
+
+두 탭이 정상 생성되었고, 요청한 헤더가 정상 반영되었음을 확인했다.
+
+92_품목마스터 헤더:
+
+```text
+마스터ID
+사용여부
+물류처
+매입처
+상품코드
+품목코드
+모델코드
+표준상품명
+오성상품명
+오성상품코드
+오성바코드
+상품코드2
+합포장대표여부
+합포장그룹
+부속품여부
+부속품결합대상모델
+NS3000분리대상여부
+수량분리규칙
+비고
+최초등록일시
+최종수정일시
+최종수정자
+```
+
+93_거래처마스터 헤더:
+
+```text
+마스터ID
+사용여부
+메일발송여부
+발주총괄점포명
+거래처명
+대표이메일
+참조이메일
+파일명표기명
+회신파일생성여부
+비고
+최초등록일시
+최종수정일시
+최종수정자
+```
+
+---
+
+### 4. 마스터 탭 드롭다운 우선 적용 완료
+
+실행한 함수:
+
+```text
+applyDropdowns92ItemMaster
+applyDropdowns93CustomerMaster
+```
+
+결과:
+
+```text
+92_품목마스터 드롭다운 적용 완료
+93_거래처마스터 드롭다운 적용 완료
+```
+
+적용 이유:
+
+```text
+다음 단계가 오성 상품코드 및 거래처 히스토리 마스터 데이터 입력이므로,
+입력 전에 사용여부, 물류처, 메일발송여부 등 주요 선택값의 오타를 방지하기 위해 우선 적용했다.
+```
+
+적용 보류 대상:
+
+```text
+01_사방넷원본수집
+02_주문상세원장
+03_창고업로드이력
+04_송장수신이력
+05_사방넷송장업로드이력
+06_거래처회신이력
+07_ERP업로드이력
+08_마감대조원장
+90_실행로그
+91_오류로그
+```
+
+보류 기준:
+
+```text
+위 나머지 탭들은 현재 데이터가 없으므로 즉시 적용하지 않는다.
+사방넷 원본을 처음 실제로 흘려보내기 직전에 한 번에 적용한다.
+```
+
+---
+
+### 5. 드롭다운 함수 운영 방침
+
+기존 전체 드롭다운 함수:
+
+```text
+applySalesLedgerDropdowns
+```
+
+운영 방침:
+
+```text
+전체 탭을 한 번에 처리하려다 시간초과가 발생할 수 있으므로 실무에서는 사용하지 않는다.
+탭별 드롭다운 함수만 필요한 시점에 개별 실행한다.
+```
+
+탭별 실행 함수:
+
+```text
+applyDropdowns01SabangnetOriginal
+applyDropdowns02OrderLedger
+applyDropdowns03WarehouseUploadHistory
+applyDropdowns04InvoiceReceiveHistory
+applyDropdowns05SabangnetInvoiceUploadHistory
+applyDropdowns06CustomerReplyHistory
+applyDropdowns07ErpUploadHistory
+applyDropdowns08ClosingCheckLedger
+applyDropdowns90ExecutionLog
+applyDropdowns91ErrorLog
+applyDropdowns92ItemMaster
+applyDropdowns93CustomerMaster
+```
+
+기본 적용 범위:
+
+```text
+각 함수는 기본 500행까지만 드롭다운을 적용한다.
+전체열/전체행 적용으로 인한 시간초과를 방지한다.
+```
+
+---
+
+### 6. 현재 상태
+
+```text
+설계문서 보관: 완료
+변경이력 보관: 계속 업데이트 중
+Apps Script 최신 코드 보관: 완료
+구글시트 기본 탭 생성: 완료
+92_품목마스터 / 93_거래처마스터 생성: 완료
+92/93 드롭다운 적용: 완료
+나머지 탭 드롭다운 적용: 사방넷 실가동 직전으로 보류
+다음 작업: 92_품목마스터와 93_거래처마스터에 실제 마스터 데이터 이관
+```
+
+---
+
 ## 2026-06-19 — v1.2 마스터 드롭다운 적용 방침
 
 ### 1. 92/93 마스터 탭 드롭다운 우선 적용
