@@ -536,7 +536,7 @@
   <div class="section-title blue" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-w"></span> 윈세이 발주현황
   </div>
-  <div class="cards" style="margin-top:0;grid-template-columns:repeat(4,1fr)">
+  <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
     <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="w-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
     <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="w-done">—</div><div class="card-desc">발주 완료</div></div>
     <div class="card" onclick="filterWinseiNoTracking()" style="cursor:pointer">
@@ -544,8 +544,19 @@
       <div class="card-num red" id="w-notrack">—</div>
       <div class="card-desc">클릭하여 확인</div>
     </div>
+    <div class="card" onclick="filterWinseiThisMonth()" style="cursor:pointer">
+      <div class="card-label">📅 이번달<br>발주건수</div>
+      <div class="card-num blue" id="w-monthcnt">—</div>
+      <div class="card-desc">발주완료 기준</div>
+    </div>
+    <div class="card" onclick="filterWinseiThisMonth()" style="cursor:pointer">
+      <div class="card-label">💰 이번달<br>발주금액</div>
+      <div class="card-num dark" id="w-monthamt" style="font-size:20px;padding-top:6px">—</div>
+      <div class="card-desc">VAT 포함</div>
+    </div>
     <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
   </div>
+  <div class="card-hint">→ 이번달 발주건수/금액 카드 클릭 시 이번달 발주완료 건 조회</div>
   <div class="search-bar" style="margin-top:16px">
     <span>📅 기간 조회</span>
     <input type="date" id="wf-from" style="width:140px">
@@ -571,12 +582,23 @@
   <div class="section-title dark" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-s"></span> 스타리온 발주현황
   </div>
-  <div class="cards" style="margin-top:0;grid-template-columns:repeat(4,1fr)">
+  <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
     <div class="card"><div class="card-label">🔵 해피콜대기</div><div class="card-num purple" id="st-happy">—</div><div class="card-desc">해피콜 진행 중</div></div>
     <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="st-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
     <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">발주 완료</div></div>
+    <div class="card" onclick="filterStarionThisMonth()" style="cursor:pointer">
+      <div class="card-label">📅 이번달<br>발주건수</div>
+      <div class="card-num blue" id="st-monthcnt">—</div>
+      <div class="card-desc">발주완료 기준</div>
+    </div>
+    <div class="card" onclick="filterStarionThisMonth()" style="cursor:pointer">
+      <div class="card-label">💰 이번달<br>발주금액</div>
+      <div class="card-num dark" id="st-monthamt" style="font-size:20px;padding-top:6px">—</div>
+      <div class="card-desc">VAT 포함</div>
+    </div>
     <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc"></div></div>
   </div>
+  <div class="card-hint">→ 이번달 발주건수/금액 카드 클릭 시 이번달 발주완료 건 조회</div>
   <div class="search-bar" style="margin-top:16px">
     <span>📅 기간 조회</span>
     <input type="date" id="sf-from" style="width:140px">
@@ -1307,6 +1329,14 @@ function renderWinsei(){
   setText('w-notrack', noTrackRows.length);
   setText('w-total', allWinsei.length);
 
+  // 이번달 발주현황 (캐리어와 동일한 정의: 접수일이 이번달 + 완료여부=발주완료)
+  const wNow = new Date();
+  const wYm = wNow.getFullYear()+'-'+String(wNow.getMonth()+1).padStart(2,'0');
+  const wMonthRows = allWinsei.filter(r=>r['완료여부']==='발주완료' && fmtD(r['접수일']).slice(0,7)===wYm);
+  setText('w-monthcnt', wMonthRows.length);
+  const wMonthAmt = wMonthRows.reduce((s,r)=>s+(parseFloat(r['합계_VAT포함'])||0),0);
+  setText('w-monthamt', wMonthAmt?wfmt(wMonthAmt):'—');
+
   // 필터 — 송장미입력 가상필터
   let rows = allWinsei.filter(r=>{
     if(status==='송장미입력'){
@@ -1391,6 +1421,14 @@ async function saveWinseiTracking(sno){
 }
 
 function resetWinseiFilter(){document.getElementById('wf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('wf-from','wf-to',from,to);renderWinsei();}
+function filterWinseiThisMonth(){
+  const now=new Date();
+  const from=new Date(now.getFullYear(),now.getMonth(),1);
+  const to=new Date(now.getFullYear(),now.getMonth()+1,0);
+  setDR('wf-from','wf-to',from,to);
+  document.getElementById('wf-status').value='발주완료';
+  renderWinsei();
+}
 
 function renderStarion(){
   const status=document.getElementById('sf-status').value;
@@ -1401,11 +1439,27 @@ function renderStarion(){
   setText('st-wait',allStarion.filter(r=>r['완료여부']==='발주대기').length);
   setText('st-done',allStarion.filter(r=>r['완료여부']==='발주완료').length);
   setText('st-total',allStarion.length);
+
+  // 이번달 발주현황 (캐리어와 동일한 정의: 접수일이 이번달 + 완료여부=발주완료)
+  const stNow = new Date();
+  const stYm = stNow.getFullYear()+'-'+String(stNow.getMonth()+1).padStart(2,'0');
+  const stMonthRows = allStarion.filter(r=>r['완료여부']==='발주완료' && fmtD(r['접수일']).slice(0,7)===stYm);
+  setText('st-monthcnt', stMonthRows.length);
+  const stMonthAmt = stMonthRows.reduce((s,r)=>s+(parseFloat(r['합계_VAT포함'])||0),0);
+  setText('st-monthamt', stMonthAmt?wfmt(stMonthAmt):'—');
   const tbody=document.getElementById('starionBody');
   if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">조회 결과 없음</td></tr>';return;}
   tbody.innerHTML=rows.map(r=>`<tr><td>${fmtD(r['접수일'])}</td><td><span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span></td><td>${r['점포명']||''}</td><td>${r['고객명']||''}</td><td>${r['모델코드']||''}</td><td>${r['수량']||1}</td><td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td><td>${r['사방넷주문번호']||''}</td></tr>`).join('');
 }
 function resetStarionFilter(){document.getElementById('sf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('sf-from','sf-to',from,to);renderStarion();}
+function filterStarionThisMonth(){
+  const now=new Date();
+  const from=new Date(now.getFullYear(),now.getMonth(),1);
+  const to=new Date(now.getFullYear(),now.getMonth()+1,0);
+  setDR('sf-from','sf-to',from,to);
+  document.getElementById('sf-status').value='발주완료';
+  renderStarion();
+}
 
 // ── 뷰 전환 ──
 function showVendor(v){
