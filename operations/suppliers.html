@@ -100,6 +100,17 @@
   .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
   .note-box { background: #FEF9E7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #633806; margin-bottom: 12px; line-height: 1.6; border: 1px solid #F9A825; }
 
+  /* 윈세이 서브탭 / 마감내역 접기·펼치기 */
+  .winsei-subtabs { margin: 14px 0 16px; }
+  .winsei-tab-content { display: none; }
+  .winsei-tab-content.active { display: block; }
+  .winsei-close-toggle { cursor: pointer; }
+  .winsei-close-toggle:hover { background: #F0F4F8; box-shadow: inset 0 0 0 2px rgba(41,128,185,.10); }
+  .winsei-action-list { max-height: 420px; overflow: auto; }
+  .winsei-action-list table td { font-size: 12px; }
+  .winsei-action-pick { padding: 4px 9px; border: none; border-radius: 4px; color: white; background: var(--navy); font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .winsei-action-pick:hover { background: #163d5f; }
+
   /* 서브뷰 */
   .subview { display: none; }
   .subview.active { display: block; }
@@ -196,7 +207,7 @@
     <button class="nav-tab active" onclick="showTab('dashboard')">📊 현황판</button>
     <button class="nav-tab" onclick="showTab('stock')">📦 가용재고</button>
     <button class="nav-tab" onclick="showTab('orders')">📋 발주현황</button>
-    <button class="nav-tab" onclick="showTab('cancel')">❌ 취소·반품</button>
+    <button class="nav-tab" onclick="showTab('cancel')">❌ 취소처리</button>
     <button class="nav-tab" onclick="showTab('csInput')">🚨 CS입력</button>
     <button class="nav-tab" onclick="showTab('price')">📈 단가추이</button>
   </div>
@@ -462,14 +473,6 @@
 
   <!-- 탭4: 취소처리 -->
   <div id="tab-cancel" style="display:none">
-    <div class="nav-tabs" style="margin-top:0;margin-bottom:14px">
-      <button class="nav-tab active" data-cancel-mode="carrier" onclick="selectCancelMode('carrier',this)">캐리어 취소</button>
-      <button class="nav-tab" data-cancel-mode="winseiCancel" onclick="selectCancelMode('winseiCancel',this)">윈세이 취소</button>
-      <button class="nav-tab" data-cancel-mode="winseiReturn" onclick="selectCancelMode('winseiReturn',this)">윈세이 반품</button>
-    </div>
-
-    <!-- 기존 캐리어 취소처리: 내부 코드는 변경하지 않음 -->
-    <div id="carrierCancelPanel">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
       <div class="form-card" style="flex:1;min-width:300px;max-width:500px">
         <h3>❌ 주문 취소 처리</h3>
@@ -506,43 +509,6 @@
         <div class="note-box"><strong>❌ 발주 후 취소 — 기존재고 (오더번호 있음)</strong><br>→ 발주원장 완료여부 = <b>취소재고</b><br>→ 선매입재고상세 해당 행 사용중 → 대기중<br>→ 선매입재고현황 수량 +1</div>
         <div class="note-box"><strong>❌ 발주 후 취소 — 신규발주 (오더번호 있음)</strong><br>→ 발주원장 완료여부 = <b>취소재고</b><br>→ 선매입재고상세 새 항목 추가 (대기중)<br>→ 선매입재고현황 수량 +1</div>
         <p style="font-size:12px;color:var(--gray);margin-top:8px">※ 핵심 기준: 오더번호 없음 → 주문취소 / 오더번호 있음 → 취소재고</p>
-      </div>
-    </div>
-    </div>
-
-    <!-- 윈세이 취소 / 반품 처리 -->
-    <div id="winseiActionPanel" style="display:none">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
-        <div class="form-card" style="flex:1;min-width:300px;max-width:520px">
-          <h3 id="winseiActionTitle">❌ 윈세이 주문 취소</h3>
-          <div class="form-row full">
-            <div>
-              <label>사방넷 주문번호 <span>*</span></label>
-              <div style="display:flex;gap:8px">
-                <input type="text" id="winseiActionNo" placeholder="예: 2124977241" style="flex:1">
-                <button onclick="searchWinseiAction()" style="background:var(--navy);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap">조회</button>
-              </div>
-            </div>
-          </div>
-          <div id="winseiActionPreview" style="display:none;background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px">
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">완료여부</span><strong id="wap-status"></strong></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">송장번호</span><span id="wap-tracking"></span></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">모델코드</span><span id="wap-model"></span></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">고객명</span><span id="wap-buyer"></span></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">주문금액</span><strong id="wap-amount"></strong></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">반품여부</span><span id="wap-return"></span></div>
-            <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">윈세이환입상태</span><span id="wap-inbound"></span></div>
-          </div>
-          <div id="winseiActionBody" style="display:none"></div>
-          <div class="success-msg" id="winseiAction-success"></div>
-          <div class="error-msg" id="winseiAction-error"></div>
-        </div>
-        <div class="form-card" style="flex:1;min-width:240px">
-          <h3 id="winseiActionGuideTitle">📌 윈세이 취소 규칙</h3>
-          <div id="winseiActionGuide">
-            <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>송장번호 입력 전 취소</strong><br>송장번호가 공란인 건만 주문취소로 처리합니다.<br>매입마감에는 영향을 주지 않습니다.</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -582,66 +548,140 @@
     <span class="dot dot-w"></span> 윈세이 발주현황
   </div>
 
-  <!-- 주문 처리 현황 -->
-  <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
-    <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="w-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
-    <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="w-done">—</div><div class="card-desc">발주 완료</div></div>
-    <div class="card" onclick="filterWinseiNoTracking()" style="cursor:pointer">
-      <div class="card-label">🚚 송장미입력<br>확인 필요</div>
-      <div class="card-num red" id="w-notrack">—</div>
-      <div class="card-desc">클릭하여 확인</div>
-    </div>
-    <div class="card" onclick="filterWinseiReturn('반품됨')" style="cursor:pointer">
-      <div class="card-label">↩️ 반품됨<br>정보 표시</div>
-      <div class="card-num orange" id="w-return">—</div>
-      <div class="card-desc">환입 전 포함</div>
-    </div>
-    <div class="card" onclick="filterWinseiReturn('환입신청')" style="cursor:pointer">
-      <div class="card-label">📤 환입신청<br>확인 필요</div>
-      <div class="card-num purple" id="w-returnreq">—</div>
-      <div class="card-desc">윈세이 처리 대기</div>
-    </div>
-    <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
-  </div>
-  <div class="card-hint">→ 송장번호 입력은 기존처럼 마감 처리입니다. 반품·환입은 ❌ 취소·반품 탭에서 처리합니다.</div>
-
-  <!-- 이번달 1차 매입마감 -->
-  <div class="section-title blue" style="margin-top:16px">💰 이번달 1차 매입마감 — 송장입력일 기준</div>
-  <div class="cards" style="grid-template-columns:repeat(4,1fr)">
-    <div class="card"><div class="card-label">📅 이번달<br>마감건수</div><div class="card-num blue" id="w-closecnt">—</div><div class="card-desc">송장입력일 기준</div></div>
-    <div class="card"><div class="card-label">💰 이번달<br>마감매입</div><div class="card-num dark" id="w-closeamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">VAT 포함</div></div>
-    <div class="card"><div class="card-label">↩️ 이번달<br>환입차감</div><div class="card-num red" id="w-returndeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">환입완료일 기준</div></div>
-    <div class="card"><div class="card-label">✅ 이번달<br>순매입</div><div class="card-num green" id="w-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 환입차감</div></div>
+  <div class="nav-tabs winsei-subtabs">
+    <button class="nav-tab active" data-winsei-tab="orders" onclick="showWinseiTab('orders',this)">📊 발주현황</button>
+    <button class="nav-tab" data-winsei-tab="actions" onclick="showWinseiTab('actions',this)">❌ 취소·반품</button>
   </div>
 
-  <div class="search-bar" style="margin-top:16px">
-    <span>📅 접수일 조회</span>
-    <input type="date" id="wf-from" style="width:140px">
-    <span style="color:var(--gray)">~</span>
-    <input type="date" id="wf-to" style="width:140px">
-    <button onclick="renderWinsei()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
-    <button onclick="resetWinseiFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
-    <select id="wf-status" onchange="renderWinsei()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
-      <option value="">전체 상태</option>
-      <option value="발주대기">발주대기</option>
-      <option value="발주완료">발주완료</option>
-      <option value="송장미입력">송장미입력</option>
-      <option value="반품됨">반품됨</option>
-      <option value="환입신청">환입신청</option>
-      <option value="환입완료">환입완료</option>
-    </select>
-  </div>
-  <div class="table-wrap">
-    <table><thead><tr>
-      <th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th><th>송장입력일</th><th>반품여부</th><th>환입상태</th>
-    </tr></thead>
-    <tbody id="winseiBody"><tr><td colspan="12" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+  <!-- 윈세이 서브탭 1: 발주현황 -->
+  <div id="winseiTab-orders" class="winsei-tab-content active">
+    <!-- 주문 처리 현황 -->
+    <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
+      <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="w-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
+      <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="w-done">—</div><div class="card-desc">발주 완료</div></div>
+      <div class="card" onclick="filterWinseiNoTracking()" style="cursor:pointer">
+        <div class="card-label">🚚 송장미입력<br>확인 필요</div>
+        <div class="card-num red" id="w-notrack">—</div>
+        <div class="card-desc">클릭하여 확인</div>
+      </div>
+      <div class="card" onclick="openWinseiReturnAction('returned')" style="cursor:pointer">
+        <div class="card-label">↩️ 반품됨<br>정보 표시</div>
+        <div class="card-num orange" id="w-return">—</div>
+        <div class="card-desc">클릭하여 처리</div>
+      </div>
+      <div class="card" onclick="openWinseiReturnAction('requested')" style="cursor:pointer">
+        <div class="card-label">📤 환입신청<br>확인 필요</div>
+        <div class="card-num purple" id="w-returnreq">—</div>
+        <div class="card-desc">클릭하여 처리</div>
+      </div>
+      <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
+    </div>
+    <div class="card-hint">→ 송장번호 입력은 기존처럼 마감 처리입니다. 반품·환입은 <b>❌ 취소·반품</b> 탭에서 처리합니다.</div>
+
+    <!-- 이번달 1차 매입마감 -->
+    <div class="section-title blue" style="margin-top:16px">💰 이번달 1차 매입마감 — 송장입력일 기준</div>
+    <div class="cards" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card winsei-close-toggle" onclick="toggleWinseiCloseDetails()">
+        <div class="card-label">📅 이번달<br>마감건수</div>
+        <div class="card-num blue" id="w-closecnt">—</div>
+        <div class="card-desc" id="w-closecnt-desc">클릭하여 내역 보기</div>
+      </div>
+      <div class="card winsei-close-toggle" onclick="toggleWinseiCloseDetails()">
+        <div class="card-label">💰 이번달<br>마감매입</div>
+        <div class="card-num dark" id="w-closeamt" style="font-size:20px;padding-top:6px">—</div>
+        <div class="card-desc" id="w-closeamt-desc">클릭하여 내역 보기</div>
+      </div>
+      <div class="card"><div class="card-label">↩️ 이번달<br>환입차감</div><div class="card-num red" id="w-returndeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">환입완료일 기준</div></div>
+      <div class="card"><div class="card-label">✅ 이번달<br>순매입</div><div class="card-num green" id="w-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 환입차감</div></div>
+    </div>
+
+    <!-- 기본 접힘: 마감건수/마감매입 카드 클릭으로 열고 닫음 -->
+    <div id="winseiCloseDetailsPanel" style="display:none">
+      <div class="table-wrap" style="margin-top:12px">
+        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">원장은 한 주문 한 행으로 유지 · 차감은 화면에서만 음수 행 표시</span></div>
+        <table><thead><tr><th>기준일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
+        <tbody id="winseiCloseBody"><tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="search-bar" style="margin-top:16px">
+      <span>📅 접수일 조회</span>
+      <input type="date" id="wf-from" style="width:140px">
+      <span style="color:var(--gray)">~</span>
+      <input type="date" id="wf-to" style="width:140px">
+      <button onclick="renderWinsei()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
+      <button onclick="resetWinseiFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
+      <select id="wf-status" onchange="renderWinsei()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+        <option value="">전체 상태</option>
+        <option value="발주대기">발주대기</option>
+        <option value="발주완료">발주완료</option>
+        <option value="송장미입력">송장미입력</option>
+        <option value="반품됨">반품됨</option>
+        <option value="환입신청">환입신청</option>
+        <option value="환입완료">환입완료</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th><th>송장입력일</th><th>반품여부</th><th>환입상태</th>
+      </tr></thead>
+      <tbody id="winseiBody"><tr><td colspan="12" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+    </div>
   </div>
 
-  <div class="table-wrap" style="margin-top:16px">
-    <div class="table-header"><span>이번달 1차 마감 내역 — 원장은 한 주문 한 행으로 유지, 차감은 화면에서만 음수 행 표시</span></div>
-    <table><thead><tr><th>기준일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
-    <tbody id="winseiCloseBody"><tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
+  <!-- 윈세이 서브탭 2: 취소·반품 -->
+  <div id="winseiTab-actions" class="winsei-tab-content">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div class="form-card" style="flex:1;min-width:300px;max-width:520px">
+        <h3 id="winseiActionTitle">❌ 윈세이 주문 취소</h3>
+        <div class="nav-tabs" style="margin:0 0 14px">
+          <button class="nav-tab active" data-winsei-action-mode="cancel" onclick="setWinseiActionMode('cancel',this)">윈세이 취소</button>
+          <button class="nav-tab" data-winsei-action-mode="return" onclick="setWinseiActionMode('return',this)">윈세이 반품</button>
+        </div>
+        <div class="form-row full">
+          <div>
+            <label>사방넷 주문번호 <span>*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="winseiActionNo" placeholder="예: 2124977241" style="flex:1" onkeydown="if(event.key==='Enter') searchWinseiAction()">
+              <button onclick="searchWinseiAction()" style="background:var(--navy);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap">조회</button>
+            </div>
+          </div>
+        </div>
+        <div id="winseiActionPreview" style="display:none;background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">완료여부</span><strong id="wap-status"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">송장번호</span><span id="wap-tracking"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">모델코드</span><span id="wap-model"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">고객명</span><span id="wap-buyer"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">주문금액</span><strong id="wap-amount"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">반품여부</span><span id="wap-return"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">윈세이환입상태</span><span id="wap-inbound"></span></div>
+        </div>
+        <div id="winseiActionBody" style="display:none"></div>
+        <div class="success-msg" id="winseiAction-success"></div>
+        <div class="error-msg" id="winseiAction-error"></div>
+      </div>
+
+      <div class="form-card" style="flex:1;min-width:300px">
+        <h3 id="winseiActionGuideTitle">📌 윈세이 취소 규칙</h3>
+        <div id="winseiActionGuide">
+          <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>송장번호 입력 전 취소</strong><br>송장번호가 공란인 건만 주문취소로 처리합니다.<br>매입마감에는 영향을 주지 않습니다.</div>
+        </div>
+
+        <div id="winseiActionListWrap" style="display:none;margin-top:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">
+            <strong id="winseiActionListTitle" style="font-size:13px;color:var(--navy)">반품·환입 대상 목록</strong>
+            <button onclick="clearWinseiActionList()" style="background:#F0F0F0;color:#555;border:none;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer">목록 닫기</button>
+          </div>
+          <div class="winsei-action-list">
+            <table>
+              <thead><tr><th>접수일</th><th>주문번호</th><th>고객명</th><th>모델코드</th><th>송장번호</th><th>현재상태</th><th></th></tr></thead>
+              <tbody id="winseiActionListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-hint" style="margin-top:0">→ 반품됨·환입신청 카드에서 들어오면 대상 전체 목록이 먼저 보입니다. 임의로 특정 주문을 선택하지 않고, 목록의 <b>처리</b>를 눌러 주문을 선택합니다.</div>
   </div>
 </div>
 </div>
@@ -1511,8 +1551,8 @@ function filterWinseiNoTracking(){
   renderWinsei();
 }
 function filterWinseiReturn(status){
-  document.getElementById('wf-status').value=status;
-  renderWinsei();
+  // 호환용: 기존 호출이 남아 있어도 윈세이 반품 처리탭의 전체 대상 목록으로 이동한다.
+  openWinseiReturnAction(status==='환입신청'?'requested':'returned');
 }
 async function saveWinseiTracking(sno){
   const input=document.getElementById('wtrack-'+sno);
@@ -1544,35 +1584,143 @@ function resetWinseiFilter(){
   renderWinsei();
 }
 
-// ── 공통 취소·반품 탭: 윈세이 ──
+// ── 윈세이 서브뷰: 탭 / 마감내역 / 취소·반품 ──
 let winseiActionMode='cancel';
 let winseiActionTarget=null;
-function selectCancelMode(mode,btn){
-  document.querySelectorAll('[data-cancel-mode]').forEach(el=>el.classList.toggle('active',el.dataset.cancelMode===mode));
-  document.getElementById('carrierCancelPanel').style.display=mode==='carrier'?'block':'none';
-  document.getElementById('winseiActionPanel').style.display=mode==='carrier'?'none':'block';
-  if(mode==='carrier') return;
-  winseiActionMode=mode==='winseiReturn'?'return':'cancel';
+let winseiReturnListFilter='';
+let winseiCloseDetailsOpen=false;
+
+function showWinseiTab(tab,btn){
+  document.querySelectorAll('[data-winsei-tab]').forEach(function(el){
+    el.classList.toggle('active',el.dataset.winseiTab===tab);
+  });
+  document.getElementById('winseiTab-orders').classList.toggle('active',tab==='orders');
+  document.getElementById('winseiTab-actions').classList.toggle('active',tab==='actions');
+  if(tab==='actions') renderWinseiActionList();
+}
+
+function toggleWinseiCloseDetails(){
+  winseiCloseDetailsOpen=!winseiCloseDetailsOpen;
+  const panel=document.getElementById('winseiCloseDetailsPanel');
+  if(panel) panel.style.display=winseiCloseDetailsOpen?'block':'none';
+  const guide=winseiCloseDetailsOpen?'▲ 접기':'클릭하여 내역 보기';
+  setText('w-closecnt-desc',guide);
+  setText('w-closeamt-desc',guide);
+}
+
+function openWinseiReturnAction(filter){
+  // 카드 클릭은 특정 주문을 임의로 선택하지 않는다.
+  // 해당 상태의 전체 목록을 보여주고, 사용자가 목록에서 처리 대상을 선택한다.
+  winseiReturnListFilter=filter || '';
+  const tabBtn=document.querySelector('[data-winsei-tab="actions"]');
+  showWinseiTab('actions',tabBtn);
+  const modeBtn=document.querySelector('[data-winsei-action-mode="return"]');
+  setWinseiActionMode('return',modeBtn);
+  renderWinseiActionList();
+}
+
+function setWinseiActionMode(mode,btn){
+  winseiActionMode=mode;
   winseiActionTarget=null;
-  document.getElementById('winseiActionNo').value='';
-  document.getElementById('winseiActionPreview').style.display='none';
-  document.getElementById('winseiActionBody').style.display='none';
-  document.getElementById('winseiAction-success').style.display='none';
-  document.getElementById('winseiAction-error').style.display='none';
-  const isReturn=winseiActionMode==='return';
+  document.querySelectorAll('[data-winsei-action-mode]').forEach(function(el){
+    el.classList.toggle('active',el.dataset.winseiActionMode===mode);
+  });
+  const noInput=document.getElementById('winseiActionNo');
+  if(noInput) noInput.value='';
+  const preview=document.getElementById('winseiActionPreview');
+  const body=document.getElementById('winseiActionBody');
+  if(preview) preview.style.display='none';
+  if(body) body.style.display='none';
+  const success=document.getElementById('winseiAction-success');
+  const error=document.getElementById('winseiAction-error');
+  if(success) success.style.display='none';
+  if(error) error.style.display='none';
+
+  const isReturn=mode==='return';
   setText('winseiActionTitle',isReturn?'↩️ 윈세이 반품 / 환입 처리':'❌ 윈세이 주문 취소');
   setText('winseiActionGuideTitle',isReturn?'📌 윈세이 반품·환입 규칙':'📌 윈세이 취소 규칙');
   document.getElementById('winseiActionGuide').innerHTML=isReturn
     ? '<div class="note-box"><strong>1. 반품됨 표시</strong><br>누구의 반품인지 확인하는 정보성 표시입니다. 금액 영향은 없습니다.</div><div class="note-box"><strong>2. 윈세이 환입 신청</strong><br>신청 상태만 기록합니다. 금액 영향은 없습니다.</div><div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>3. 윈세이 환입 완료</strong><br>환입 확정일과 실제 차감금액을 입력하면 해당 월 매입에서 차감합니다.</div>'
     : '<div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>송장번호 입력 전 취소</strong><br>송장번호가 공란인 건만 주문취소로 처리합니다.<br>매입마감에는 영향을 주지 않습니다.</div>';
+
+  if(!isReturn) clearWinseiActionList();
+  else renderWinseiActionList();
 }
+
+function winseiReturnStateLabel_(r){
+  const returned=String(winseiValue_(r,'반품여부')).trim()==='반품됨';
+  const inbound=String(winseiValue_(r,'윈세이환입상태')).trim();
+  if(inbound==='완료') return '환입완료';
+  if(inbound==='신청') return '환입신청';
+  if(returned) return '반품됨';
+  return '—';
+}
+
+function renderWinseiActionList(){
+  const wrap=document.getElementById('winseiActionListWrap');
+  const body=document.getElementById('winseiActionListBody');
+  const title=document.getElementById('winseiActionListTitle');
+  if(!wrap || !body || !title) return;
+  if(winseiActionMode!=='return' || !winseiReturnListFilter){
+    wrap.style.display='none';
+    body.innerHTML='';
+    return;
+  }
+
+  let rows=[];
+  if(winseiReturnListFilter==='returned'){
+    // 반품됨 카드는 반품 표시가 된 전체 주문을 보여준다.
+    // 환입 완료 건도 상태 확인을 위해 목록에 남기되, 상세 화면에서 추가 처리는 차단된다.
+    rows=allWinsei.filter(function(r){
+      return String(winseiValue_(r,'반품여부')).trim()==='반품됨';
+    });
+    title.textContent='↩️ 반품됨 처리 대상 목록';
+  }else if(winseiReturnListFilter==='requested'){
+    rows=allWinsei.filter(function(r){
+      return String(winseiValue_(r,'윈세이환입상태')).trim()==='신청';
+    });
+    title.textContent='📤 환입신청 처리 대상 목록';
+  }
+
+  wrap.style.display='block';
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="7" class="empty">처리할 대상이 없습니다</td></tr>';
+    return;
+  }
+  body.innerHTML=rows.map(function(r){
+    const no=String(winseiValue_(r,'사방넷주문번호'));
+    return '<tr>'
+      + '<td>'+fmtD(winseiValue_(r,'접수일'))+'</td>'
+      + '<td>'+no+'</td>'
+      + '<td>'+String(winseiValue_(r,'고객명')||'')+'</td>'
+      + '<td>'+String(winseiValue_(r,'모델코드')||'')+'</td>'
+      + '<td>'+String(winseiValue_(r,'송장번호')||'—')+'</td>'
+      + '<td>'+winseiReturnStateLabel_(r)+'</td>'
+      + '<td><button class="winsei-action-pick" onclick="pickWinseiActionOrder(&quot;'+no.replace(/&/g,'&amp;').replace(/&quot;/g,'&amp;quot;')+'&quot;)">처리</button></td>' 
+      + '</tr>';
+  }).join('');
+}
+
+function clearWinseiActionList(){
+  winseiReturnListFilter='';
+  const wrap=document.getElementById('winseiActionListWrap');
+  const body=document.getElementById('winseiActionListBody');
+  if(wrap) wrap.style.display='none';
+  if(body) body.innerHTML='';
+}
+
+function pickWinseiActionOrder(saBangNo){
+  document.getElementById('winseiActionNo').value=saBangNo;
+  searchWinseiAction();
+}
+
 async function searchWinseiAction(){
   const no=document.getElementById('winseiActionNo').value.trim();
-  if(!no)return;
+  if(!no){showMsgBox('winseiAction-error','사방넷 주문번호를 입력하세요.');return;}
   try{
     const d=await apiCall({action:'getWinseiOrders'});
     allWinsei=Array.isArray(d)?d:[];
-    const found=allWinsei.find(r=>String(winseiValue_(r,'사방넷주문번호'))===no);
+    const found=allWinsei.find(function(r){return String(winseiValue_(r,'사방넷주문번호'))===no;});
     if(!found){showMsgBox('winseiAction-error','윈세이 주문번호를 찾을 수 없습니다.');return;}
     winseiActionTarget=found;
     setText('wap-status',winseiValue_(found,'완료여부')||'—');
@@ -1584,8 +1732,10 @@ async function searchWinseiAction(){
     setText('wap-inbound',winseiValue_(found,'윈세이환입상태')||'없음');
     document.getElementById('winseiActionPreview').style.display='block';
     renderWinseiActionBody();
+    renderWinseiActionList();
   }catch(e){showMsgBox('winseiAction-error','조회 오류: '+e.message);}
 }
+
 function renderWinseiActionBody(){
   const box=document.getElementById('winseiActionBody');
   if(!winseiActionTarget){box.style.display='none';return;}
@@ -1613,17 +1763,18 @@ function renderWinseiActionBody(){
     return;
   }
   if(inbound==='신청'){
-    box.innerHTML=`<div class="note-box" style="background:#E9F7EF;border-color:#27AE60">윈세이 환입이 확정된 경우에만 처리합니다. 이 시점의 금액이 해당 월 매입에서 차감됩니다.</div><div class="form-row"><div><label>윈세이 환입완료일 <span>*</span></label><input type="date" id="winseiReturnDate" value="${fmt(new Date())}"></div><div><label>환입 차감금액(VAT+) <span>*</span></label><input type="text" id="winseiReturnAmount" value="${amount}" inputmode="numeric"></div></div><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:12px 0"><input type="checkbox" id="winseiActionChk" onchange="document.getElementById('winseiActionBtn').disabled=!this.checked"> 윈세이 환입 완료와 차감금액을 확인했습니다</label><button class="submit-btn" id="winseiActionBtn" onclick="executeWinseiAction('completeWinseiReturn')" disabled style="background:var(--green)">환입 차감 처리</button>`;
+    box.innerHTML='<div class="note-box" style="background:#E9F7EF;border-color:#27AE60">윈세이 환입이 확정된 경우에만 처리합니다. 이 시점의 금액이 해당 월 매입에서 차감됩니다.</div><div class="form-row"><div><label>윈세이 환입완료일 <span>*</span></label><input type="date" id="winseiReturnDate" value="'+fmt(new Date())+'"></div><div><label>환입 차감금액(VAT+) <span>*</span></label><input type="text" id="winseiReturnAmount" value="'+amount+'" inputmode="numeric"></div></div><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:12px 0"><input type="checkbox" id="winseiActionChk" onchange="document.getElementById(\'winseiActionBtn\').disabled=!this.checked"> 윈세이 환입 완료와 차감금액을 확인했습니다</label><button class="submit-btn" id="winseiActionBtn" onclick="executeWinseiAction(\'completeWinseiReturn\')" disabled style="background:var(--green)">환입 차감 처리</button>';
     return;
   }
-  box.innerHTML=`<div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>환입 완료 처리된 건입니다.</strong><br>환입완료일: ${fmtD(winseiValue_(r,'윈세이환입완료일'))||'—'}<br>차감금액: ${wfmt(money_(winseiValue_(r,'환입차감금액_VAT포함')))}</div>`;
+  box.innerHTML='<div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>환입 완료 처리된 건입니다.</strong><br>환입완료일: '+(fmtD(winseiValue_(r,'윈세이환입완료일'))||'—')+'<br>차감금액: '+wfmt(money_(winseiValue_(r,'환입차감금액_VAT포함')))+ '</div>';
 }
+
 async function executeWinseiAction(action){
   if(!winseiActionTarget)return;
   const no=String(winseiValue_(winseiActionTarget,'사방넷주문번호'));
   const btn=document.getElementById('winseiActionBtn');
   if(btn){btn.disabled=true;btn.textContent='처리 중...';}
-  const params={action,saBangNo:no};
+  const params={action:action,saBangNo:no};
   if(action==='completeWinseiReturn'){
     params.returnDate=document.getElementById('winseiReturnDate').value;
     params.deductionAmount=document.getElementById('winseiReturnAmount').value;
@@ -1634,8 +1785,20 @@ async function executeWinseiAction(action){
     const d=await apiCall({action:'getWinseiOrders'});
     allWinsei=Array.isArray(d)?d:[];
     renderWinsei();
-    const refreshed=allWinsei.find(r=>String(winseiValue_(r,'사방넷주문번호'))===no);
-    if(refreshed){winseiActionTarget=refreshed;document.getElementById('winseiActionPreview').style.display='block';setText('wap-status',winseiValue_(refreshed,'완료여부')||'—');setText('wap-tracking',winseiValue_(refreshed,'송장번호')||'미입력');setText('wap-model',winseiValue_(refreshed,'모델코드')||'—');setText('wap-buyer',winseiValue_(refreshed,'고객명')||'—');setText('wap-amount',wfmt(money_(winseiValue_(refreshed,'합계_VAT포함'))));setText('wap-return',winseiValue_(refreshed,'반품여부')||'없음');setText('wap-inbound',winseiValue_(refreshed,'윈세이환입상태')||'없음');renderWinseiActionBody();}
+    const refreshed=allWinsei.find(function(r){return String(winseiValue_(r,'사방넷주문번호'))===no;});
+    if(refreshed){
+      winseiActionTarget=refreshed;
+      document.getElementById('winseiActionPreview').style.display='block';
+      setText('wap-status',winseiValue_(refreshed,'완료여부')||'—');
+      setText('wap-tracking',winseiValue_(refreshed,'송장번호')||'미입력');
+      setText('wap-model',winseiValue_(refreshed,'모델코드')||'—');
+      setText('wap-buyer',winseiValue_(refreshed,'고객명')||'—');
+      setText('wap-amount',wfmt(money_(winseiValue_(refreshed,'합계_VAT포함'))));
+      setText('wap-return',winseiValue_(refreshed,'반품여부')||'없음');
+      setText('wap-inbound',winseiValue_(refreshed,'윈세이환입상태')||'없음');
+      renderWinseiActionBody();
+    }
+    renderWinseiActionList();
   }catch(e){
     showMsgBox('winseiAction-error','처리 오류: '+e.message);
     if(btn){btn.disabled=false;btn.textContent='다시 시도';}
@@ -1679,7 +1842,17 @@ function showVendor(v){
   document.getElementById('winseiView').classList.remove('active');
   document.getElementById('starionView').classList.remove('active');
   document.getElementById(v==='winsei'?'winseiView':'starionView').classList.add('active');
-  if(v==='winsei'){apiCall({action:'getWinseiOrders'}).then(d=>{allWinsei=Array.isArray(d)?d:[];renderWinsei();}).catch(()=>{});}
+  if(v==='winsei'){
+    const orderBtn=document.querySelector('[data-winsei-tab="orders"]');
+    showWinseiTab('orders',orderBtn);
+    winseiCloseDetailsOpen=false;
+    winseiReturnListFilter='';
+    const closePanel=document.getElementById('winseiCloseDetailsPanel');
+    if(closePanel) closePanel.style.display='none';
+    setText('w-closecnt-desc','클릭하여 내역 보기');
+    setText('w-closeamt-desc','클릭하여 내역 보기');
+    apiCall({action:'getWinseiOrders'}).then(d=>{allWinsei=Array.isArray(d)?d:[];renderWinsei();}).catch(()=>{});
+  }
   if(v==='starion'){apiCall({action:'getStarionOrders'}).then(d=>{allStarion=Array.isArray(d)?d:[];renderStarion();}).catch(()=>{});}
 }
 function showMain(){
