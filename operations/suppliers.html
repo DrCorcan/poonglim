@@ -715,18 +715,20 @@
 
   <!-- 스타리온 서브탭 1: 발주현황 -->
   <div id="starionTab-orders" class="vendor-tab-content active">
-    <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
+    <div class="cards" style="margin-top:0;grid-template-columns:repeat(7,1fr)">
       <div class="card"><div class="card-label">🔵 해피콜대기</div><div class="card-num purple" id="st-happy">—</div><div class="card-desc">해피콜 진행 중</div></div>
       <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="st-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
-      <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">발주 완료</div></div>
+      <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">취소 제외</div></div>
       <div class="card" onclick="filterStarionInstall('미완료')" style="cursor:pointer"><div class="card-label">🛠️ 설치미완료</div><div class="card-num orange" id="st-installpending">—</div><div class="card-desc">클릭하여 확인</div></div>
       <div class="card" onclick="filterStarionInstall('완료')" style="cursor:pointer"><div class="card-label">🏁 설치완료</div><div class="card-num blue" id="st-installed">—</div><div class="card-desc">설치후취소 제외</div></div>
-      <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc"></div></div>
+      <div class="card" onclick="filterStarionCancelled()" style="cursor:pointer"><div class="card-label">❌ 취소</div><div class="card-num red" id="st-cancelled">—</div><div class="card-desc">클릭하여 전체 보기</div></div>
+      <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc">전체 주문 기준</div></div>
     </div>
-    <div class="card-hint">→ 설치완료일이 1차 매입마감 기준입니다. 설치 전 취소는 매입 영향이 없고, 설치 후 취소만 취소확정일 기준으로 차감합니다.</div>
+    <div class="card-hint">→ 전체 = 해피콜대기 + 발주대기 + 발주완료(설치상태 포함) + 취소입니다. 설치미완료·설치완료는 발주완료의 세부 현황입니다.</div>
 
     <div class="section-title dark" style="margin-top:16px">💰 이번달 1차 매입마감 — 설치완료일 기준</div>
-    <div class="cards" style="grid-template-columns:repeat(4,1fr)">
+    <div class="cards" style="grid-template-columns:repeat(5,1fr)">
+      <div class="card" onclick="filterStarionThisMonthOrders()" style="cursor:pointer"><div class="card-label">📥 이번달<br>주문건수</div><div class="card-num purple" id="st-monthordercnt">—</div><div class="card-desc" id="st-monthordercnt-desc">접수일 기준 · 클릭하여 주문 보기</div></div>
       <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">📅 이번달<br>설치완료건수</div><div class="card-num blue" id="st-closecnt">—</div><div class="card-desc" id="st-closecnt-desc">클릭하여 내역 보기</div></div>
       <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">💰 이번달<br>마감매입</div><div class="card-num dark" id="st-closeamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc" id="st-closeamt-desc">클릭하여 내역 보기</div></div>
       <div class="card"><div class="card-label">❌ 이번달<br>취소차감</div><div class="card-num red" id="st-canceldeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">설치후취소 기준</div></div>
@@ -742,7 +744,7 @@
       </div>
     </div>
 
-    <div class="search-bar" style="margin-top:16px">
+    <div class="search-bar" id="starionOrdersFilterBar" style="margin-top:16px">
       <span>📅 접수일 조회</span>
       <input type="date" id="sf-from" style="width:140px">
       <span style="color:var(--gray)">~</span>
@@ -756,6 +758,7 @@
         <option value="발주완료">발주완료</option>
         <option value="설치미완료">설치미완료</option>
         <option value="설치완료">설치완료</option>
+        <option value="취소">취소 전체</option>
         <option value="설치전취소">설치전취소</option>
         <option value="설치후취소">설치후취소</option>
       </select>
@@ -1888,23 +1891,33 @@ let starionCloseDetailsOpen=false;
 
 function starionValue_(r,key){ return r && r[key] !== undefined && r[key] !== null ? r[key] : ''; }
 
+function starionCancelStatus_(r){ return String(starionValue_(r,'취소상태')).trim(); }
+
+// 취소는 설치전취소·설치후취소와, 과거 데이터의 완료여부=주문취소를 모두 포함한다.
+function isStarionCancelled_(r){
+  const complete=String(starionValue_(r,'완료여부')).trim();
+  const cancel=starionCancelStatus_(r);
+  return complete==='주문취소' || cancel==='설치전취소' || cancel==='설치후취소';
+}
+
 // 설치 이력: 실제 설치완료가 한 번이라도 기록된 건
 // 월 매입마감의 양수 행은 설치 이력을 보존해야 하므로 이 기준을 사용한다.
 function starionInstalledHistory_(r){
   return String(starionValue_(r,'설치완료여부')).trim()==='Y';
 }
 
-// 현재 유효 설치완료: 설치완료 후 취소된 건은 제외
-// 시트의 설치완료여부=Y는 이력으로 남고, 현황 카드만 현재 상태 기준으로 표시한다.
+// 현재 유효 설치완료: 설치후취소는 시트 이력에는 남지만 현황 카드에서는 제외한다.
 function starionActiveInstalled_(r){
-  return starionInstalledHistory_(r) && starionCancelStatus_(r)!=='설치후취소';
+  return starionInstalledHistory_(r) && !isStarionCancelled_(r);
 }
 
-function starionCancelStatus_(r){ return String(starionValue_(r,'취소상태')).trim(); }
+// 현재 진행 중인 발주완료: 설치 전·후 취소는 모두 제외한다.
+function starionActiveOrderDone_(r){
+  return String(starionValue_(r,'완료여부')).trim()==='발주완료' && !isStarionCancelled_(r);
+}
+
 function isStarionInstallPending_(r){
-  return String(starionValue_(r,'완료여부')).trim()==='발주완료'
-    && !starionInstalledHistory_(r)
-    && starionCancelStatus_(r)!=='설치전취소';
+  return starionActiveOrderDone_(r) && !starionInstalledHistory_(r);
 }
 
 function showStarionTab(tab,btn){
@@ -1927,6 +1940,32 @@ function toggleStarionCloseDetails(){
 function filterStarionInstall(mode){
   document.getElementById('sf-status').value=mode==='완료'?'설치완료':'설치미완료';
   renderStarion();
+  scrollToStarionOrders_();
+}
+
+function filterStarionCancelled(){
+  // 상단 취소 카드는 전체 누적 기준이므로 날짜 조건을 비워 전체 취소건을 표시한다.
+  document.getElementById('sf-status').value='취소';
+  document.getElementById('sf-from').value='';
+  document.getElementById('sf-to').value='';
+  renderStarion();
+  scrollToStarionOrders_();
+}
+
+function filterStarionThisMonthOrders(){
+  // 접수일 기준 이번달 주문: 지난달 주문의 이번달 설치와 다음달 이월 주문을 함께 구분하기 위한 기준이다.
+  const now=new Date();
+  const from=new Date(now.getFullYear(),now.getMonth(),1);
+  const to=new Date(now.getFullYear(),now.getMonth()+1,0);
+  document.getElementById('sf-status').value='';
+  setDR('sf-from','sf-to',from,to);
+  renderStarion();
+  scrollToStarionOrders_();
+}
+
+function scrollToStarionOrders_(){
+  const target=document.getElementById('starionOrdersFilterBar');
+  if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function starionRowMatchesStatus_(r,status){
@@ -1935,8 +1974,10 @@ function starionRowMatchesStatus_(r,status){
   if(!status) return true;
   if(status==='설치미완료') return isStarionInstallPending_(r);
   if(status==='설치완료') return starionActiveInstalled_(r);
+  if(status==='취소') return isStarionCancelled_(r);
   if(status==='설치전취소') return cancel==='설치전취소';
   if(status==='설치후취소') return cancel==='설치후취소';
+  if(status==='발주완료') return starionActiveOrderDone_(r);
   return complete===status;
 }
 
@@ -1954,6 +1995,9 @@ function renderStarion(){
     return true;
   });
 
+  const monthOrderRows=allStarion.filter(function(r){
+    return monthOf_(starionValue_(r,'접수일'))===ym;
+  });
   const closeRows=allStarion.filter(function(r){
     return starionInstalledHistory_(r) && monthOf_(starionValue_(r,'설치완료일'))===ym;
   });
@@ -1965,10 +2009,12 @@ function renderStarion(){
 
   setText('st-happy',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='해피콜대기';}).length);
   setText('st-wait',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='발주대기';}).length);
-  setText('st-done',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='발주완료';}).length);
+  setText('st-done',allStarion.filter(starionActiveOrderDone_).length);
   setText('st-installpending',allStarion.filter(isStarionInstallPending_).length);
   setText('st-installed',allStarion.filter(starionActiveInstalled_).length);
+  setText('st-cancelled',allStarion.filter(isStarionCancelled_).length);
   setText('st-total',allStarion.length);
+  setText('st-monthordercnt',monthOrderRows.length);
   setText('st-closecnt',closeRows.length);
   setText('st-closeamt',closeAmt?wfmt(closeAmt):'—');
   setText('st-canceldeduct',cancelDeduct?'-'+wfmt(cancelDeduct):'—');
@@ -2145,6 +2191,7 @@ function resetStarionSubview_(){
   if(closePanel) closePanel.style.display='none';
   setText('st-closecnt-desc','클릭하여 내역 보기');
   setText('st-closeamt-desc','클릭하여 내역 보기');
+  setText('st-monthordercnt-desc','접수일 기준 · 클릭하여 주문 보기');
 
   // 취소처리 탭의 이전 조회·처리 화면은 다음 진입 시 남기지 않는다.
   starionActionTarget=null;
