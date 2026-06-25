@@ -111,6 +111,20 @@
   .winsei-action-pick { padding: 4px 9px; border: none; border-radius: 4px; color: white; background: var(--navy); font-size: 11px; cursor: pointer; white-space: nowrap; }
   .winsei-action-pick:hover { background: #163d5f; }
 
+
+  /* 스타리온 서브탭 / 설치마감 접기·펼치기 — 다른 매입처에도 재사용 가능 */
+  .vendor-subtabs { margin: 14px 0 16px; }
+  .vendor-tab-content { display: none; }
+  .vendor-tab-content.active { display: block; }
+  .vendor-close-toggle { cursor: pointer; }
+  .vendor-close-toggle:hover { background: #F0F4F8; box-shadow: inset 0 0 0 2px rgba(41,128,185,.10); }
+  .vendor-action-pick { padding: 4px 9px; border: none; border-radius: 4px; color: white; background: var(--navy); font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .vendor-action-pick:hover { background: #163d5f; }
+  .install-inline { display:flex; align-items:center; gap:5px; min-width:185px; }
+  .install-inline input { width:122px; padding:4px 6px; font-size:11px; }
+  .install-inline button { padding:4px 8px; background:var(--green); color:white; border:none; border-radius:4px; font-size:11px; cursor:pointer; white-space:nowrap; }
+  .install-inline button:disabled { background:#aaa; cursor:not-allowed; }
+
   /* 서브뷰 */
   .subview { display: none; }
   .subview.active { display: block; }
@@ -693,37 +707,100 @@
   <div class="section-title dark" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-s"></span> 스타리온 발주현황
   </div>
-  <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
-    <div class="card"><div class="card-label">🔵 해피콜대기</div><div class="card-num purple" id="st-happy">—</div><div class="card-desc">해피콜 진행 중</div></div>
-    <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="st-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
-    <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">발주 완료</div></div>
-    <div class="card" onclick="filterStarionThisMonth()" style="cursor:pointer">
-      <div class="card-label">📅 이번달<br>발주건수</div>
-      <div class="card-num blue" id="st-monthcnt">—</div>
-      <div class="card-desc">발주완료 기준</div>
-    </div>
-    <div class="card" onclick="filterStarionThisMonth()" style="cursor:pointer">
-      <div class="card-label">💰 이번달<br>발주금액</div>
-      <div class="card-num dark" id="st-monthamt" style="font-size:20px;padding-top:6px">—</div>
-      <div class="card-desc">VAT 포함</div>
-    </div>
-    <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc"></div></div>
+
+  <div class="nav-tabs vendor-subtabs">
+    <button class="nav-tab active" data-starion-tab="orders" onclick="showStarionTab('orders',this)">📊 발주현황</button>
+    <button class="nav-tab" data-starion-tab="actions" onclick="showStarionTab('actions',this)">❌ 취소처리</button>
   </div>
-  <div class="card-hint">→ 이번달 발주건수/금액 카드 클릭 시 이번달 발주완료 건 조회</div>
-  <div class="search-bar" style="margin-top:16px">
-    <span>📅 기간 조회</span>
-    <input type="date" id="sf-from" style="width:140px">
-    <span style="color:var(--gray)">~</span>
-    <input type="date" id="sf-to" style="width:140px">
-    <button onclick="renderStarion()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
-    <button onclick="resetStarionFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
-    <select id="sf-status" onchange="renderStarion()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
-      <option value="">전체 상태</option><option value="해피콜대기">해피콜대기</option><option value="발주대기">발주대기</option><option value="발주완료">발주완료</option>
-    </select>
+
+  <!-- 스타리온 서브탭 1: 발주현황 -->
+  <div id="starionTab-orders" class="vendor-tab-content active">
+    <div class="cards" style="margin-top:0;grid-template-columns:repeat(6,1fr)">
+      <div class="card"><div class="card-label">🔵 해피콜대기</div><div class="card-num purple" id="st-happy">—</div><div class="card-desc">해피콜 진행 중</div></div>
+      <div class="card"><div class="card-label">🟡 발주대기</div><div class="card-num orange" id="st-wait">—</div><div class="card-desc">발주서 생성 필요</div></div>
+      <div class="card"><div class="card-label">✅ 발주완료</div><div class="card-num green" id="st-done">—</div><div class="card-desc">발주 완료</div></div>
+      <div class="card" onclick="filterStarionInstall('미완료')" style="cursor:pointer"><div class="card-label">🛠️ 설치미완료</div><div class="card-num orange" id="st-installpending">—</div><div class="card-desc">클릭하여 확인</div></div>
+      <div class="card" onclick="filterStarionInstall('완료')" style="cursor:pointer"><div class="card-label">🏁 설치완료</div><div class="card-num blue" id="st-installed">—</div><div class="card-desc">설치후취소 제외</div></div>
+      <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc"></div></div>
+    </div>
+    <div class="card-hint">→ 설치완료일이 1차 매입마감 기준입니다. 설치 전 취소는 매입 영향이 없고, 설치 후 취소만 취소확정일 기준으로 차감합니다.</div>
+
+    <div class="section-title dark" style="margin-top:16px">💰 이번달 1차 매입마감 — 설치완료일 기준</div>
+    <div class="cards" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">📅 이번달<br>설치완료건수</div><div class="card-num blue" id="st-closecnt">—</div><div class="card-desc" id="st-closecnt-desc">클릭하여 내역 보기</div></div>
+      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">💰 이번달<br>마감매입</div><div class="card-num dark" id="st-closeamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc" id="st-closeamt-desc">클릭하여 내역 보기</div></div>
+      <div class="card"><div class="card-label">❌ 이번달<br>취소차감</div><div class="card-num red" id="st-canceldeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">설치후취소 기준</div></div>
+      <div class="card"><div class="card-label">✅ 이번달<br>순매입</div><div class="card-num green" id="st-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 취소차감</div></div>
+    </div>
+
+    <!-- 기본 접힘: 설치완료건수/마감매입 카드 클릭으로 열고 닫음 -->
+    <div id="starionCloseDetailsPanel" style="display:none">
+      <div class="table-wrap" style="margin-top:12px">
+        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">원장은 한 주문 한 행으로 유지 · 취소차감은 화면에서만 음수 행 표시</span></div>
+        <table><thead><tr><th>기준일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
+        <tbody id="starionCloseBody"><tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="search-bar" style="margin-top:16px">
+      <span>📅 접수일 조회</span>
+      <input type="date" id="sf-from" style="width:140px">
+      <span style="color:var(--gray)">~</span>
+      <input type="date" id="sf-to" style="width:140px">
+      <button onclick="renderStarion()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
+      <button onclick="resetStarionFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
+      <select id="sf-status" onchange="renderStarion()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;outline:none">
+        <option value="">전체 상태</option>
+        <option value="해피콜대기">해피콜대기</option>
+        <option value="발주대기">발주대기</option>
+        <option value="발주완료">발주완료</option>
+        <option value="설치미완료">설치미완료</option>
+        <option value="설치완료">설치완료</option>
+        <option value="설치전취소">설치전취소</option>
+        <option value="설치후취소">설치후취소</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>설치완료</th><th>설치완료일</th><th>취소상태</th></tr></thead>
+      <tbody id="starionBody"><tr><td colspan="11" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+    </div>
   </div>
-  <div class="table-wrap">
-    <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th></tr></thead>
-    <tbody id="starionBody"><tr><td colspan="8" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
+
+  <!-- 스타리온 서브탭 2: 취소처리 -->
+  <div id="starionTab-actions" class="vendor-tab-content">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+      <div class="form-card" style="flex:1;min-width:300px;max-width:520px">
+        <h3>❌ 스타리온 취소 처리</h3>
+        <div class="form-row full">
+          <div>
+            <label>사방넷 주문번호 <span>*</span></label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="starionActionNo" placeholder="예: 2124977241" style="flex:1" onkeydown="if(event.key==='Enter') searchStarionAction()">
+              <button onclick="searchStarionAction()" style="background:var(--navy);color:white;border:none;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap">조회</button>
+            </div>
+          </div>
+        </div>
+        <div id="starionActionPreview" style="display:none;background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">완료여부</span><strong id="sap-status"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">설치완료여부</span><span id="sap-installed"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">설치완료일</span><span id="sap-install-date"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">모델코드</span><span id="sap-model"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">고객명</span><span id="sap-buyer"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">주문금액</span><strong id="sap-amount"></strong></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--gray)">취소상태</span><span id="sap-cancel"></span></div>
+        </div>
+        <div id="starionActionBody" style="display:none"></div>
+        <div class="success-msg" id="starionAction-success"></div>
+        <div class="error-msg" id="starionAction-error"></div>
+      </div>
+
+      <div class="form-card" style="flex:1;min-width:300px">
+        <h3>📌 스타리온 취소 규칙</h3>
+        <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>설치 전 취소</strong><br>완료여부를 주문취소로 변경합니다.<br>설치 전이므로 매입마감에는 영향이 없습니다.</div>
+        <div class="note-box"><strong>설치 후 취소</strong><br>스타리온이 직접 회수하며 우리 재고로 편입하지 않습니다.<br>취소확정일과 실제 차감금액을 기록하고 해당 월 매입에서 차감합니다.</div>
+      </div>
+    </div>
+    <div class="card-hint" style="margin-top:0">→ 취소 처리는 사방넷 주문번호를 조회한 뒤 한 번 더 확인하여 처리합니다.</div>
   </div>
 </div>
 </div>
@@ -1805,38 +1882,294 @@ async function executeWinseiAction(action){
   }
 }
 
+// ── 스타리온 서브뷰: 설치완료 / 취소 / 1차 매입마감 ──
+let starionActionTarget=null;
+let starionCloseDetailsOpen=false;
+
+function starionValue_(r,key){ return r && r[key] !== undefined && r[key] !== null ? r[key] : ''; }
+
+// 설치 이력: 실제 설치완료가 한 번이라도 기록된 건
+// 월 매입마감의 양수 행은 설치 이력을 보존해야 하므로 이 기준을 사용한다.
+function starionInstalledHistory_(r){
+  return String(starionValue_(r,'설치완료여부')).trim()==='Y';
+}
+
+// 현재 유효 설치완료: 설치완료 후 취소된 건은 제외
+// 시트의 설치완료여부=Y는 이력으로 남고, 현황 카드만 현재 상태 기준으로 표시한다.
+function starionActiveInstalled_(r){
+  return starionInstalledHistory_(r) && starionCancelStatus_(r)!=='설치후취소';
+}
+
+function starionCancelStatus_(r){ return String(starionValue_(r,'취소상태')).trim(); }
+function isStarionInstallPending_(r){
+  return String(starionValue_(r,'완료여부')).trim()==='발주완료'
+    && !starionInstalledHistory_(r)
+    && starionCancelStatus_(r)!=='설치전취소';
+}
+
+function showStarionTab(tab,btn){
+  document.querySelectorAll('[data-starion-tab]').forEach(function(el){
+    el.classList.toggle('active',el.getAttribute('data-starion-tab')===tab);
+  });
+  document.getElementById('starionTab-orders').classList.toggle('active',tab==='orders');
+  document.getElementById('starionTab-actions').classList.toggle('active',tab==='actions');
+}
+
+function toggleStarionCloseDetails(){
+  starionCloseDetailsOpen=!starionCloseDetailsOpen;
+  const panel=document.getElementById('starionCloseDetailsPanel');
+  if(panel) panel.style.display=starionCloseDetailsOpen?'block':'none';
+  const guide=starionCloseDetailsOpen?'▲ 접기':'클릭하여 내역 보기';
+  setText('st-closecnt-desc',guide);
+  setText('st-closeamt-desc',guide);
+}
+
+function filterStarionInstall(mode){
+  document.getElementById('sf-status').value=mode==='완료'?'설치완료':'설치미완료';
+  renderStarion();
+}
+
+function starionRowMatchesStatus_(r,status){
+  const complete=String(starionValue_(r,'완료여부')).trim();
+  const cancel=starionCancelStatus_(r);
+  if(!status) return true;
+  if(status==='설치미완료') return isStarionInstallPending_(r);
+  if(status==='설치완료') return starionActiveInstalled_(r);
+  if(status==='설치전취소') return cancel==='설치전취소';
+  if(status==='설치후취소') return cancel==='설치후취소';
+  return complete===status;
+}
+
 function renderStarion(){
   const status=document.getElementById('sf-status').value;
   const from=document.getElementById('sf-from').value;
   const to=document.getElementById('sf-to').value;
-  const rows=allStarion.filter(r=>{if(status&&r['완료여부']!==status)return false;const d=fmtD(r['접수일']);if(from&&d<from)return false;if(to&&d>to)return false;return true;});
-  setText('st-happy',allStarion.filter(r=>r['완료여부']==='해피콜대기').length);
-  setText('st-wait',allStarion.filter(r=>r['완료여부']==='발주대기').length);
-  setText('st-done',allStarion.filter(r=>r['완료여부']==='발주완료').length);
-  setText('st-total',allStarion.length);
+  const ym=currentYm_();
 
-  // 이번달 발주현황 (캐리어와 동일한 정의: 접수일이 이번달 + 완료여부=발주완료)
-  const stNow = new Date();
-  const stYm = stNow.getFullYear()+'-'+String(stNow.getMonth()+1).padStart(2,'0');
-  const stMonthRows = allStarion.filter(r=>r['완료여부']==='발주완료' && fmtD(r['접수일']).slice(0,7)===stYm);
-  setText('st-monthcnt', stMonthRows.length);
-  const stMonthAmt = stMonthRows.reduce((s,r)=>s+(parseFloat(r['합계_VAT포함'])||0),0);
-  setText('st-monthamt', stMonthAmt?wfmt(stMonthAmt):'—');
+  const rows=allStarion.filter(function(r){
+    if(!starionRowMatchesStatus_(r,status)) return false;
+    const d=fmtD(starionValue_(r,'접수일'));
+    if(from&&d<from) return false;
+    if(to&&d>to) return false;
+    return true;
+  });
+
+  const closeRows=allStarion.filter(function(r){
+    return starionInstalledHistory_(r) && monthOf_(starionValue_(r,'설치완료일'))===ym;
+  });
+  const cancelRows=allStarion.filter(function(r){
+    return starionCancelStatus_(r)==='설치후취소' && monthOf_(starionValue_(r,'취소확정일'))===ym;
+  });
+  const closeAmt=closeRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'합계_VAT포함'));},0);
+  const cancelDeduct=cancelRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'취소차감금액_VAT포함'));},0);
+
+  setText('st-happy',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='해피콜대기';}).length);
+  setText('st-wait',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='발주대기';}).length);
+  setText('st-done',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='발주완료';}).length);
+  setText('st-installpending',allStarion.filter(isStarionInstallPending_).length);
+  setText('st-installed',allStarion.filter(starionActiveInstalled_).length);
+  setText('st-total',allStarion.length);
+  setText('st-closecnt',closeRows.length);
+  setText('st-closeamt',closeAmt?wfmt(closeAmt):'—');
+  setText('st-canceldeduct',cancelDeduct?'-'+wfmt(cancelDeduct):'—');
+  setText('st-netamt',(closeAmt-cancelDeduct)?wfmt(closeAmt-cancelDeduct):'—');
+
   const tbody=document.getElementById('starionBody');
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">조회 결과 없음</td></tr>';return;}
-  tbody.innerHTML=rows.map(r=>`<tr><td>${fmtD(r['접수일'])}</td><td><span class="${bdg(r['완료여부'])}">${r['완료여부']||''}</span></td><td>${r['점포명']||''}</td><td>${r['고객명']||''}</td><td>${r['모델코드']||''}</td><td>${r['수량']||1}</td><td>${r['합계_VAT포함']?wfmt(r['합계_VAT포함']):'—'}</td><td>${r['사방넷주문번호']||''}</td></tr>`).join('');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="11" class="empty">조회 결과 없음</td></tr>';
+  }else{
+    tbody.innerHTML=rows.map(function(r){
+      const complete=String(starionValue_(r,'완료여부')).trim();
+      const installed=starionInstalledHistory_(r);
+      const installDate=fmtD(starionValue_(r,'설치완료일'));
+      const cancel=starionCancelStatus_(r);
+      const no=String(starionValue_(r,'사방넷주문번호'));
+      const installCell=(complete==='발주완료' && !installed && cancel!=='설치전취소')
+        ? '<div class="install-inline"><input type="date" id="stinstall-'+no+'" value="'+fmt(new Date())+'"><button onclick="saveStarionInstallation(&quot;'+no+'&quot;)">완료</button></div>'
+        : (installed?'<span class="badge badge-done">설치완료</span>':'—');
+      const cancelDisplay=cancel?'<span class="badge badge-cancel">'+cancel+'</span>':'—';
+      return '<tr>'
+        + '<td>'+fmtD(starionValue_(r,'접수일'))+'</td>'
+        + '<td><span class="'+bdg(complete)+'">'+(complete||'—')+'</span></td>'
+        + '<td>'+String(starionValue_(r,'점포명')||'')+'</td>'
+        + '<td>'+String(starionValue_(r,'고객명')||'')+'</td>'
+        + '<td>'+String(starionValue_(r,'모델코드')||'')+'</td>'
+        + '<td>'+String(starionValue_(r,'수량')||1)+'</td>'
+        + '<td>'+ (money_(starionValue_(r,'합계_VAT포함'))?wfmt(money_(starionValue_(r,'합계_VAT포함'))):'—') +'</td>'
+        + '<td>'+no+'</td>'
+        + '<td>'+installCell+'</td>'
+        + '<td>'+ (installDate||'—') +'</td>'
+        + '<td>'+cancelDisplay+'</td>'
+        + '</tr>';
+    }).join('');
+  }
+  renderStarionCloseDetails();
 }
-function resetStarionFilter(){document.getElementById('sf-status').value='';const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);setDR('sf-from','sf-to',from,to);renderStarion();}
-function filterStarionThisMonth(){
-  const now=new Date();
-  const from=new Date(now.getFullYear(),now.getMonth(),1);
-  const to=new Date(now.getFullYear(),now.getMonth()+1,0);
+
+function renderStarionCloseDetails(){
+  const ym=currentYm_();
+  const lines=[];
+  allStarion.forEach(function(r){
+    const installDate=fmtD(starionValue_(r,'설치완료일'));
+    if(starionInstalledHistory_(r) && installDate && monthOf_(installDate)===ym){
+      lines.push({date:installDate,type:'설치완료마감',no:String(starionValue_(r,'사방넷주문번호')),buyer:starionValue_(r,'고객명'),model:starionValue_(r,'모델코드'),amount:money_(starionValue_(r,'합계_VAT포함'))});
+    }
+    const cancelDate=fmtD(starionValue_(r,'취소확정일'));
+    if(starionCancelStatus_(r)==='설치후취소' && cancelDate && monthOf_(cancelDate)===ym){
+      lines.push({date:cancelDate,type:'스타리온취소',no:String(starionValue_(r,'사방넷주문번호')),buyer:starionValue_(r,'고객명'),model:starionValue_(r,'모델코드'),amount:-money_(starionValue_(r,'취소차감금액_VAT포함'))});
+    }
+  });
+  lines.sort(function(a,b){return a.date===b.date?a.type.localeCompare(b.type):a.date.localeCompare(b.date);});
+  const tbody=document.getElementById('starionCloseBody');
+  if(!lines.length){tbody.innerHTML='<tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr>';return;}
+  tbody.innerHTML=lines.map(function(line){
+    const isCancel=line.amount<0;
+    return '<tr><td>'+line.date+'</td>'
+      + '<td>'+(isCancel?'<span class="badge badge-cancel">스타리온취소</span>':'<span class="badge badge-done">설치완료마감</span>')+'</td>'
+      + '<td>'+line.no+'</td><td>'+String(line.buyer||'')+'</td><td>'+String(line.model||'')+'</td>'
+      + '<td style="font-weight:700;'+(isCancel?'color:var(--red)':'color:var(--dark)')+'">'+(isCancel?'-':'')+wfmt(Math.abs(line.amount))+'</td></tr>';
+  }).join('');
+}
+
+async function saveStarionInstallation(saBangNo){
+  const input=document.getElementById('stinstall-'+saBangNo);
+  const installDate=(input?.value||'').trim();
+  if(!installDate){alert('설치완료일을 입력하세요.');return;}
+  if(input) input.disabled=true;
+  try{
+    await apiCall({action:'confirmStarionInstallation',saBangNo:saBangNo,installDate:installDate});
+    const i=allStarion.findIndex(function(r){return String(starionValue_(r,'사방넷주문번호'))===String(saBangNo);});
+    if(i>=0){allStarion[i]['설치완료여부']='Y';allStarion[i]['설치완료일']=installDate;}
+    renderStarion();
+  }catch(e){
+    if(input) input.disabled=false;
+    alert('설치완료 저장 오류: '+e.message);
+  }
+}
+
+function resetStarionFilter(){
+  document.getElementById('sf-status').value='';
+  const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);
   setDR('sf-from','sf-to',from,to);
-  document.getElementById('sf-status').value='발주완료';
   renderStarion();
 }
 
+async function searchStarionAction(){
+  const no=document.getElementById('starionActionNo').value.trim();
+  if(!no){showMsgBox('starionAction-error','사방넷 주문번호를 입력하세요.');return;}
+  try{
+    const d=await apiCall({action:'getStarionOrders'});
+    allStarion=Array.isArray(d)?d:[];
+    const found=allStarion.find(function(r){return String(starionValue_(r,'사방넷주문번호'))===no;});
+    if(!found){showMsgBox('starionAction-error','스타리온 주문번호를 찾을 수 없습니다.');return;}
+    starionActionTarget=found;
+    setText('sap-status',starionValue_(found,'완료여부')||'—');
+    setText('sap-installed',starionInstalledHistory_(found)?'Y':'미완료');
+    setText('sap-install-date',fmtD(starionValue_(found,'설치완료일'))||'—');
+    setText('sap-model',starionValue_(found,'모델코드')||'—');
+    setText('sap-buyer',starionValue_(found,'고객명')||'—');
+    setText('sap-amount',wfmt(money_(starionValue_(found,'합계_VAT포함'))));
+    setText('sap-cancel',starionCancelStatus_(found)||'없음');
+    document.getElementById('starionActionPreview').style.display='block';
+    renderStarionActionBody();
+  }catch(e){showMsgBox('starionAction-error','조회 오류: '+e.message);}
+}
+
+function renderStarionActionBody(){
+  const box=document.getElementById('starionActionBody');
+  if(!starionActionTarget){box.style.display='none';return;}
+  box.style.display='block';
+  const r=starionActionTarget;
+  const complete=String(starionValue_(r,'완료여부')).trim();
+  const installed=starionInstalledHistory_(r);
+  const cancel=starionCancelStatus_(r);
+  const amount=money_(starionValue_(r,'합계_VAT포함'));
+  if(complete==='주문취소' || cancel){
+    box.innerHTML='<div class="note-box">이미 취소 처리된 건입니다. 현재 상태: '+(cancel||complete)+'</div>';
+    return;
+  }
+  if(!installed){
+    box.innerHTML='<div class="note-box" style="background:#E9F7EF;border-color:#27AE60">설치 전 취소입니다. 완료여부를 <b>주문취소</b>로 변경하며, 매입마감에는 영향이 없습니다.</div>'
+      + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:12px 0"><input type="checkbox" id="starionActionChk" onchange="document.getElementById(\'starionActionBtn\').disabled=!this.checked"> 설치 전 취소가 맞습니다</label>'
+      + '<button class="submit-btn" id="starionActionBtn" onclick="executeStarionCancel()" disabled style="background:var(--red)">스타리온 설치 전 취소 처리</button>';
+    return;
+  }
+  box.innerHTML='<div class="note-box">설치 후 취소입니다. 스타리온이 직접 회수하며 우리 재고로 편입하지 않습니다. 취소확정일의 매입에서 차감합니다.</div>'
+    + '<div class="form-row"><div><label>취소확정일 <span>*</span></label><input type="date" id="starionCancelDate" value="'+fmt(new Date())+'"></div><div><label>취소 차감금액(VAT+) <span>*</span></label><input type="text" id="starionCancelAmount" value="'+amount+'" inputmode="numeric"></div></div>'
+    + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:12px 0"><input type="checkbox" id="starionActionChk" onchange="document.getElementById(\'starionActionBtn\').disabled=!this.checked"> 스타리온 취소와 차감금액을 확인했습니다</label>'
+    + '<button class="submit-btn" id="starionActionBtn" onclick="executeStarionCancel()" disabled style="background:var(--red)">스타리온 취소 차감 처리</button>';
+}
+
+async function executeStarionCancel(){
+  if(!starionActionTarget)return;
+  const no=String(starionValue_(starionActionTarget,'사방넷주문번호'));
+  const installed=starionInstalledHistory_(starionActionTarget);
+  const btn=document.getElementById('starionActionBtn');
+  if(btn){btn.disabled=true;btn.textContent='처리 중...';}
+  const params={action:'cancelStarionOrder',saBangNo:no,cancelDate:installed?(document.getElementById('starionCancelDate')?.value||''):fmt(new Date())};
+  if(installed) params.deductionAmount=document.getElementById('starionCancelAmount')?.value||'';
+  try{
+    await apiCall(params);
+    showMsgBox('starionAction-success','처리가 저장되었습니다.',true);
+    const d=await apiCall({action:'getStarionOrders'});
+    allStarion=Array.isArray(d)?d:[];
+    renderStarion();
+    const refreshed=allStarion.find(function(r){return String(starionValue_(r,'사방넷주문번호'))===no;});
+    if(refreshed){
+      starionActionTarget=refreshed;
+      setText('sap-status',starionValue_(refreshed,'완료여부')||'—');
+      setText('sap-installed',starionInstalledHistory_(refreshed)?'Y':'미완료');
+      setText('sap-install-date',fmtD(starionValue_(refreshed,'설치완료일'))||'—');
+      setText('sap-model',starionValue_(refreshed,'모델코드')||'—');
+      setText('sap-buyer',starionValue_(refreshed,'고객명')||'—');
+      setText('sap-amount',wfmt(money_(starionValue_(refreshed,'합계_VAT포함'))));
+      setText('sap-cancel',starionCancelStatus_(refreshed)||'없음');
+      renderStarionActionBody();
+    }
+  }catch(e){
+    showMsgBox('starionAction-error','처리 오류: '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='다시 시도';}
+  }
+}
+
 // ── 뷰 전환 ──
+// 스타리온은 윈세이와 동일하게, 서브뷰에 다시 들어올 때마다
+// 발주현황 탭 / 마감내역 접힘 / 취소조회 초기화 상태로 시작한다.
+function resetStarionSubview_(){
+  const orderBtn=document.querySelector('[data-starion-tab="orders"]');
+  showStarionTab('orders',orderBtn);
+
+  // 이번달 1차 마감 내역은 항상 접힌 상태로 초기화
+  starionCloseDetailsOpen=false;
+  const closePanel=document.getElementById('starionCloseDetailsPanel');
+  if(closePanel) closePanel.style.display='none';
+  setText('st-closecnt-desc','클릭하여 내역 보기');
+  setText('st-closeamt-desc','클릭하여 내역 보기');
+
+  // 취소처리 탭의 이전 조회·처리 화면은 다음 진입 시 남기지 않는다.
+  starionActionTarget=null;
+  const actionNo=document.getElementById('starionActionNo');
+  const actionPreview=document.getElementById('starionActionPreview');
+  const actionBody=document.getElementById('starionActionBody');
+  const successMsg=document.getElementById('starionAction-success');
+  const errorMsg=document.getElementById('starionAction-error');
+
+  if(actionNo) actionNo.value='';
+  if(actionPreview) actionPreview.style.display='none';
+  if(actionBody){
+    actionBody.style.display='none';
+    actionBody.innerHTML='';
+  }
+  if(successMsg){
+    successMsg.style.display='none';
+    successMsg.textContent='';
+  }
+  if(errorMsg){
+    errorMsg.style.display='none';
+    errorMsg.textContent='';
+  }
+}
+
 function showVendor(v){
   document.getElementById('mainView').style.display='none';
   document.getElementById('winseiView').classList.remove('active');
@@ -1853,7 +2186,10 @@ function showVendor(v){
     setText('w-closeamt-desc','클릭하여 내역 보기');
     apiCall({action:'getWinseiOrders'}).then(d=>{allWinsei=Array.isArray(d)?d:[];renderWinsei();}).catch(()=>{});
   }
-  if(v==='starion'){apiCall({action:'getStarionOrders'}).then(d=>{allStarion=Array.isArray(d)?d:[];renderStarion();}).catch(()=>{});}
+  if(v==='starion'){
+    resetStarionSubview_();
+    apiCall({action:'getStarionOrders'}).then(d=>{allStarion=Array.isArray(d)?d:[];renderStarion();}).catch(()=>{});
+  }
 }
 function showMain(){
   document.getElementById('mainView').style.display='';
