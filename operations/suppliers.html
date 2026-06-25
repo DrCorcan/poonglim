@@ -738,7 +738,7 @@
     <!-- 기본 접힘: 설치완료건수/마감매입 카드 클릭으로 열고 닫음 -->
     <div id="starionCloseDetailsPanel" style="display:none">
       <div class="table-wrap" style="margin-top:12px">
-        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">주문일과 설치완료일을 함께 표시 · 설치후취소는 취소확정일 기준으로 화면에서만 음수 행 표시</span></div>
+        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">주문일 → 설치완료일 순 정렬 · 설치후취소는 취소확정일 기준으로 화면에서만 음수 행 표시</span></div>
         <table><thead><tr><th>주문일</th><th>설치완료일</th><th>취소확정일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
         <tbody id="starionCloseBody"><tr><td colspan="8" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
       </div>
@@ -2091,9 +2091,22 @@ function renderStarionCloseDetails(){
     }
   });
 
-  // 실제 매입·차감 기준일 순서로 정렬한다.
+  // 마감 대상은 주문일 오래된 순으로 먼저 보여준다.
+  // 같은 주문일이면 설치완료일 순으로 배치해 전월 주문의 당월 설치 이월 건을 쉽게 확인한다.
   lines.sort(function(a,b){
-    return a.basisDate===b.basisDate ? a.type.localeCompare(b.type) : a.basisDate.localeCompare(b.basisDate);
+    const aOrder=a.orderDate || '9999-12-31';
+    const bOrder=b.orderDate || '9999-12-31';
+    if(aOrder!==bOrder) return aOrder.localeCompare(bOrder);
+
+    const aInstall=a.installDate || '9999-12-31';
+    const bInstall=b.installDate || '9999-12-31';
+    if(aInstall!==bInstall) return aInstall.localeCompare(bInstall);
+
+    const aCancel=a.cancelDate || '9999-12-31';
+    const bCancel=b.cancelDate || '9999-12-31';
+    if(aCancel!==bCancel) return aCancel.localeCompare(bCancel);
+
+    return a.no.localeCompare(b.no);
   });
 
   const tbody=document.getElementById('starionCloseBody');
