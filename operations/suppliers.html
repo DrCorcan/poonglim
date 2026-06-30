@@ -309,7 +309,7 @@
         <div class="card" onclick="goToOrdersThisMonth()">
           <div class="card-label">💰 이번달<br>발주금액</div>
           <div class="card-num dark" id="s-amt" style="font-size:20px;padding-top:6px">—</div>
-          <div class="card-desc">VAT 포함</div>
+          <div class="card-desc">VAT 포함 · 캐리어 발주서 기준(설치비제외)</div>
         </div>
         <div class="card" onclick="goToOrders('전체')">
           <div class="card-label">📊 전체<br>주문건수</div>
@@ -318,6 +318,30 @@
         </div>
       </div>
       <div class="card-hint">→ 카드 클릭 시 이번달 발주완료 건 조회</div>
+
+      <!-- 3-2단: 이번달 매입정산 마감금액 (설치비포함, 와이프 마감 대조용) -->
+      <div class="section-title dark" style="margin-top:16px">🧾 이번달 매입정산 마감금액 — 설치비포함, 캐리어 마감 대조용</div>
+      <div class="cards" style="grid-template-columns:repeat(2,1fr)">
+        <div class="card" onclick="goToOrdersThisMonth()">
+          <div class="card-label">📦 이번달<br>마감건수</div>
+          <div class="card-num blue" id="s-close-cnt">—</div>
+          <div class="card-desc">발주완료 + 기존재고 · 접수일 기준</div>
+        </div>
+        <div class="card" onclick="goToOrdersThisMonth()" style="text-align:left;padding:14px 16px">
+          <div class="card-label" style="justify-content:flex-start">💰 이번달 마감금액 — 설치 건은 설치비 포함</div>
+          <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:4px">
+            <div>
+              <div style="font-size:10px;color:var(--gray)">VAT별도</div>
+              <div class="card-num dark" id="s-close-net" style="font-size:18px;margin-bottom:0">—</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--gray)">VAT포함</div>
+              <div class="card-num dark" id="s-close-gross" style="font-size:18px;margin-bottom:0">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-hint">→ 위 "이번달 발주금액"은 캐리어에 보낸 발주서 기준(설치비 제외)이고, 이 카드는 설치 건의 설치비까지 더해진 실제 매입정산 마감 기준입니다. 캐리어와 마감 대조할 때는 이 카드를 사용하세요.</div>
 
       <!-- 4단: 취소 및 CS 내역 -->
       <div class="section-title dark" style="margin-top:16px">📋 취소 및 CS 내역</div>
@@ -867,6 +891,10 @@ function setDR(fId,tId,from,to){document.getElementById(fId).value=fmt(from);doc
 function showMsgBox(id,msg,isSuccess){const el=document.getElementById(id);if(!el)return;el.textContent=(isSuccess?'✅ ':'❌ ')+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
 function bdg(s){const m={'신규':'badge-new','발주중':'badge-jungoo','발주완료':'badge-done','기존재고':'badge-stock','주문취소':'badge-cancel','취소재고':'badge-cancel','해피콜대기':'badge-happy','발주대기':'badge-wait'};return'badge '+(m[s]||'');}
 function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleString();}
+// [v9신규 2026-06-30] 윈세이/스타리온 마감 섹션에서 쓰던 숫자 파싱을 캐리어 마감금액 카드에도 동일하게 사용
+function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
+function currentYm_(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function monthOf_(v){ return fmtD(v).slice(0,7); }
 
 async function apiCall(params){
   const r=await fetch(API+"?"+new URLSearchParams(params));
@@ -878,6 +906,25 @@ async function apiCall(params){
 function updateHeaderDate(){
   const now=new Date();
   document.getElementById('headerDate').textContent=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+}
+
+// [v9신규 2026-06-30] 이번달 매입정산 마감금액(설치비포함) 카드 — 화면에서 직접 계산.
+// 서버 Apps Script(getCarrierSummary)는 건드리지 않고, 이미 받아온 allOrders에 들어있는
+// 마감단가_VAT제외/마감금액_VAT제외/마감금액_VAT포함(매입처발주.py v1.9~ 신규 컬럼)을
+// 화면에서 그대로 합산한다. 접수일이 이번달이고, 완료여부가 발주완료 또는 기존재고인
+// 건만 포함한다(주문취소/취소재고/해피콜대기/신규/발주중은 아직 확정 매입이 아니므로 제외).
+function renderCarrierCloseAmt(){
+  const ym = currentYm_();
+  const target = allOrders.filter(r=>{
+    const 완 = (r['완료여부']||'').trim();
+    if(완!=='발주완료' && 완!=='기존재고') return false;
+    return monthOf_(r['접수일'])===ym;
+  });
+  const net   = target.reduce((sum,r)=>sum+money_(r['마감금액_VAT제외']),0);
+  const gross = target.reduce((sum,r)=>sum+money_(r['마감금액_VAT포함']),0);
+  setText('s-close-cnt',   target.length);
+  setText('s-close-net',   net  ?wfmt(net)  :'—');
+  setText('s-close-gross', gross?wfmt(gross):'—');
 }
 
 // ── 전체 로딩 ──
@@ -922,6 +969,8 @@ async function loadAll(){
     allPrices  = Array.isArray(prices)  ? prices  : [];
     allWinsei  = Array.isArray(winsei)  ? winsei  : [];
     allStarion = Array.isArray(starion) ? starion : [];
+
+    renderCarrierCloseAmt();
 
     // 윈세이/스타리온 기본 날짜: 최근 3개월
     const to=new Date(),from3=new Date();from3.setMonth(from3.getMonth()-3);
@@ -979,6 +1028,7 @@ async function refreshOrders(){
     setText('s-done',summary.done??0);setText('s-stock',summary.existingStock??0);
     setText('s-ordercancelled',summary.orderCancelled??0);
     setText('s-stockcancelled',summary.stockCancelled??0);setText('s-cs',summary.csCount??0);setText('s-total',summary.total??0);
+    renderCarrierCloseAmt();
     renderOrders();
   }catch(e){}
 }
@@ -1186,6 +1236,7 @@ function renderOrders(){
           <div style="grid-column:span 3"><span style="color:var(--gray)">주소: </span>${r['실구매자주소']||'—'}</div>
         </div>
         ${r['물류메시지']?`<div><span style="color:var(--gray)">물류메시지: </span>${r['물류메시지']}</div>`:''}
+        ${r['배송구분']==='설치점' && r['마감금액_VAT포함']?`<div style="margin-top:6px"><span style="color:var(--gray)">매입정산 마감금액(설치비포함, VAT+): </span><strong>${wfmt(r['마감금액_VAT포함'])}</strong></div>`:''}
         ${isCS&&csContent?`<div style="margin-top:6px;padding:6px 10px;background:#FEF9E7;border-radius:4px"><span style="color:var(--orange);font-weight:700">CS내용: </span>${csContent}</div>`:''}
       </div>
     </div>`;
@@ -1296,6 +1347,7 @@ async function saveOrderNo(sno){
       renderNoOrder();
       const remaining=allOrders.filter(r=>{const 완=(r['완료여부']||'').trim();return(완==='발주중'||완==='기존재고')&&!String(r['오더번호']||'').trim();}).length;
       setText('s-noorder',remaining);setText('s-noorder2',remaining);
+      renderCarrierCloseAmt();
     },1500);
   }catch(e){btn.disabled=false;btn.textContent='저장';msg.style.display='block';msg.style.color='var(--red)';msg.textContent='❌ 오류: '+e.message;}
 }
@@ -1508,12 +1560,6 @@ function winseiValue_(r, key){ return r && r[key] !== undefined && r[key] !== nu
 function isWinseiNoTracking_(r){
   return (winseiValue_(r,'완료여부')||'').trim()==='발주완료' && !String(winseiValue_(r,'송장번호')).trim();
 }
-function currentYm_(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-}
-function monthOf_(v){ return fmtD(v).slice(0,7); }
-function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
 
 function renderWinsei(){
   const status=document.getElementById('wf-status').value;
