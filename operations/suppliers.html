@@ -298,23 +298,7 @@
       </div>
       <div class="card-hint">→ 카드 클릭 시 오늘 접수 건 필터 조회</div>
 
-      <!-- 3단: 이번달 발주 현황 -->
-      <div class="section-title blue" style="margin-top:16px">💰 이번달 발주 현황</div>
-      <div class="cards" style="grid-template-columns:repeat(2,1fr)">
-        <div class="card" onclick="goToOrdersThisMonth()">
-          <div class="card-label">📅 이번달<br>발주건수</div>
-          <div class="card-num blue" id="s-monthcnt">—</div>
-          <div class="card-desc">발주완료 기준</div>
-        </div>
-        <div class="card" onclick="goToOrders('전체')">
-          <div class="card-label">📊 전체<br>주문건수</div>
-          <div class="card-num dark" id="s-total">—</div>
-          <div class="card-desc">취소 포함 전체</div>
-        </div>
-      </div>
-      <div class="card-hint">→ 카드 클릭 시 이번달 발주완료 건 조회 · 금액은 아래 "매입정산 마감금액" 카드를 확인하세요</div>
-
-      <!-- 3-2단: 이번달 매입정산 마감금액 (설치비포함, 와이프 마감 대조용) -->
+      <!-- 3단: 이번달 매입정산 마감금액 (설치비포함, 와이프 마감 대조용) — 가장 중요한 정보라 먼저 노출 -->
       <div class="section-title dark" style="margin-top:16px">🧾 이번달 매입정산 마감금액 — 설치비포함, 캐리어 마감 대조용</div>
       <div class="cards" style="grid-template-columns:repeat(2,1fr)">
         <div class="card" onclick="goToOrdersThisMonth()">
@@ -337,6 +321,22 @@
         </div>
       </div>
       <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 기존재고 사용 건은 과거에 매입할 때 이미 정산이 끝난 건이라 이번달 마감에서 제외됩니다.</div>
+
+      <!-- 3-2단: 이번달 발주 현황 (건수만 참고용) -->
+      <div class="section-title blue" style="margin-top:16px">📅 이번달 발주 현황</div>
+      <div class="cards" style="grid-template-columns:repeat(2,1fr)">
+        <div class="card" onclick="goToOrdersThisMonth()">
+          <div class="card-label">📅 이번달<br>발주건수</div>
+          <div class="card-num blue" id="s-monthcnt">—</div>
+          <div class="card-desc">발주완료 기준</div>
+        </div>
+        <div class="card" onclick="goToOrders('전체')">
+          <div class="card-label">📊 전체<br>주문건수</div>
+          <div class="card-num dark" id="s-total">—</div>
+          <div class="card-desc">취소 포함 전체</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 카드 클릭 시 이번달 발주완료 건 조회</div>
 
       <!-- 4단: 취소 및 CS 내역 -->
       <div class="section-title dark" style="margin-top:16px">📋 취소 및 CS 내역</div>
@@ -1206,10 +1206,13 @@ function renderOrders(){
   </div><div style="padding:0 0 12px">`+
   rows.map(r=>{
     const isCS=r['CS여부']==='Y';
-    // [2026-06-30 수정] 목록 금액을 발주금액(설치비제외)에서 마감금액(매입정산 기준)으로 변경
-    // — 발주서용 금액만 보이면 매입정산 단가와 혼동된다는 지적 반영. 마감금액이 없는 행
-    // (백필 전이거나 단가 매칭 실패한 구형 모델 등)은 참고용으로 발주금액을 대신 보여준다.
-    const amt=r['마감금액_VAT포함']?wfmt(r['마감금액_VAT포함']):(r['발주금액_VAT포함']?wfmt(r['발주금액_VAT포함'])+' (발주서기준)':'—');
+    // [2026-06-30 2차 수정] 목록 금액을 VAT포함 한 줄 표시에서 VAT제외/VAT포함 병기로 변경.
+    // 마감금액(매입정산 기준)이 없는 행(백필 전이거나 단가 매칭 실패한 구형 모델 등)은
+    // 참고용으로 발주서 기준 VAT포함 금액만 표시.
+    const amtHtml = r['마감금액_VAT포함']
+      ? `<span style="font-size:11px;color:var(--gray)">VAT-</span> ${wfmt(r['마감금액_VAT제외'])}
+         <span style="font-size:11px;color:var(--gray);margin-left:4px">VAT+</span> ${wfmt(r['마감금액_VAT포함'])}`
+      : (r['발주금액_VAT포함'] ? `${wfmt(r['발주금액_VAT포함'])} (발주서기준)` : '—');
     const sno=r['사방넷주문번호']||'';
     const csContent=r['CS내용']||'';
     const detailId='od-'+sno;
@@ -1220,7 +1223,7 @@ function renderOrders(){
         <span class="${bdg(r['완료여부'])}">${r['완료여부']||'—'}</span>
         <span style="font-weight:600;min-width:130px;font-size:12px;flex-shrink:0">${r['모델코드']||''}</span>
         <span style="color:var(--dark);flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</span>
-        <span style="font-size:12px;color:var(--dark);flex-shrink:0">${amt}</span>
+        <span style="font-size:12px;color:var(--dark);flex-shrink:0;white-space:nowrap">${amtHtml}</span>
         ${isCS?`<span style="color:var(--orange);font-weight:700;font-size:11px;flex-shrink:0">●CS</span>`:''}
         <button onclick="event.stopPropagation();openCS('${sno}','${r['CS여부']||''}',${JSON.stringify(csContent)})" style="background:var(--blue);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">CS</button>
         <span style="color:var(--gray);font-size:11px;flex-shrink:0">▼</span>
