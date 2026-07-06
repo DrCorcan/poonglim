@@ -171,6 +171,10 @@
   .search-bar { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 11px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .search-bar span { font-size: 13px; font-weight: 600; color: var(--dark); }
 
+  /* 발주현황 조회 결과 합계 */
+  .query-summary { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; margin: 0 0 12px; font-size: 13px; color: var(--dark); }
+  .query-summary strong { color: var(--navy); }
+
   /* 차트 */
   .chart-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 12px; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; max-height: 100px; overflow-y: auto; }
@@ -406,6 +410,7 @@
       <button onclick="renderOrders()" style="background:var(--navy);color:white;border:none;padding:6px 16px;border-radius:6px;font-size:13px;cursor:pointer">조회</button>
       <button onclick="resetOrderFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">최근 3개월</button>
       <button onclick="clearOrderFilter()" style="background:#F0F0F0;color:#555;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer">전체 기간</button>
+      <button onclick="downloadCarrierOrdersCsv()" style="background:var(--green);color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
     </div>
     <div class="table-wrap">
       <div class="table-header">
@@ -653,7 +658,9 @@
         <option value="환입신청">환입신청</option>
         <option value="환입완료">환입완료</option>
       </select>
+      <button onclick="downloadWinseiOrdersCsv()" style="background:var(--green);color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
     </div>
+    <div class="query-summary" id="winseiResultSummary" aria-live="polite">조회결과 0건 · 수량 0개 · 합계(VAT+) ₩0</div>
     <div class="table-wrap">
       <table><thead><tr>
         <th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>송장번호</th><th>송장입력일</th><th>반품여부</th><th>환입상태</th>
@@ -781,7 +788,9 @@
         <option value="설치전취소">설치전취소</option>
         <option value="설치후취소">설치후취소</option>
       </select>
+      <button onclick="downloadStarionOrdersCsv()" style="background:var(--green);color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
     </div>
+    <div class="query-summary" id="starionResultSummary" aria-live="polite">조회결과 0건 · 수량 0개 · 합계(VAT+) ₩0</div>
     <div class="table-wrap">
       <table><thead><tr><th>접수일</th><th>완료여부</th><th>점포명</th><th>고객명</th><th>모델코드</th><th>수량</th><th>합계(VAT+)</th><th>사방넷주문번호</th><th>설치완료</th><th>설치완료일</th><th>취소상태</th></tr></thead>
       <tbody id="starionBody"><tr><td colspan="11" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
@@ -875,6 +884,7 @@
 const API = "https://script.google.com/macros/s/AKfycbx9ibo2XK7OF4F-eqpXqBCoVpRE8Tq3dqXEKwziIuO0VWh1sGUi1UYNtEf6qEQYD5J7Bw/exec";
 
 let allOrders=[], allStock=[], allPrices=[], allWinsei=[], allStarion=[];
+let currentCarrierRowsForExport=[], currentWinseiRowsForExport=[], currentStarionRowsForExport=[];
 let currentOrderFilter='전체', selectedModel='', cancelTarget=null;
 let selectedStockModel = null;
 
@@ -890,6 +900,78 @@ function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleStri
 function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
 function currentYm_(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthOf_(v){ return fmtD(v).slice(0,7); }
+function qty_(v){
+  // 표 출력의 `수량 || 1` 기준과 통일: 수량이 비어 있으면 1개로 계산한다.
+  const raw=String(v ?? '').trim();
+  if(!raw) return 1;
+  const n=parseFloat(raw.replace(/[^0-9.-]/g,''));
+  return Number.isFinite(n) ? n : 0;
+}
+function fmtQty_(v){
+  return Number.isInteger(v) ? v.toLocaleString() : v.toLocaleString(undefined,{maximumFractionDigits:3});
+}
+function updateQuerySummary_(id, rows, getQty, getAmount){
+  const quantity=rows.reduce((sum,r)=>sum+getQty(r),0);
+  const amount=rows.reduce((sum,r)=>sum+getAmount(r),0);
+  const el=document.getElementById(id);
+  if(el) el.innerHTML=`조회결과 <strong>${rows.length}</strong>건 · 수량 <strong>${fmtQty_(quantity)}</strong>개 · 합계(VAT+) <strong>${wfmt(amount)}</strong>`;
+}
+function csvEscape_(value){
+  return '"'+String(value ?? '').replace(/"/g,'""')+'"';
+}
+function downloadCsv_(filename, headers, rows){
+  const csv='\uFEFF'+[headers,...rows].map(row=>row.map(csvEscape_).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download=filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),0);
+}
+function downloadCarrierOrdersCsv(){
+  const rows=currentCarrierRowsForExport;
+  if(!rows.length){alert('다운로드할 조회 결과가 없습니다.');return;}
+  const csvRows=rows.map(r=>[
+    fmtD(r['접수일']),
+    r['완료여부']||'',
+    r['모델코드']||'',
+    r['실구매자명']||'',
+    r['채널']||'',
+    r['사방넷주문번호']||'',
+    qty_(r['수량']),
+    money_(r['마감금액_VAT제외']),
+    money_(r['마감금액_VAT포함'])
+  ]);
+  downloadCsv_(
+    '캐리어_발주현황_'+fmt(new Date())+'.csv',
+    ['접수일','완료여부','모델코드','실구매자','채널','사방넷주문번호','수량','마감금액(VAT-)','마감금액(VAT+)'],
+    csvRows
+  );
+}
+function downloadWinseiOrdersCsv(){
+  const rows=currentWinseiRowsForExport;
+  if(!rows.length){alert('다운로드할 조회 결과가 없습니다.');return;}
+  const csvRows=rows.map(r=>[
+    fmtD(winseiValue_(r,'접수일')),winseiValue_(r,'완료여부'),winseiValue_(r,'점포명'),winseiValue_(r,'고객명'),
+    winseiValue_(r,'모델코드'),winseiValue_(r,'수량'),money_(winseiValue_(r,'합계_VAT포함')),
+    winseiValue_(r,'사방넷주문번호'),winseiValue_(r,'송장번호'),fmtD(winseiValue_(r,'송장입력일')),
+    winseiValue_(r,'반품여부'),winseiValue_(r,'윈세이환입상태')
+  ]);
+  downloadCsv_('윈세이_발주현황_'+fmt(new Date())+'.csv',['접수일','완료여부','점포명','고객명','모델코드','수량','합계(VAT+)','사방넷주문번호','송장번호','송장입력일','반품여부','환입상태'],csvRows);
+}
+function downloadStarionOrdersCsv(){
+  const rows=currentStarionRowsForExport;
+  if(!rows.length){alert('다운로드할 조회 결과가 없습니다.');return;}
+  const csvRows=rows.map(r=>[
+    fmtD(starionValue_(r,'접수일')),starionValue_(r,'완료여부'),starionValue_(r,'점포명'),starionValue_(r,'고객명'),
+    starionValue_(r,'모델코드'),starionValue_(r,'수량'),money_(starionValue_(r,'합계_VAT포함')),
+    starionValue_(r,'사방넷주문번호'),starionInstalledHistory_(r)?'Y':'미완료',fmtD(starionValue_(r,'설치완료일')),starionCancelStatus_(r)
+  ]);
+  downloadCsv_('스타리온_발주현황_'+fmt(new Date())+'.csv',['접수일','완료여부','점포명','고객명','모델코드','수량','합계(VAT+)','사방넷주문번호','설치완료','설치완료일','취소상태'],csvRows);
+}
 
 async function apiCall(params){
   const r=await fetch(API+"?"+new URLSearchParams(params));
@@ -1197,6 +1279,7 @@ function renderOrders(){
     return r['완료여부']===f;
   });
 
+  currentCarrierRowsForExport=rows;
   const wrap=document.getElementById('order-list');
   if(!rows.length){wrap.innerHTML='<div class="empty">조회 결과 없음</div>';return;}
 
@@ -1632,6 +1715,9 @@ function renderWinsei(){
     if(to&&d>to)return false;
     return true;
   });
+
+  currentWinseiRowsForExport=rows;
+  updateQuerySummary_('winseiResultSummary',rows,r=>qty_(winseiValue_(r,'수량')),r=>money_(winseiValue_(r,'합계_VAT포함')));
 
   const tbody=document.getElementById('winseiBody');
   if(!rows.length){
@@ -2091,6 +2177,9 @@ function renderStarion(){
   setText('st-closeamt',closeAmt?wfmt(closeAmt):'—');
   setText('st-canceldeduct',cancelDeduct?'-'+wfmt(cancelDeduct):'—');
   setText('st-netamt',(closeAmt-cancelDeduct)?wfmt(closeAmt-cancelDeduct):'—');
+
+  currentStarionRowsForExport=rows;
+  updateQuerySummary_('starionResultSummary',rows,r=>qty_(starionValue_(r,'수량')),r=>money_(starionValue_(r,'합계_VAT포함')));
 
   const tbody=document.getElementById('starionBody');
   if(!rows.length){
