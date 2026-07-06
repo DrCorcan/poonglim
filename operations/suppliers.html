@@ -175,6 +175,14 @@
   .query-summary { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; margin: 0 0 12px; font-size: 13px; color: var(--dark); }
   .query-summary strong { color: var(--navy); }
 
+  /* 윈세이·스타리온 월별 매입마감 조회 */
+  .close-month-bar { background: white; border: 1px solid var(--border); border-top: none; padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .close-month-bar > span:first-child { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .close-month-bar input[type="month"] { width: 138px; padding: 6px 9px; font-size: 13px; }
+  .close-month-btn { background: #F0F4F8; color: var(--dark); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .close-month-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .close-month-note { font-size: 11px; color: var(--gray); margin-left: 4px; }
+
   /* 차트 */
   .chart-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 12px; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; max-height: 100px; overflow-y: auto; }
@@ -616,27 +624,34 @@
     </div>
     <div class="card-hint">→ 송장번호 입력은 기존처럼 마감 처리입니다. 반품·환입은 <b>❌ 취소·반품</b> 탭에서 처리합니다.</div>
 
-    <!-- 이번달 1차 매입마감 -->
-    <div class="section-title blue" style="margin-top:16px">💰 이번달 1차 매입마감 — 송장입력일 기준</div>
+    <!-- 월별 1차 매입마감: 접수일 조회와 별도로 송장입력일·환입완료일 기준월을 선택한다. -->
+    <div class="section-title blue" id="winseiCloseTitle" style="margin-top:16px">💰 이번달 1차 매입마감 — 송장입력일 기준</div>
+    <div class="close-month-bar" aria-label="윈세이 매입마감 기준월">
+      <span>📅 마감 기준월</span>
+      <button class="close-month-btn" onclick="shiftCloseMonth_('winseiCloseMonth',-1,'winsei')">◀ 이전달</button>
+      <input type="month" id="winseiCloseMonth" onchange="renderWinsei()" aria-label="윈세이 마감 기준월">
+      <button class="close-month-btn" onclick="shiftCloseMonth_('winseiCloseMonth',1,'winsei')">다음달 ▶</button>
+      <span class="close-month-note">선택월의 송장입력일·환입완료일 기준으로 집계</span>
+    </div>
     <div class="cards" style="grid-template-columns:repeat(4,1fr)">
       <div class="card winsei-close-toggle" onclick="toggleWinseiCloseDetails()">
-        <div class="card-label">📅 이번달<br>마감건수</div>
+        <div class="card-label">📅 <span data-close-month-label="winsei">이번달</span><br>마감건수</div>
         <div class="card-num blue" id="w-closecnt">—</div>
         <div class="card-desc" id="w-closecnt-desc">클릭하여 내역 보기</div>
       </div>
       <div class="card winsei-close-toggle" onclick="toggleWinseiCloseDetails()">
-        <div class="card-label">💰 이번달<br>마감매입</div>
+        <div class="card-label">💰 <span data-close-month-label="winsei">이번달</span><br>마감매입</div>
         <div class="card-num dark" id="w-closeamt" style="font-size:20px;padding-top:6px">—</div>
         <div class="card-desc" id="w-closeamt-desc">클릭하여 내역 보기</div>
       </div>
-      <div class="card"><div class="card-label">↩️ 이번달<br>환입차감</div><div class="card-num red" id="w-returndeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">환입완료일 기준</div></div>
-      <div class="card"><div class="card-label">✅ 이번달<br>순매입</div><div class="card-num green" id="w-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 환입차감</div></div>
+      <div class="card"><div class="card-label">↩️ <span data-close-month-label="winsei">이번달</span><br>환입차감</div><div class="card-num red" id="w-returndeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">환입완료일 기준</div></div>
+      <div class="card"><div class="card-label">✅ <span data-close-month-label="winsei">이번달</span><br>순매입</div><div class="card-num green" id="w-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 환입차감</div></div>
     </div>
 
     <!-- 기본 접힘: 마감건수/마감매입 카드 클릭으로 열고 닫음 -->
     <div id="winseiCloseDetailsPanel" style="display:none">
       <div class="table-wrap" style="margin-top:12px">
-        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">원장은 한 주문 한 행으로 유지 · 차감은 화면에서만 음수 행 표시</span></div>
+        <div class="table-header"><span id="winseiCloseDetailsTitle">이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">원장은 한 주문 한 행으로 유지 · 차감은 화면에서만 음수 행 표시</span></div>
         <table><thead><tr><th>기준일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
         <tbody id="winseiCloseBody"><tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
       </div>
@@ -752,19 +767,27 @@
     </div>
     <div class="card-hint">→ 전체 = 해피콜대기 + 발주대기 + 발주완료(설치상태 포함) + 취소입니다. 설치미완료·설치완료는 발주완료의 세부 현황입니다.</div>
 
-    <div class="section-title dark" style="margin-top:16px">💰 이번달 1차 매입마감 — 설치완료일 기준</div>
+    <!-- 월별 1차 매입마감: 접수일 조회와 별도로 설치완료일·취소확정일 기준월을 선택한다. -->
+    <div class="section-title dark" id="starionCloseTitle" style="margin-top:16px">💰 이번달 1차 매입마감 — 설치완료일 기준</div>
+    <div class="close-month-bar" aria-label="스타리온 매입마감 기준월">
+      <span>📅 마감 기준월</span>
+      <button class="close-month-btn" onclick="shiftCloseMonth_('starionCloseMonth',-1,'starion')">◀ 이전달</button>
+      <input type="month" id="starionCloseMonth" onchange="renderStarion()" aria-label="스타리온 마감 기준월">
+      <button class="close-month-btn" onclick="shiftCloseMonth_('starionCloseMonth',1,'starion')">다음달 ▶</button>
+      <span class="close-month-note">선택월의 설치완료일·취소확정일 기준으로 집계</span>
+    </div>
     <div class="cards" style="grid-template-columns:repeat(5,1fr)">
-      <div class="card" onclick="filterStarionThisMonthOrders()" style="cursor:pointer"><div class="card-label">📥 이번달<br>주문건수</div><div class="card-num purple" id="st-monthordercnt">—</div><div class="card-desc" id="st-monthordercnt-desc">접수일 기준 · 클릭하여 주문 보기</div></div>
-      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">📅 이번달<br>설치완료건수</div><div class="card-num blue" id="st-closecnt">—</div><div class="card-desc" id="st-closecnt-desc">클릭하여 내역 보기</div></div>
-      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">💰 이번달<br>마감매입</div><div class="card-num dark" id="st-closeamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc" id="st-closeamt-desc">클릭하여 내역 보기</div></div>
-      <div class="card"><div class="card-label">❌ 이번달<br>취소차감</div><div class="card-num red" id="st-canceldeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">설치후취소 기준</div></div>
-      <div class="card"><div class="card-label">✅ 이번달<br>순매입</div><div class="card-num green" id="st-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 취소차감</div></div>
+      <div class="card" onclick="filterStarionThisMonthOrders()" style="cursor:pointer"><div class="card-label">📥 이번달<br>주문건수</div><div class="card-num purple" id="st-monthordercnt">—</div><div class="card-desc" id="st-monthordercnt-desc">현재월 접수일 기준 · 클릭하여 주문 보기</div></div>
+      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">📅 <span data-close-month-label="starion">이번달</span><br>설치완료건수</div><div class="card-num blue" id="st-closecnt">—</div><div class="card-desc" id="st-closecnt-desc">클릭하여 내역 보기</div></div>
+      <div class="card vendor-close-toggle" onclick="toggleStarionCloseDetails()"><div class="card-label">💰 <span data-close-month-label="starion">이번달</span><br>마감매입</div><div class="card-num dark" id="st-closeamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc" id="st-closeamt-desc">클릭하여 내역 보기</div></div>
+      <div class="card"><div class="card-label">❌ <span data-close-month-label="starion">이번달</span><br>취소차감</div><div class="card-num red" id="st-canceldeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">설치후취소 기준</div></div>
+      <div class="card"><div class="card-label">✅ <span data-close-month-label="starion">이번달</span><br>순매입</div><div class="card-num green" id="st-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 취소차감</div></div>
     </div>
 
     <!-- 기본 접힘: 설치완료건수/마감매입 카드 클릭으로 열고 닫음 -->
     <div id="starionCloseDetailsPanel" style="display:none">
       <div class="table-wrap" style="margin-top:12px">
-        <div class="table-header"><span>이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">주문일 → 설치완료일 순 정렬 · 설치후취소는 취소확정일 기준으로 화면에서만 음수 행 표시</span></div>
+        <div class="table-header"><span id="starionCloseDetailsTitle">이번달 1차 마감 내역</span><span style="font-size:11px;color:#D6EAF8;font-weight:400">주문일 → 설치완료일 순 정렬 · 설치후취소는 취소확정일 기준으로 화면에서만 음수 행 표시</span></div>
         <table><thead><tr><th>주문일</th><th>설치완료일</th><th>취소확정일</th><th>구분</th><th>사방넷주문번호</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th></tr></thead>
         <tbody id="starionCloseBody"><tr><td colspan="8" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
       </div>
@@ -900,6 +923,43 @@ function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleStri
 function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
 function currentYm_(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthOf_(v){ return fmtD(v).slice(0,7); }
+
+// 월별 매입마감 기준월은 접수일 필터와 독립적으로 관리한다.
+function selectedCloseYm_(inputId){
+  const el=document.getElementById(inputId);
+  const value=String(el?.value||'').trim();
+  if(/^\d{4}-\d{2}$/.test(value)) return value;
+  const fallback=currentYm_();
+  if(el) el.value=fallback;
+  return fallback;
+}
+function closeYmLabel_(ym){
+  const parts=String(ym||'').split('-');
+  return (parts.length===2 && /^\d{4}$/.test(parts[0]) && /^\d{2}$/.test(parts[1]))
+    ? `${parts[0]}년 ${Number(parts[1])}월`
+    : '이번달';
+}
+function updateCloseMonthUi_(vendor,ym){
+  const label=closeYmLabel_(ym);
+  document.querySelectorAll(`[data-close-month-label="${vendor}"]`).forEach(el=>{el.textContent=label;});
+  if(vendor==='winsei'){
+    setText('winseiCloseTitle',`💰 ${label} 1차 매입마감 — 송장입력일 기준`);
+    setText('winseiCloseDetailsTitle',`${label} 1차 마감 내역`);
+  }else if(vendor==='starion'){
+    setText('starionCloseTitle',`💰 ${label} 1차 매입마감 — 설치완료일 기준`);
+    setText('starionCloseDetailsTitle',`${label} 1차 마감 내역`);
+  }
+}
+function shiftCloseMonth_(inputId,delta,vendor){
+  const ym=selectedCloseYm_(inputId);
+  const [year,month]=ym.split('-').map(Number);
+  const d=new Date(year,month-1+Number(delta||0),1);
+  const next=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const el=document.getElementById(inputId);
+  if(el) el.value=next;
+  if(vendor==='winsei') renderWinsei();
+  if(vendor==='starion') renderStarion();
+}
 function qty_(v){
   // 표 출력의 `수량 || 1` 기준과 통일: 수량이 비어 있으면 1개로 계산한다.
   const raw=String(v ?? '').trim();
@@ -1674,7 +1734,8 @@ function renderWinsei(){
   const status=document.getElementById('wf-status').value;
   const from=document.getElementById('wf-from').value;
   const to=document.getElementById('wf-to').value;
-  const ym=currentYm_();
+  const closeYm=selectedCloseYm_('winseiCloseMonth');
+  updateCloseMonthUi_('winsei',closeYm);
 
   const noTrackRows=allWinsei.filter(isWinseiNoTracking_);
   const returnRows=allWinsei.filter(r=>String(winseiValue_(r,'반품여부')).trim()==='반품됨');
@@ -1682,10 +1743,10 @@ function renderWinsei(){
   const closeRows=allWinsei.filter(r=>{
     const tracking=String(winseiValue_(r,'송장번호')).trim();
     const closeDate=fmtD(winseiValue_(r,'송장입력일'));
-    return !!tracking && closeDate && monthOf_(closeDate)===ym;
+    return !!tracking && closeDate && monthOf_(closeDate)===closeYm;
   });
   const completedReturnRows=allWinsei.filter(r=>{
-    return String(winseiValue_(r,'윈세이환입상태')).trim()==='완료' && monthOf_(winseiValue_(r,'윈세이환입완료일'))===ym;
+    return String(winseiValue_(r,'윈세이환입상태')).trim()==='완료' && monthOf_(winseiValue_(r,'윈세이환입완료일'))===closeYm;
   });
   const closeAmt=closeRows.reduce((sum,r)=>sum+money_(winseiValue_(r,'합계_VAT포함')),0);
   const returnDeduct=completedReturnRows.reduce((sum,r)=>sum+money_(winseiValue_(r,'환입차감금액_VAT포함')),0);
@@ -1755,11 +1816,12 @@ function renderWinsei(){
       </tr>`;
     }).join('');
   }
-  renderWinseiCloseDetails();
+  renderWinseiCloseDetails(closeYm);
 }
 
-function renderWinseiCloseDetails(){
-  const ym=currentYm_();
+function renderWinseiCloseDetails(closeYm){
+  const ym=closeYm||selectedCloseYm_('winseiCloseMonth');
+  const label=closeYmLabel_(ym);
   const lines=[];
   allWinsei.forEach(r=>{
     const tracking=String(winseiValue_(r,'송장번호')).trim();
@@ -1775,7 +1837,7 @@ function renderWinseiCloseDetails(){
   });
   lines.sort((a,b)=>a.date===b.date ? a.type.localeCompare(b.type) : a.date.localeCompare(b.date));
   const tbody=document.getElementById('winseiCloseBody');
-  if(!lines.length){tbody.innerHTML='<tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr>';return;}
+  if(!lines.length){tbody.innerHTML='<tr><td colspan="6" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';return;}
   tbody.innerHTML=lines.map(line=>`<tr>
     <td>${line.date}</td>
     <td>${line.type==='윈세이환입'?'<span class="badge badge-cancel">윈세이환입</span>':'<span class="badge badge-done">송장마감</span>'}</td>
@@ -2143,7 +2205,9 @@ function renderStarion(){
   const status=document.getElementById('sf-status').value;
   const from=document.getElementById('sf-from').value;
   const to=document.getElementById('sf-to').value;
-  const ym=currentYm_();
+  const currentYm=currentYm_();
+  const closeYm=selectedCloseYm_('starionCloseMonth');
+  updateCloseMonthUi_('starion',closeYm);
 
   const rows=allStarion.filter(function(r){
     if(!starionRowMatchesStatus_(r,status)) return false;
@@ -2153,14 +2217,16 @@ function renderStarion(){
     return true;
   });
 
+  // 주문건수는 기존처럼 현재월 접수일 기준을 유지하고,
+  // 마감 관련 4개 카드는 사용자가 고른 마감 기준월로 집계한다.
   const monthOrderRows=allStarion.filter(function(r){
-    return monthOf_(starionValue_(r,'접수일'))===ym;
+    return monthOf_(starionValue_(r,'접수일'))===currentYm;
   });
   const closeRows=allStarion.filter(function(r){
-    return starionInstalledHistory_(r) && monthOf_(starionValue_(r,'설치완료일'))===ym;
+    return starionInstalledHistory_(r) && monthOf_(starionValue_(r,'설치완료일'))===closeYm;
   });
   const cancelRows=allStarion.filter(function(r){
-    return starionCancelStatus_(r)==='설치후취소' && monthOf_(starionValue_(r,'취소확정일'))===ym;
+    return starionCancelStatus_(r)==='설치후취소' && monthOf_(starionValue_(r,'취소확정일'))===closeYm;
   });
   const closeAmt=closeRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'합계_VAT포함'));},0);
   const cancelDeduct=cancelRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'취소차감금액_VAT포함'));},0);
@@ -2210,11 +2276,12 @@ function renderStarion(){
         + '</tr>';
     }).join('');
   }
-  renderStarionCloseDetails();
+  renderStarionCloseDetails(closeYm);
 }
 
-function renderStarionCloseDetails(){
-  const ym=currentYm_();
+function renderStarionCloseDetails(closeYm){
+  const ym=closeYm||selectedCloseYm_('starionCloseMonth');
+  const label=closeYmLabel_(ym);
   const lines=[];
   allStarion.forEach(function(r){
     const orderDate=fmtD(starionValue_(r,'접수일'));
@@ -2272,7 +2339,7 @@ function renderStarionCloseDetails(){
 
   const tbody=document.getElementById('starionCloseBody');
   if(!lines.length){
-    tbody.innerHTML='<tr><td colspan="8" class="empty">이번달 마감 내역이 없습니다</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
     return;
   }
 
