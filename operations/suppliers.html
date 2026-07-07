@@ -373,13 +373,13 @@
           <div class="card-num blue" id="s-monthcnt">—</div>
           <div class="card-desc">발주완료 기준</div>
         </div>
-        <div class="card" onclick="goToOrders('전체')">
-          <div class="card-label">📊 전체<br>주문건수</div>
+        <div class="card" onclick="goToOrdersThisMonth('전체')">
+          <div class="card-label">📊 이번달<br>전체 주문건수</div>
           <div class="card-num dark" id="s-total">—</div>
-          <div class="card-desc">취소 포함 전체</div>
+          <div class="card-desc">접수일 기준 · 취소 포함</div>
         </div>
       </div>
-      <div class="card-hint">→ 카드 클릭 시 이번달 발주완료 건 조회</div>
+      <div class="card-hint">→ 왼쪽은 이번달 발주완료 처리행, 오른쪽은 이번달 접수 주문건수(사방넷주문번호 기준)입니다.</div>
 
       <!-- 4단: 취소 및 CS 내역 -->
       <div class="section-title dark" style="margin-top:16px">📋 취소 및 CS 내역</div>
@@ -1263,7 +1263,7 @@ async function loadAll(){
     setText('s-ordercancelled', summary.orderCancelled??0);
     setText('s-stockcancelled',  summary.stockCancelled??0);
     setText('s-cs',       summary.csCount??0);
-    setText('s-total',    summary.total??0);
+    setText('s-total',    summary.thisMonthTotal??0);
     setText('s-monthcnt', summary.thisMonthCount??0);
 
     allOrders  = Array.isArray(orders)  ? orders  : [];
@@ -1329,7 +1329,10 @@ async function refreshOrders(){
     setText('s-noorder',summary.noOrderNo??0);setText('s-noorder2',summary.noOrderNo??0);
     setText('s-done',summary.done??0);setText('s-stock',summary.existingStock??0);
     setText('s-ordercancelled',summary.orderCancelled??0);
-    setText('s-stockcancelled',summary.stockCancelled??0);setText('s-cs',summary.csCount??0);setText('s-total',summary.total??0);
+    setText('s-stockcancelled',summary.stockCancelled??0);
+    setText('s-cs',summary.csCount??0);
+    setText('s-total',summary.thisMonthTotal??0);
+    setText('s-monthcnt',summary.thisMonthCount??0);
     renderCarrierCloseAmt();
     renderOrders();
   }catch(e){}
@@ -1367,14 +1370,18 @@ function goToOrders(filter){
   renderOrders();
 }
 function goToNoOrder(){showTab('noorder');renderNoOrder();}
-function goToOrdersThisMonth(){
+function goToOrdersThisMonth(filter='발주완료'){
   const now=new Date();
   const from=new Date(now.getFullYear(),now.getMonth(),1);
   const to=new Date(now.getFullYear(),now.getMonth()+1,0);
   document.getElementById('o-from').value=fmt(from);
   document.getElementById('o-to').value=fmt(to);
-  currentOrderFilter='발주완료';
+  currentOrderFilter=filter;
   showTab('orders');
+  document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>{
+    const lb=t.textContent.trim();
+    t.classList.toggle('active',filter==='전체'?lb==='전체':lb===filter);
+  });
   renderOrders();
 }
 function goToStock(){showTab('stock');}
