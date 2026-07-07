@@ -1628,8 +1628,11 @@ async function cancelHappyCall(sno, msgId){
   if(!confirm('해피콜대기 건을 주문취소 처리하시겠습니까?\n사방넷주문번호: '+sno)) return;
   const msg = document.getElementById(msgId);
   try{
-    await apiCall({action:'cancelCarrierOrder', saBangNo:sno});
-    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===sno);
+    // [v21신규 2026-07-08] 해피콜대기는 항상 처리구분='신규발주' 쪽이다.
+    // 재고가 이미 있어 같은 sno에 '기존재고' 형제 행이 함께 있는 경우에도,
+    // 처리구분을 명시해 그 형제 행이 아니라 정확히 이 행만 취소되게 한다.
+    await apiCall({action:'cancelCarrierOrder', saBangNo:sno, 처리구분:'신규발주'});
+    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===sno && String(r['처리구분']||'')!=='기존재고');
     if(idx>=0) allOrders[idx]['완료여부']='주문취소';
     msg.style.display='block'; msg.style.color='var(--green)';
     msg.textContent='✅ 주문취소 완료';
@@ -1643,6 +1646,19 @@ async function cancelHappyCall(sno, msgId){
 }
 
 // ── 오더번호 미입력 전용 뷰 ──
+// [v21신규 2026-07-08] v1.10 부분재고 분할로 같은 사방넷주문번호(sno)가
+// "기존재고" 행과 "발주중" 행 두 개로 동시에 오더번호 미입력 상태일 수
+// 있다. 예전에는 sno를 DOM id와 저장 키로 그대로 썼는데, 이 경우 두 행이
+// 똑같은 id(ni-9999900002 등)를 갖게 되어 입력값이 엉뚱한 행으로 저장될
+// 위험이 있었다. 처리키(사방넷주문번호|모델코드|처리구분, 매입처발주.py
+// v1.10부터 캐리어_발주원장에 존재)가 있으면 그걸 고유 키로 쓰고, 옛날
+// 행처럼 처리키가 없으면 sno로 되돌아간다(과거엔 sno가 항상 유일했으므로
+// 안전).
+function noOrderKey_(r){
+  const 처리키=String(r['처리키']||'').trim();
+  return 처리키 || String(r['사방넷주문번호']||'');
+}
+
 function renderNoOrder(){
   const targets=allOrders.filter(r=>{
     const 완=(r['완료여부']||'').trim();
@@ -1652,37 +1668,47 @@ function renderNoOrder(){
   if(!targets.length){wrap.innerHTML='<div class="empty">✅ 오더번호 미입력 건이 없습니다</div>';return;}
   wrap.innerHTML=targets.map(r=>{
     const sno=String(r['사방넷주문번호']||'');
+    const key=noOrderKey_(r);
     const 완=r['완료여부']||'';
+    const 처리구분=String(r['처리구분']||'');
+    // 같은 sno에 형제 행이 있을 때(부분재고 분할) 어느 쪽인지 눈으로
+    // 구분할 수 있도록 처리구분을 완료여부 배지 옆에 함께 보여준다.
+    const 처리구분표시 = 처리구분 ? `<span style="font-size:11px;color:var(--gray)">(${처리구분})</span>` : '';
     return`<div class="order-input-row">
       <div class="order-input-info">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <span class="${bdg(완)}">${완}</span>
+          <span class="${bdg(완)}">${완}</span>${처리구분표시}
           <strong style="font-size:13px">${r['모델코드']||''}</strong>
           <span style="font-size:12px;color:var(--gray)">${fmtD(r['접수일'])}</span>
         </div>
         <div style="font-size:12px;color:var(--dark)">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</div>
         <div style="font-size:11px;color:var(--gray);margin-top:2px">사방넷: ${sno} | 설치점: ${r['설치점코드']||'—'}</div>
-        <div id="nm-${sno}" style="font-size:12px;margin-top:4px;display:none"></div>
+        <div id="nm-${key}" style="font-size:12px;margin-top:4px;display:none"></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <input type="text" id="ni-${sno}" placeholder="오더번호 입력" style="width:150px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;">
-        <button id="nb-${sno}" class="save-btn" onclick="saveOrderNo('${sno}')">저장</button>
+        <input type="text" id="ni-${key}" placeholder="오더번호 입력" style="width:150px;padding:6px 10px;font-size:13px;border:1px solid var(--border);border-radius:6px;">
+        <button id="nb-${key}" class="save-btn" onclick="saveOrderNo('${sno}','${key}','${처리구분}')">저장</button>
       </div>
     </div>`;
   }).join('');
 }
 
-async function saveOrderNo(sno){
-  const orderNo=document.getElementById('ni-'+sno).value.trim();
-  const msg=document.getElementById('nm-'+sno);
-  const btn=document.getElementById('nb-'+sno);
+async function saveOrderNo(sno,key,처리구분){
+  const orderNo=document.getElementById('ni-'+key).value.trim();
+  const msg=document.getElementById('nm-'+key);
+  const btn=document.getElementById('nb-'+key);
   if(!orderNo){msg.style.display='block';msg.style.color='var(--red)';msg.textContent='오더번호를 입력하세요';return;}
   btn.disabled=true;btn.textContent='저장 중...';
   try{
-    await apiCall({action:'updateOrderNo',saBangNo:sno,orderNo});
-    msg.style.display='block';msg.style.color='var(--green)';msg.textContent='✅ 저장 완료 — 발주완료로 변경됨';
-    const idx=allOrders.findIndex(r=>String(r['사방넷주문번호'])===sno);
-    if(idx>=0){allOrders[idx]['오더번호']=orderNo;allOrders[idx]['완료여부']='발주완료';}
+    const result=await apiCall({action:'updateOrderNo',saBangNo:sno,orderNo,처리구분});
+    const 최종완료여부=result.완료여부 || '발주완료';
+    msg.style.display='block';msg.style.color='var(--green)';
+    msg.textContent = 최종완료여부==='기존재고'
+      ? '✅ 저장 완료 — 완료여부는 기존재고로 유지(참고 기록)'
+      : '✅ 저장 완료 — 발주완료로 변경됨';
+    // 같은 sno의 여러 행 중, 이번에 실제로 갱신된 행(처리키/처리구분 일치)만 반영한다.
+    const idx=allOrders.findIndex(r=>String(r['사방넷주문번호'])===sno && noOrderKey_(r)===key);
+    if(idx>=0){allOrders[idx]['오더번호']=orderNo;allOrders[idx]['완료여부']=최종완료여부;}
     setTimeout(()=>{
       renderNoOrder();
       const remaining=allOrders.filter(r=>{const 완=(r['완료여부']||'').trim();return(완==='발주중'||완==='기존재고')&&!String(r['오더번호']||'').trim();}).length;
@@ -1693,20 +1719,12 @@ async function saveOrderNo(sno){
 }
 
 // ── 취소처리 ──
-function searchCancel(){
-  const no=document.getElementById('cancelNo').value.trim();
-  if(!no)return;
-  cancelTarget=null;
-  document.getElementById('cancelBtn').disabled=true;
-  document.getElementById('cancelPreview').style.display='none';
-  document.getElementById('cancelConfirmRow').style.display='none';
-  document.getElementById('cancelChk').checked=false;
-  const found=allOrders.find(r=>String(r['사방넷주문번호'])===no);
-  if(!found){showMsgBox('cancel-error','주문번호를 찾을 수 없습니다.');return;}
-  if(found['완료여부']==='취소재고'){
-    showMsgBox('cancel-error','이미 취소 처리된 건입니다.');
-    return;
-  }
+// [v21신규 2026-07-08] v1.10 부분재고 분할로 같은 사방넷주문번호에
+// "기존재고"/"신규발주" 두 행이 있을 수 있다. 예전에는 allOrders.find()로
+// 첫 번째 행만 가져와서, 취소하려던 게 신규발주 쪽인데 기존재고 행이
+// 대신 조회·취소될 위험이 있었다. 이제 후보를 전부 모아, 1개면 그대로
+// 진행하고 2개 이상이면 사용자가 직접 골라야 진행되게 한다.
+function fillCancelPreview_(found){
   cancelTarget=found;
   const 완=found['완료여부']||'';
   setText('pv-status',완);setText('pv-model',found['모델코드']||'');setText('pv-buyer',found['실구매자명']||'');
@@ -1719,6 +1737,57 @@ function searchCancel(){
   setText('pv-action', 처리방식);
   document.getElementById('cancelPreview').style.display='block';
   document.getElementById('cancelConfirmRow').style.display='block';
+}
+
+function pickCancelCandidate_(no, 처리구분){
+  const found=allOrders.find(r=>String(r['사방넷주문번호'])===no && String(r['처리구분']||'')===처리구분);
+  const multiWrap=document.getElementById('cancelMultiWrap');
+  if(multiWrap) multiWrap.style.display='none';
+  if(!found){showMsgBox('cancel-error','선택한 항목을 찾을 수 없습니다.');return;}
+  if(found['완료여부']==='취소재고'){showMsgBox('cancel-error','이미 취소 처리된 건입니다.');return;}
+  fillCancelPreview_(found);
+}
+
+function searchCancel(){
+  const no=document.getElementById('cancelNo').value.trim();
+  if(!no)return;
+  cancelTarget=null;
+  document.getElementById('cancelBtn').disabled=true;
+  document.getElementById('cancelPreview').style.display='none';
+  document.getElementById('cancelConfirmRow').style.display='none';
+  document.getElementById('cancelChk').checked=false;
+  const multiWrapExisting=document.getElementById('cancelMultiWrap');
+  if(multiWrapExisting) multiWrapExisting.remove();
+
+  const matches=allOrders.filter(r=>String(r['사방넷주문번호'])===no);
+  if(!matches.length){showMsgBox('cancel-error','주문번호를 찾을 수 없습니다.');return;}
+
+  if(matches.length>1){
+    // 부분재고 분할로 처리행이 2개 이상 — 임의로 첫 번째를 고르지 않고
+    // 사용자가 직접 선택하게 한다.
+    const preview=document.getElementById('cancelPreview');
+    const wrap=document.createElement('div');
+    wrap.id='cancelMultiWrap';
+    wrap.style.cssText='background:#FEF9E7;border:1px solid #F9A825;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:12px';
+    wrap.innerHTML='<div style="font-weight:700;color:#633806;margin-bottom:8px">⚠️ 이 주문번호에 처리행이 '+matches.length+'개 있습니다 — 취소할 항목을 선택하세요</div>'
+      + matches.map(function(r){
+          const 처리구분=String(r['처리구분']||'');
+          const 완료여부=String(r['완료여부']||'');
+          return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid #F9E8B0">'
+            + '<span>처리구분: <strong>'+(처리구분||'—')+'</strong> · 완료여부: '+(완료여부||'—')+' · 모델: '+(r['모델코드']||'')+'</span>'
+            + '<button onclick="pickCancelCandidate_(&quot;'+no+'&quot;,&quot;'+처리구분+'&quot;)" style="padding:4px 10px;background:var(--navy);color:white;border:none;border-radius:5px;font-size:12px;cursor:pointer">이 항목 선택</button>'
+            + '</div>';
+        }).join('');
+    preview.parentNode.insertBefore(wrap, preview);
+    return;
+  }
+
+  const found=matches[0];
+  if(found['완료여부']==='취소재고'){
+    showMsgBox('cancel-error','이미 취소 처리된 건입니다.');
+    return;
+  }
+  fillCancelPreview_(found);
 }
 async function doCancel(){
   if(!cancelTarget)return;
@@ -1746,15 +1815,16 @@ async function confirmPreOrderCancel(){
 async function _execCancel(){
   if(!cancelTarget)return;
   const no=String(cancelTarget['사방넷주문번호']);
+  const 처리구분=String(cancelTarget['처리구분']||'');
   document.getElementById('cancelBtn').disabled=true;
   try{
-    const result = await apiCall({action:'cancelCarrierOrder',saBangNo:no});
+    const result = await apiCall({action:'cancelCarrierOrder',saBangNo:no,처리구분});
     // 발주전 취소 메시지 분기
     const msg = result.result==='주문취소'
       ? '✅ 주문취소 완료 — 재고에 영향 없습니다'
       : '✅ 취소재고 처리 완료 — 선매입재고에 복구되었습니다';
-    // 로컬 데이터 즉시 업데이트 (화면 깜빡임 없이)
-    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===no);
+    // 로컬 데이터 즉시 업데이트 (화면 깜빡임 없이) — sno만이 아니라 처리구분까지 일치하는 행을 찾는다
+    const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===no && String(r['처리구분']||'')===처리구분);
     if(idx>=0) allOrders[idx]['완료여부'] = result.result==='주문취소' ? '주문취소' : '취소재고';
 
     cancelTarget=null;
