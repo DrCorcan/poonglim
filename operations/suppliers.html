@@ -359,8 +359,8 @@
               <button onclick="downloadCarrierCloseCsv()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.45);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
             </div>
           </div>
-          <table><thead><tr><th>접수일</th><th>사방넷주문번호</th><th>구매자</th><th>모델코드</th><th>수량</th><th>배송구분</th><th>마감금액(VAT-)</th><th>마감금액(VAT+)</th></tr></thead>
-          <tbody id="carrierCloseBody"><tr><td colspan="8" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
+          <table><thead><tr><th>접수일</th><th>사방넷주문번호</th><th>오더번호</th><th>구매자</th><th>모델코드</th><th>수량</th><th>배송구분</th><th>마감금액(VAT-)</th><th>마감금액(VAT+)</th></tr></thead>
+          <tbody id="carrierCloseBody"><tr><td colspan="9" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
         </div>
       </div>
       <div class="card-hint">→ 선택한 마감 기준월의 접수일 기준으로 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 기존재고 사용 건은 과거에 매입할 때 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
@@ -1100,13 +1100,14 @@ function downloadCarrierOrdersCsv(){
     r['실구매자명']||'',
     r['채널']||'',
     r['사방넷주문번호']||'',
+    r['오더번호']||'',
     qty_(r['수량']),
     money_(r['마감금액_VAT제외']),
     money_(r['마감금액_VAT포함'])
   ]);
   downloadCsv_(
     '캐리어_발주현황_'+fmt(new Date())+'.csv',
-    ['접수일','완료여부','모델코드','실구매자','채널','사방넷주문번호','수량','마감금액(VAT-)','마감금액(VAT+)'],
+    ['접수일','완료여부','모델코드','실구매자','채널','사방넷주문번호','오더번호','수량','마감금액(VAT-)','마감금액(VAT+)'],
     csvRows
   );
 }
@@ -1121,6 +1122,7 @@ function downloadCarrierCloseCsv(){
   const csvRows=rows.map(r=>[
     fmtD(r['접수일']),
     r['사방넷주문번호']||'',
+    r['오더번호']||'',
     r['실구매자명']||'',
     r['모델코드']||'',
     qty_(r['수량']),
@@ -1131,7 +1133,7 @@ function downloadCarrierCloseCsv(){
 
   downloadCsv_(
     '캐리어_매입정산마감내역_'+ym+'.csv',
-    ['접수일','사방넷주문번호','구매자','모델코드','수량','배송구분','마감금액(VAT-)','마감금액(VAT+)'],
+    ['접수일','사방넷주문번호','오더번호','구매자','모델코드','수량','배송구분','마감금액(VAT-)','마감금액(VAT+)'],
     csvRows
   );
 }
@@ -1262,15 +1264,17 @@ function renderCarrierCloseDetails(closeYm){
   const tbody=document.getElementById('carrierCloseBody');
   if(!tbody) return;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="8" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
+    tbody.innerHTML='<tr><td colspan="9" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML=rows.map(r=>{
     const net=money_(r['마감금액_VAT제외']);
     const gross=money_(r['마감금액_VAT포함']);
+    const 오더=String(r['오더번호']||'').trim();
     return '<tr>'
       + '<td>'+fmtD(r['접수일'])+'</td>'
       + '<td>'+String(r['사방넷주문번호']||'')+'</td>'
+      + '<td>'+(오더||'<span style="color:var(--red);font-size:11px">미입력</span>')+'</td>'
       + '<td>'+String(r['실구매자명']||'')+'</td>'
       + '<td>'+String(r['모델코드']||'')+'</td>'
       + '<td>'+qty_(r['수량'])+'</td>'
@@ -1644,6 +1648,7 @@ function renderOrders(){
     <span style="min-width:86px;flex-shrink:0">접수일</span>
     <span style="min-width:64px;flex-shrink:0">완료여부</span>
     <span style="min-width:130px;flex-shrink:0">모델코드</span>
+    <span style="min-width:168px;flex-shrink:0">사방넷 / 오더번호</span>
     <span style="flex:1">실구매자 (채널)</span>
     <span style="flex-shrink:0">마감금액 (VAT- / VAT+)</span>
     <span style="width:34px;flex-shrink:0"></span>
@@ -1669,6 +1674,7 @@ function renderOrders(){
         <span style="font-size:12px;color:var(--gray);min-width:86px;flex-shrink:0">${fmtD(r['접수일'])}</span>
         <span class="${bdg(r['완료여부'])}">${r['완료여부']||'—'}</span>
         <span style="font-weight:600;min-width:130px;font-size:12px;flex-shrink:0">${r['모델코드']||''}</span>
+        <span style="min-width:168px;flex-shrink:0;font-size:11px;color:var(--gray);white-space:nowrap">${sno||'—'} / ${hasOrder?'<span style="color:var(--dark);font-weight:600">'+r['오더번호']+'</span>':(['발주중','발주완료','기존재고'].includes(String(r['완료여부']||'').trim())?'<span style="color:var(--red)">미입력</span>':'—')}</span>
         <span style="color:var(--dark);flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</span>
         <span style="font-size:12px;color:var(--dark);flex-shrink:0;white-space:nowrap">${amtHtml}</span>
         ${isCS?`<span style="color:var(--orange);font-weight:700;font-size:11px;flex-shrink:0">●CS</span>`:''}
