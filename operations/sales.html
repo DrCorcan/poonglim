@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매출 현황 — 풍림전자</title>
+<!--
+  sales.html v1 (2026-07-16) — 풍림전자 매출 현황판 (읽기 전용)
+  - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1) doGet API
+  - 시트에 어떤 값도 쓰지 않는다. 표시 전용.
+  - 탭: 업무 흐름 / 주문 목록 / 마감·회신 / 월 요약
+  - 테스트: ?api=<API URL> 파라미터로 API 주소를 임시 지정할 수 있다.
+-->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:   #1F4E79;
+    --blue:   #2980B9;
+    --green:  #27AE60;
+    --orange: #E67E22;
+    --red:    #C0392B;
+    --purple: #8E44AD;
+    --dark:   #2C3E50;
+    --gray:   #7F8C8D;
+    --light:  #F4F6F8;
+    --border: #DDE1E7;
+  }
+  body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; }
+
+  /* 헤더 */
+  header { background: var(--navy); color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 17px; font-weight: 700; }
+  header .sub { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+  .hd-right { display: flex; align-items: center; gap: 8px; }
+  .hd-link { background: rgba(255,255,255,0.15); color: white; border: none; padding: 5px 13px; border-radius: 6px; font-size: 13px; text-decoration: none; display: inline-block; cursor: pointer; font-family: inherit; }
+  .hd-link:hover { background: rgba(255,255,255,0.25); }
+
+  .container { padding: 18px 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* 탭 */
+  .nav-tabs { display: flex; gap: 8px; margin-bottom: 18px; margin-top: 6px; flex-wrap: wrap; }
+  .nav-tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: white; color: var(--gray); transition: all .2s; font-family: inherit; }
+  .nav-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  /* 섹션 타이틀 */
+  .section-title { font-size: 14px; font-weight: 700; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; margin-top: 20px; }
+  .section-title.navy   { background: var(--navy); }
+  .section-title.blue   { background: var(--blue); }
+  .section-title.green  { background: var(--green); }
+  .section-title.orange { background: var(--orange); }
+  .section-title.dark   { background: var(--dark); }
+  .section-title.red    { background: var(--red); }
+
+  /* 카드 그리드 */
+  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 4px; }
+  .cards.six { grid-template-columns: repeat(6, 1fr); }
+  .card { padding: 14px 10px; text-align: center; border-right: 1px solid var(--border); transition: background .15s; }
+  .card.clickable { cursor: pointer; }
+  .card.clickable:hover { background: #F0F4F8; }
+  .card:last-child { border-right: none; }
+  .card-label { font-size: 11px; color: var(--gray); margin-bottom: 6px; line-height: 1.4; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+  .card-num { font-size: 34px; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+  .card-num.red    { color: var(--red); }
+  .card-num.orange { color: var(--orange); }
+  .card-num.green  { color: var(--green); }
+  .card-num.blue   { color: var(--blue); }
+  .card-num.purple { color: var(--purple); }
+  .card-num.dark   { color: var(--dark); }
+  .card-num.gray   { color: var(--gray); }
+  .card-desc { font-size: 11px; color: var(--gray); line-height: 1.5; }
+  .card-desc .d-red { color: var(--red); font-weight: 700; }
+  .card-desc .d-green { color: var(--green); }
+  .card-hint { font-size: 11px; color: #888; padding: 7px 16px; background: #FFFDE7; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 4px; font-style: italic; }
+
+  /* 테이블 */
+  .table-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 16px; }
+  .table-header { padding: 11px 16px; background: var(--navy); color: white; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .table-header.orange { background: var(--orange); }
+  .table-header.red { background: var(--red); }
+  .table-header.dark { background: var(--dark); }
+  .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-tab { padding: 4px 11px; border-radius: 12px; font-size: 11px; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); color: white; background: transparent; transition: all .2s; font-family: inherit; }
+  .filter-tab.active, .filter-tab:hover { background: white; color: var(--navy); }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #F0F4F8; padding: 9px 12px; text-align: left; font-weight: 600; color: var(--dark); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid #F0F0F0; vertical-align: middle; }
+  td.num, th.num { text-align: right; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #F8FAFC; }
+
+  /* 배지 */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .bg-blue   { background: #EBF5FB; color: #2980B9; }
+  .bg-green  { background: #E9F7EF; color: #27AE60; }
+  .bg-orange { background: #FEF9E7; color: #E67E22; }
+  .bg-red    { background: #FDEDEC; color: #C0392B; }
+  .bg-purple { background: #F5EEF8; color: #8E44AD; }
+  .bg-gray   { background: #F2F3F4; color: #7F8C8D; }
+  .bg-none   { background: transparent; color: #B8BEC4; }
+
+  /* 파이프라인 미니 배지(주문 목록 흐름 컬럼) */
+  .flow { display: flex; gap: 3px; flex-wrap: nowrap; }
+  .flow span { display: inline-block; min-width: 30px; text-align: center; padding: 2px 4px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+  /* 검색/조회 바 */
+  .search-bar { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 11px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .search-bar span { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .search-bar input[type="text"] { width: 220px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+  .search-bar input[type="text"]:focus { border-color: var(--navy); }
+  .search-bar select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; background: white; }
+  .search-bar input[type="month"] { padding: 6px 9px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .search-bar label.chk { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray); font-weight: 600; cursor: pointer; }
+  .csv-btn { padding: 6px 13px; background: var(--green); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .csv-btn:hover { background: #1F8B4C; }
+  .query-summary { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; margin: 0 0 12px; font-size: 13px; color: var(--dark); }
+  .query-summary strong { color: var(--navy); }
+
+  .note-box { background: #FEF9E7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #633806; margin: 12px 0; line-height: 1.6; border: 1px solid #F9A825; }
+
+  /* 로딩/빈값/에러 */
+  .loading { text-align: center; padding: 36px; color: var(--gray); font-size: 14px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--navy); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; padding: 28px; color: var(--gray); font-size: 13px; }
+  .error-msg { background: #FDEDEC; color: var(--red); border: 1px solid #FADBD8; border-radius: 8px; padding: 14px 16px; font-size: 13px; margin-top: 12px; text-align: center; line-height: 1.7; }
+
+  @media (max-width: 768px) {
+    .cards, .cards.six { grid-template-columns: repeat(3, 1fr); }
+    .container { padding: 12px 14px; }
+  }
+  @media (max-width: 480px) { .cards, .cards.six { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🧾 매출 현황 — 풍림전자</h1>
+    <div class="sub" id="headerDate">로딩 중...</div>
+  </div>
+  <div class="hd-right">
+    <a class="hd-link" href="../index.html">🏠 포털 홈</a>
+    <button class="hd-link" onclick="loadAll()">🔄 새로고침</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="navtab-flow"    onclick="showTab('flow')">📊 업무 흐름</button>
+    <button class="nav-tab" id="navtab-orders"  onclick="showTab('orders')">📋 주문 목록</button>
+    <button class="nav-tab" id="navtab-closing" onclick="showTab('closing')">✉️ 마감·회신</button>
+    <button class="nav-tab" id="navtab-month"   onclick="showTab('month')">📈 월 요약</button>
+  </div>
+
+  <div id="setup-note" class="error-msg" style="display:none">
+    ⚙️ 아직 API 주소가 설정되지 않았습니다.<br>
+    sales-dashboard.gs를 배포한 뒤, 이 파일 스크립트 상단의 <b>API_DEFAULT</b>에 웹 앱 URL(/exec)을 넣어 주세요.<br>
+    임시 확인은 주소 뒤에 <b>?api=웹앱URL</b>을 붙여도 됩니다.
+  </div>
+  <div id="load-error" class="error-msg" style="display:none"></div>
+  <div id="loading" class="loading" style="display:none"><span class="spinner"></span>데이터 불러오는 중...</div>
+
+  <!-- ══════════ 탭1: 업무 흐름 ══════════ -->
+  <div id="tab-flow" style="display:none">
+
+    <div class="section-title navy">🧾 주문 수집 현황</div>
+    <div class="cards" id="collect-cards"></div>
+    <div class="card-hint" id="collect-hint"></div>
+
+    <div class="section-title blue">🚚 출고 → 마감 파이프라인 (진행중 주문 기준)</div>
+    <div class="cards six" id="pipe-cards"></div>
+    <div class="card-hint">각 단계의 큰 숫자는 <b>대기(지금 처리할 일)</b> 건수입니다. "미도달"은 아직 앞 단계가 끝나지 않아 이 단계에 오지 않은 건수입니다.</div>
+
+    <div class="table-wrap">
+      <div class="table-header red"><span>🚨 오류·제동 — 사람이 확인할 것</span><span id="alert-count"></span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>수집일</th><th>점포명</th><th>사방넷주문번호</th><th>모델코드</th><th>주문상태</th><th>구분</th><th>내용</th></tr></thead>
+          <tbody id="alert-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header dark"><span>🕘 최근 실행 로그</span><span id="runlog-count"></span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>실행일시</th><th>메뉴</th><th>버튼</th><th>구분</th><th class="num">대상</th><th class="num">성공</th><th class="num">오류</th><th>결과</th><th>메시지</th></tr></thead>
+          <tbody id="runlog-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ 탭2: 주문 목록 ══════════ -->
+  <div id="tab-orders" style="display:none">
+
+    <div class="search-bar">
+      <span>조회</span>
+      <select id="orders-store" onchange="renderOrders()"><option value="">전체 점포</option></select>
+      <input type="text" id="orders-search" placeholder="주문번호 / 인수자 / 모델코드 검색" oninput="renderOrders()">
+      <label class="chk"><input type="checkbox" id="orders-include-excluded" onchange="renderOrders()"> 제외·삭제대상 포함</label>
+      <button class="csv-btn" onclick="downloadOrdersCsv()">⬇ CSV 다운로드</button>
+    </div>
+
+    <div class="query-summary" id="orders-summary"></div>
+
+    <div class="table-wrap" style="margin-top:0">
+      <div class="table-header">
+        <span>📋 주문 목록</span>
+        <div class="filter-tabs" id="orders-filter-tabs">
+          <button class="filter-tab active" data-f="all" onclick="setOrdersFilter('all',this)">전체</button>
+          <button class="filter-tab" data-f="active" onclick="setOrdersFilter('active',this)">진행중</button>
+          <button class="filter-tab" data-f="ship" onclick="setOrdersFilter('ship',this)">출고대기</button>
+          <button class="filter-tab" data-f="cancel" onclick="setOrdersFilter('cancel',this)">취소·반품</button>
+          <button class="filter-tab" data-f="alert" onclick="setOrdersFilter('alert',this)">오류·제동</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>수집일</th><th>점포명</th><th>사방넷주문번호</th><th>인수자</th><th>모델코드</th>
+            <th class="num">수량</th><th class="num">결제금액</th><th>주문상태</th><th>물류처</th>
+            <th>창고→송장→사방넷→회신→ERP</th>
+          </tr></thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ 탭3: 마감·회신 ══════════ -->
+  <div id="tab-closing" style="display:none">
+
+    <div class="note-box" id="closing-note">
+      이 화면은 원장의 <b>거래처회신상태 / ERP업로드상태 / 마감대조상태</b> 컬럼을 그대로 보여줍니다.
+      아직 해당 단계 자동화가 가동 전이면 대부분 "미도달"로 표시되며, 스크립트가 가동되는 대로 여기에 채워집니다.
+    </div>
+
+    <div class="table-wrap" style="margin-top:0">
+      <div class="table-header orange"><span>✉️ 점포(거래처)별 회신·마감 현황 — 진행중 주문 기준</span><span id="closing-count"></span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>점포명</th><th class="num">주문</th><th class="num">송장등록</th>
+            <th>회신: 대기</th><th>회신: 파일생성</th><th>회신: 발송완료</th>
+            <th>ERP: 대기</th><th>ERP: 완료</th>
+            <th>마감: 정상</th><th>마감: 불일치</th><th class="num">미도달</th>
+          </tr></thead>
+          <tbody id="closing-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ 탭4: 월 요약 ══════════ -->
+  <div id="tab-month" style="display:none">
+
+    <div class="search-bar">
+      <span>기준월</span>
+      <input type="month" id="month-pick" onchange="renderMonth()">
+      <span style="font-weight:400;font-size:12px;color:var(--gray)">수집일자 기준 · 사용여부=정상 · 취소·반품·교환 계열 제외 (포함 수치는 아래 별도 표기)</span>
+    </div>
+
+    <div class="section-title green" id="month-title">📈 월 매출 요약</div>
+    <div class="cards" id="month-cards"></div>
+    <div class="card-hint" id="month-include-hint"></div>
+
+    <div class="table-wrap">
+      <div class="table-header"><span>🏬 점포별 매출 (선택월)</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>점포명</th><th class="num">건수</th><th class="num">수량</th><th class="num">결제금액</th><th class="num">순이익</th><th class="num">이익율</th></tr></thead>
+          <tbody id="month-store-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header"><span>📦 모델별 매출 (선택월)</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>모델코드</th><th class="num">건수</th><th class="num">수량</th><th class="num">결제금액</th><th class="num">순이익</th><th class="num">이익율</th></tr></thead>
+          <tbody id="month-model-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// sales.html v1 — 설정
+// ═══════════════════════════════════════════════════════════════
+// 배포 후 sales-dashboard.gs 웹 앱 URL(/exec)을 여기에 넣는다.
+const API_DEFAULT = "https://script.google.com/macros/s/AKfycbyMAXL5KWdG12J6i6jA8B_7cRhdsvBbBT46aOf5YV-BlJ8Wb2tZ5wQb7p4X9SHoBQCfFQ/exec";
+const API = new URLSearchParams(location.search).get('api') || API_DEFAULT;
+
+// 취소·반품·교환 계열 주문상태 (설계서 11-2 기준)
+const CANCEL_FAMILY = ['취소접수','취소완료','반품접수','반품회수준비','반품완료','교환접수'];
+
+// 파이프라인 단계 정의 — 99_상태값 실물 기준. 값 추측 금지.
+const PIPE_STAGES = [
+  { key:'창고업로드상태',       name:'① 오성 창고 업로드', done:['업로드완료'], mid:['파일생성완료'], bad:['오류','재생성필요'] },
+  { key:'송장수신상태',         name:'② 송장 수신',        done:['수신완료'],   mid:[],               bad:['미매칭','중복','오류'] },
+  { key:'사방넷송장업로드상태', name:'③ 사방넷 송장 업로드', done:['업로드완료'], mid:['파일생성완료'], bad:['오류','재생성필요'] },
+  { key:'거래처회신상태',       name:'④ 거래처 회신',      done:['메일발송완료'], mid:['파일생성완료'], bad:['오류','재생성필요'] },
+  { key:'ERP업로드상태',        name:'⑤ ERP 업로드',       done:['업로드완료'], mid:['파일생성완료'], bad:['오류','재생성필요'] },
+  { key:'마감대조상태',         name:'⑥ 마감 대조',        done:['정상'],       mid:[],               bad:['불일치','확인필요'], waitLabel:'대기' }
+];
+
+let DATA = null;        // API 응답 전체
+let allOrders = [];     // 원장 행
+let ordersFilter = 'all';
+let currentOrdersRows = [];
+
+// ── 유틸 ──
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function str(v){ return String(v==null?'':v).trim(); }
+function num(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
+function money(v){ return Math.round(num(v)).toLocaleString('ko-KR'); }
+function toDate(v){
+  if(v instanceof Date) return v;
+  if(!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtD(v){
+  const d = toDate(v);
+  if(!d) return str(v) || '—';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDT(v){
+  const d = toDate(v);
+  if(!d) return str(v) || '—';
+  return fmtD(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function ymOf(v){
+  const d = toDate(v);
+  if(!d) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function isSameLocalDate(v, ref){
+  const d = toDate(v);
+  return !!d && d.getFullYear()===ref.getFullYear() && d.getMonth()===ref.getMonth() && d.getDate()===ref.getDate();
+}
+function daysAgo(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d; }
+
+// 행 분류
+function isNormal(r){ return str(r['사용여부'])==='정상'; }
+function isCancelFamily(r){ return CANCEL_FAMILY.indexOf(str(r['현재주문상태']))>=0; }
+function isAlertRow(r){
+  const es = str(r['오류상태']);
+  return es==='확인필요' || es==='오류' || str(r['제동여부'])==='Y';
+}
+function isActive(r){ return isNormal(r) && !isCancelFamily(r); }
+
+// 상태 배지
+function stageBadge(v){
+  const s = str(v);
+  if(!s) return '<span class="badge bg-none">미도달</span>';
+  if(s==='제외') return '<span class="badge bg-gray">제외</span>';
+  if(s==='대기') return '<span class="badge bg-orange">대기</span>';
+  if(s==='파일생성완료') return '<span class="badge bg-blue">파일생성</span>';
+  if(s==='업로드완료'||s==='수신완료'||s==='메일발송완료'||s==='정상') return '<span class="badge bg-green">'+esc(s)+'</span>';
+  if(s==='미매칭'||s==='중복'||s==='오류'||s==='불일치'||s==='재생성필요'||s==='확인필요') return '<span class="badge bg-red">'+esc(s)+'</span>';
+  return '<span class="badge bg-gray">'+esc(s)+'</span>';
+}
+function orderStateBadge(v){
+  const s = str(v);
+  if(!s) return '<span class="badge bg-gray">—</span>';
+  if(s==='출고대기') return '<span class="badge bg-blue">출고대기</span>';
+  if(s==='신규주문'||s==='주문확인') return '<span class="badge bg-purple">'+esc(s)+'</span>';
+  if(CANCEL_FAMILY.indexOf(s)>=0) return '<span class="badge bg-red">'+esc(s)+'</span>';
+  return '<span class="badge bg-gray">'+esc(s)+'</span>';
+}
+function flowMini(r){
+  const cells = ['창고업로드상태','송장수신상태','사방넷송장업로드상태','거래처회신상태','ERP업로드상태'].map(k=>{
+    const s = str(r[k]);
+    let cls='bg-none', t='·';
+    if(s==='제외'){ cls='bg-gray'; t='제외'; }
+    else if(s==='대기'){ cls='bg-orange'; t='대기'; }
+    else if(s==='파일생성완료'){ cls='bg-blue'; t='파일'; }
+    else if(s==='업로드완료'||s==='수신완료'||s==='메일발송완료'){ cls='bg-green'; t='완료'; }
+    else if(s){ cls='bg-red'; t=s.length>3?s.slice(0,3):s; }
+    return `<span class="${cls}">${esc(t)}</span>`;
+  });
+  return '<div class="flow">'+cells.join('')+'</div>';
+}
+
+// ── 데이터 로드 ──
+async function loadAll(){
+  document.getElementById('setup-note').style.display = API ? 'none' : 'block';
+  if(!API){ updateHeaderDate(); return; }
+  document.getElementById('load-error').style.display='none';
+  document.getElementById('loading').style.display='block';
+  setTabsVisible(false);
+  try{
+    const r = await fetch(API+'?'+new URLSearchParams({action:'dashboard'}));
+    const d = await r.json();
+    if(d && d.error) throw new Error(d.error);
+    DATA = d;
+    allOrders = d.orders || [];
+    buildStoreSelect();
+    renderAll();
+    setTabsVisible(true);
+  }catch(err){
+    const el = document.getElementById('load-error');
+    el.textContent = '데이터를 불러오지 못했습니다: ' + err.message;
+    el.style.display = 'block';
+  }finally{
+    document.getElementById('loading').style.display='none';
+    updateHeaderDate();
+  }
+}
+function updateHeaderDate(){
+  const now = new Date();
+  let t = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+  if(DATA && DATA.generatedAt) t += ' · 서버 ' + fmtDT(DATA.generatedAt);
+  document.getElementById('headerDate').textContent = t;
+}
+
+// ── 탭 ──
+let activeTab = 'flow';
+function showTab(name){
+  activeTab = name;
+  ['flow','orders','closing','month'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = (t===name && DATA) ? 'block' : 'none';
+    document.getElementById('navtab-'+t).classList.toggle('active', t===name);
+  });
+}
+function setTabsVisible(on){
+  ['flow','orders','closing','month'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = (on && t===activeTab) ? 'block' : 'none';
+  });
+}
+
+function renderAll(){
+  renderFlow();
+  renderOrders();
+  renderClosing();
+  initMonthPick();
+  renderMonth();
+  showTab(activeTab);
+}
+
+// ── 탭1: 업무 흐름 ──
+function renderFlow(){
+  const rows = allOrders.filter(isNormal);
+  const today = new Date();
+  const wk = daysAgo(6);
+
+  const cToday  = rows.filter(r=>isSameLocalDate(r['수집일자'], today)).length;
+  const cWeek   = rows.filter(r=>{ const d=toDate(r['수집일자']); return d && d>=wk; }).length;
+  const cActive = rows.filter(r=>!isCancelFamily(r)).length;
+  const cCancel = rows.filter(isCancelFamily).length;
+  const cAlert  = rows.filter(isAlertRow).length;
+
+  document.getElementById('collect-cards').innerHTML = [
+    card('오늘 수집', cToday, cToday>0?'blue':'gray', '수집일자 기준'),
+    card('최근 7일 수집', cWeek, 'dark', ''),
+    card('진행중 주문', cActive, 'blue', '취소·반품 계열 제외'),
+    card('취소·반품·교환', cCancel, cCancel>0?'orange':'gray', '수동 확인 대상'),
+    card('오류·제동', cAlert, cAlert>0?'red':'gray', '확인필요·오류·제동 Y')
+  ].join('');
+
+  const rs = DATA.rawSummary || {total:0, byStatus:{}, lastUploadAt:''};
+  const bs = rs.byStatus || {};
+  const parts = Object.keys(bs).map(k=>`${k} ${bs[k]}건`).join(' · ') || '없음';
+  document.getElementById('collect-hint').innerHTML =
+    `원본수집: 총 ${rs.total}건 (${esc(parts)})` + (rs.lastUploadAt ? ` · 마지막 업로드 ${fmtDT(rs.lastUploadAt)}` : '');
+
+  // 파이프라인 — 진행중(정상 & 비취소) 기준
+  const act = rows.filter(r=>!isCancelFamily(r));
+  document.getElementById('pipe-cards').innerHTML = PIPE_STAGES.map(st=>{
+    let wait=0, done=0, mid=0, bad=0, excl=0, notyet=0;
+    act.forEach(r=>{
+      const s = str(r[st.key]);
+      if(!s) notyet++;
+      else if(s==='제외') excl++;
+      else if(s==='대기') wait++;
+      else if(st.done.indexOf(s)>=0) done++;
+      else if(st.mid.indexOf(s)>=0) mid++;
+      else if(st.bad.indexOf(s)>=0) bad++;
+      else notyet += 0; // 알 수 없는 값은 아래 desc 합계에 안 잡히지만 추측 분류하지 않음
+    });
+    const numCls = bad>0 ? 'red' : (wait>0 ? 'orange' : (done>0 ? 'green' : 'gray'));
+    const descBits = [];
+    if(mid>0) descBits.push(`파일생성 ${mid}`);
+    descBits.push(`<span class="d-green">완료 ${done}</span>`);
+    if(bad>0) descBits.push(`<span class="d-red">오류 ${bad}</span>`);
+    descBits.push(`미도달 ${notyet}`);
+    if(excl>0) descBits.push(`제외 ${excl}`);
+    return card(st.name, wait, numCls, descBits.join(' · '), true);
+  }).join('');
+
+  // 오류·제동 테이블 — 원장 행 + 91_오류로그 미처리 건
+  const alertRows = rows.filter(isAlertRow);
+  const errLogs = (DATA.errLogs||[]);
+  const body = [];
+  alertRows.forEach(r=>{
+    const kind = str(r['제동여부'])==='Y' ? '제동' : str(r['오류상태']);
+    const detail = str(r['제동여부'])==='Y' ? (str(r['제동사유'])||str(r['오류내용'])) : (str(r['오류유형'])+' '+str(r['오류내용'])).trim();
+    body.push(`<tr><td>${fmtD(r['수집일자'])}</td><td>${esc(r['점포명'])}</td><td>${esc(r['사방넷주문번호'])}</td><td>${esc(r['모델코드'])}</td><td>${orderStateBadge(r['현재주문상태'])}</td><td><span class="badge bg-red">${esc(kind)}</span></td><td>${esc(detail)||'—'}</td></tr>`);
+  });
+  errLogs.forEach(e=>{
+    body.push(`<tr><td>${fmtD(e['발생일시'])}</td><td>${esc(e['점포명'])}</td><td>${esc(e['사방넷주문번호'])}</td><td>${esc(e['모델코드'])}</td><td><span class="badge bg-gray">오류로그</span></td><td><span class="badge bg-red">${esc(str(e['오류유형'])||'오류')}</span></td><td>${esc(e['오류내용'])||'—'}</td></tr>`);
+  });
+  document.getElementById('alert-body').innerHTML = body.length ? body.join('') : '<tr><td colspan="7" class="empty">확인할 오류·제동 건이 없습니다 ✅</td></tr>';
+  document.getElementById('alert-count').textContent = body.length ? body.length+'건' : '';
+
+  // 최근 실행 로그
+  const logs = DATA.runLogs || [];
+  document.getElementById('runlog-body').innerHTML = logs.length ? logs.map(l=>{
+    const resCls = str(l['실행결과'])==='성공' ? 'bg-green' : (str(l['실행결과'])==='실패' ? 'bg-red' : 'bg-orange');
+    return `<tr><td>${fmtDT(l['실행일시'])}</td><td>${esc(l['실행메뉴'])}</td><td>${esc(l['실행버튼'])}</td><td>${esc(l['실행구분'])}</td><td class="num">${esc(l['대상건수'])}</td><td class="num">${esc(l['성공건수'])}</td><td class="num">${esc(l['오류건수'])}</td><td><span class="badge ${resCls}">${esc(str(l['실행결과'])||'—')}</span></td><td>${esc(l['실행메시지'])}</td></tr>`;
+  }).join('') : '<tr><td colspan="9" class="empty">실행 로그가 없습니다</td></tr>';
+  document.getElementById('runlog-count').textContent = logs.length ? '최근 '+logs.length+'건' : '';
+}
+function card(label, n, cls, desc, alignTop){
+  return `<div class="card"><div class="card-label">${label}</div><div class="card-num ${cls}">${n}</div><div class="card-desc">${desc||''}</div></div>`;
+}
+
+// ── 탭2: 주문 목록 ──
+function buildStoreSelect(){
+  const sel = document.getElementById('orders-store');
+  const cur = sel.value;
+  const stores = [...new Set(allOrders.map(r=>str(r['점포명'])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+  sel.innerHTML = '<option value="">전체 점포</option>' + stores.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  sel.value = cur;
+}
+function setOrdersFilter(f, btn){
+  ordersFilter = f;
+  document.querySelectorAll('#orders-filter-tabs .filter-tab').forEach(b=>b.classList.toggle('active', b===btn));
+  renderOrders();
+}
+function renderOrders(){
+  if(!DATA) return;
+  const includeExcluded = document.getElementById('orders-include-excluded').checked;
+  const store = document.getElementById('orders-store').value;
+  const q = str(document.getElementById('orders-search').value).toLowerCase();
+
+  let rows = allOrders.filter(r=> includeExcluded ? true : isNormal(r));
+  if(ordersFilter==='active') rows = rows.filter(r=>isNormal(r) && !isCancelFamily(r));
+  else if(ordersFilter==='ship') rows = rows.filter(r=>str(r['현재주문상태'])==='출고대기');
+  else if(ordersFilter==='cancel') rows = rows.filter(isCancelFamily);
+  else if(ordersFilter==='alert') rows = rows.filter(isAlertRow);
+  if(store) rows = rows.filter(r=>str(r['점포명'])===store);
+  if(q) rows = rows.filter(r=>
+    [r['주문번호'], r['사방넷주문번호'], r['인수자'], r['모델코드'], r['상품명'], r['오더번호']]
+      .some(v=>str(v).toLowerCase().includes(q)));
+
+  rows = rows.slice().sort((a,b)=>{
+    const ta = toDate(a['수집일자']), tb = toDate(b['수집일자']);
+    return (tb?tb.getTime():0) - (ta?ta.getTime():0);
+  });
+  currentOrdersRows = rows;
+
+  const totalPay = rows.reduce((s,r)=>s+num(r['고객결제금액']),0);
+  const totalQty = rows.reduce((s,r)=>s+num(r['주문수량']),0);
+  document.getElementById('orders-summary').innerHTML =
+    `조회 결과 <strong>${rows.length}건</strong> · 수량 <strong>${totalQty.toLocaleString('ko-KR')}</strong> · 결제금액 합계 <strong>${money(totalPay)}원</strong>`;
+
+  const MAX = 500;
+  const shown = rows.slice(0, MAX);
+  document.getElementById('orders-body').innerHTML = shown.length ? shown.map(r=>`
+    <tr>
+      <td>${fmtD(r['수집일자'])}</td>
+      <td>${esc(r['점포명'])}</td>
+      <td>${esc(r['사방넷주문번호'])}</td>
+      <td>${esc(r['인수자'])}</td>
+      <td title="${esc(r['상품명'])}">${esc(r['모델코드'])||'<span class="badge bg-red">미매핑</span>'}</td>
+      <td class="num">${esc(r['주문수량'])}</td>
+      <td class="num">${money(r['고객결제금액'])}</td>
+      <td>${orderStateBadge(r['현재주문상태'])}</td>
+      <td>${esc(r['물류처'])}</td>
+      <td>${flowMini(r)}</td>
+    </tr>`).join('') + (rows.length>MAX ? `<tr><td colspan="10" class="empty">…외 ${rows.length-MAX}건 (CSV 다운로드로 전체 확인)</td></tr>` : '')
+    : '<tr><td colspan="10" class="empty">조건에 맞는 주문이 없습니다</td></tr>';
+}
+function downloadOrdersCsv(){
+  const rows = currentOrdersRows;
+  if(!rows.length){ alert('다운로드할 조회 결과가 없습니다.'); return; }
+  const cols = ['수집일자','점포명','주문번호','사방넷주문번호','오더번호','인수자','상품명','모델코드','주문수량',
+    '판매가','공급가','상품원가','고객결제금액','순이익액','순이익율','현재주문상태','물류처','매입처',
+    '창고업로드상태','택배사','택배송장번호','송장수신상태','사방넷송장업로드상태','거래처회신상태','ERP업로드상태','마감대조상태','오류상태','제동여부','사용여부'];
+  const lines = [cols.join(',')];
+  rows.forEach(r=>{
+    lines.push(cols.map(c=>{
+      let v = c==='수집일자' ? fmtD(r[c]) : str(r[c]);
+      if(/[",\n]/.test(v)) v = '"'+v.replace(/"/g,'""')+'"';
+      return v;
+    }).join(','));
+  });
+  const blob = new Blob(['﻿'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '매출_주문목록_'+fmtD(new Date())+'.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── 탭3: 마감·회신 ──
+function renderClosing(){
+  const rows = allOrders.filter(isActive);
+  const byStore = {};
+  rows.forEach(r=>{
+    const s = str(r['점포명']) || '(점포명 없음)';
+    if(!byStore[s]) byStore[s] = { n:0, inv:0, rWait:0, rFile:0, rSent:0, eWait:0, eDone:0, cOk:0, cBad:0, notyet:0 };
+    const g = byStore[s];
+    g.n++;
+    if(str(r['택배송장번호'])) g.inv++;
+    const rs = str(r['거래처회신상태']);
+    if(rs==='대기') g.rWait++;
+    else if(rs==='파일생성완료') g.rFile++;
+    else if(rs==='메일발송완료') g.rSent++;
+    const es = str(r['ERP업로드상태']);
+    if(es==='대기') g.eWait++;
+    else if(es==='업로드완료') g.eDone++;
+    const cs = str(r['마감대조상태']);
+    if(cs==='정상') g.cOk++;
+    else if(cs==='불일치'||cs==='확인필요') g.cBad++;
+    if(!rs && !es && !cs) g.notyet++;
+  });
+  const stores = Object.keys(byStore).sort((a,b)=>byStore[b].n - byStore[a].n);
+  document.getElementById('closing-count').textContent = stores.length+'개 점포 · '+rows.length+'건';
+  const cell = (v, cls) => v>0 ? `<td><span class="badge ${cls}">${v}</span></td>` : '<td><span class="badge bg-none">·</span></td>';
+  document.getElementById('closing-body').innerHTML = stores.length ? stores.map(s=>{
+    const g = byStore[s];
+    return `<tr><td>${esc(s)}</td><td class="num"><b>${g.n}</b></td><td class="num">${g.inv}</td>`
+      + cell(g.rWait,'bg-orange') + cell(g.rFile,'bg-blue') + cell(g.rSent,'bg-green')
+      + cell(g.eWait,'bg-orange') + cell(g.eDone,'bg-green')
+      + cell(g.cOk,'bg-green') + cell(g.cBad,'bg-red')
+      + `<td class="num">${g.notyet}</td></tr>`;
+  }).join('') : '<tr><td colspan="11" class="empty">진행중 주문이 없습니다</td></tr>';
+}
+
+// ── 탭4: 월 요약 ──
+function initMonthPick(){
+  const el = document.getElementById('month-pick');
+  if(!el.value){
+    const now = new Date();
+    el.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  }
+}
+function renderMonth(){
+  if(!DATA) return;
+  const ym = document.getElementById('month-pick').value;
+  const all = allOrders.filter(r=>isNormal(r) && ymOf(r['수집일자'])===ym);
+  const rows = all.filter(r=>!isCancelFamily(r));
+  const cancelRows = all.filter(isCancelFamily);
+
+  const sum = (arr,k)=>arr.reduce((s,r)=>s+num(r[k]),0);
+  const qty = sum(rows,'주문수량');
+  const pay = sum(rows,'고객결제금액');
+  const sale = sum(rows,'판매가');
+  const supply = sum(rows,'공급가');
+  const profit = sum(rows,'순이익액');
+  const rate = sale>0 ? (profit/sale*100) : 0;
+
+  document.getElementById('month-title').textContent = `📈 ${ym.replace('-','년 ')}월 매출 요약 — 취소·반품·교환 계열 제외`;
+  document.getElementById('month-cards').innerHTML = [
+    card('주문 건수 / 수량', `${rows.length}<span style="font-size:14px;color:var(--gray)"> / ${qty.toLocaleString('ko-KR')}</span>`, 'dark', ''),
+    card('결제금액 합계', money(pay), 'blue', '원'),
+    card('공급가 합계', money(supply), 'dark', '원'),
+    card('순이익 합계', money(profit), profit>=0?'green':'red', '원'),
+    card('순이익율', rate.toFixed(1)+'%', rate>=0?'green':'red', '판매가 기준')
+  ].join('');
+  document.getElementById('month-include-hint').innerHTML =
+    cancelRows.length
+      ? `참고: 취소·반품·교환 계열 <b>${cancelRows.length}건</b> 포함 시 — 건수 ${all.length}건 · 결제금액 ${money(sum(all,'고객결제금액'))}원 · 순이익 ${money(sum(all,'순이익액'))}원`
+      : '이 달은 취소·반품·교환 계열 주문이 없습니다.';
+
+  const group = (keyFn) => {
+    const m = {};
+    rows.forEach(r=>{
+      const k = keyFn(r) || '(없음)';
+      if(!m[k]) m[k] = { n:0, qty:0, pay:0, profit:0, sale:0 };
+      m[k].n++; m[k].qty+=num(r['주문수량']); m[k].pay+=num(r['고객결제금액']);
+      m[k].profit+=num(r['순이익액']); m[k].sale+=num(r['판매가']);
+    });
+    return Object.keys(m).map(k=>({k, ...m[k]})).sort((a,b)=>b.pay-a.pay);
+  };
+  const trow = g => `<tr><td>${esc(g.k)}</td><td class="num">${g.n}</td><td class="num">${g.qty.toLocaleString('ko-KR')}</td><td class="num">${money(g.pay)}</td><td class="num">${money(g.profit)}</td><td class="num">${g.sale>0?(g.profit/g.sale*100).toFixed(1)+'%':'—'}</td></tr>`;
+  const emptyRow = '<tr><td colspan="6" class="empty">해당 월 데이터가 없습니다</td></tr>';
+
+  const byStore = group(r=>str(r['점포명']));
+  const byModel = group(r=>str(r['모델코드']));
+  document.getElementById('month-store-body').innerHTML = byStore.length ? byStore.map(trow).join('') : emptyRow;
+  document.getElementById('month-model-body').innerHTML = byModel.length ? byModel.map(trow).join('') : emptyRow;
+}
+
+// ── 시작 ──
+loadAll();
+</script>
+</body>
+</html>
