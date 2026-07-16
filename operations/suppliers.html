@@ -432,6 +432,7 @@
             <th>수량</th>
             <th>납기요구일</th>
             <th>매입단가(VAT-)</th>
+            <th>이송</th>
           </tr>
         </thead>
         <tbody id="stock-detail-body"></tbody>
@@ -948,6 +949,52 @@
   </div>
 </div>
 
+<!-- [v22신규 2026-07-16] 재고 이송 모달 — 원장의 재고 "위치"만 옮긴다.
+     사용상태는 대기중 유지. 기존재고 전환·오더번호 연결은 매입처발주.py v1.11(업로드)이 담당. -->
+<div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:10px;padding:26px;width:480px;max-width:95vw">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px;color:var(--navy)">📦 재고 이송 — 위치만 이동</div>
+    <div style="font-size:12px;color:var(--gray);margin-bottom:16px">사용상태는 대기중 유지 · 기존재고 전환은 다음 발주총괄 업로드 때 자동</div>
+
+    <div id="transferInfo" style="background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">모델코드</span><strong id="tr-model"></strong></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">수량</span><span id="tr-qty"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">오더번호</span><span id="tr-orderno"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">현재 설치점</span><span id="tr-from"></span></div>
+    </div>
+
+    <div class="form-row full" style="margin-bottom:10px"><div>
+      <label>받을 설치점코드 <span>*</span></label>
+      <input type="text" id="tr-tocode" placeholder="예: 10000748">
+    </div></div>
+    <div class="form-row full" style="margin-bottom:10px"><div>
+      <label>받을 설치점주소</label>
+      <input type="text" id="tr-toaddr" placeholder="비우면 설치점목록에서 자동 조회">
+    </div></div>
+    <div class="form-row full" style="margin-bottom:14px"><div>
+      <label>메모 (주문번호·고객명)</label>
+      <input type="text" id="tr-memo" placeholder="예: 2128556608 권화자">
+    </div></div>
+
+    <div style="background:#FEF9E7;border:1px solid #F9A825;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.7">
+      ⚠️ 이 버튼은 <strong>원장의 재고 위치만</strong> 옮깁니다.<br>
+      <strong>캐리어 이송 요청</strong>과 <strong>사방넷 설치점 변경(출고대기)</strong>은 별도로 진행하세요.
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer">
+      <input type="checkbox" id="tr-chk" onchange="document.getElementById('tr-btn').disabled=!this.checked">
+      해피콜에서 이송이 결정된 건이 맞습니다
+    </label>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeTransferModal()" style="padding:9px 18px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:13px;font-weight:600">닫기</button>
+      <button id="tr-btn" onclick="doStockTransfer()" disabled style="padding:9px 18px;background:var(--green);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">이송 처리</button>
+    </div>
+    <div class="success-msg" id="tr-success"></div>
+    <div class="error-msg" id="tr-error"></div>
+  </div>
+</div>
+
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx9ibo2XK7OF4F-eqpXqBCoVpRE8Tq3dqXEKwziIuO0VWh1sGUi1UYNtEf6qEQYD5J7Bw/exec";
 
@@ -955,6 +1002,9 @@ let allOrders=[], allStock=[], allPrices=[], allWinsei=[], allStarion=[];
 let currentCarrierRowsForExport=[], currentWinseiRowsForExport=[], currentStarionRowsForExport=[];
 let currentOrderFilter='전체', selectedModel='', cancelTarget=null;
 let selectedStockModel = null;
+// [v22신규 2026-07-16] 재고 이송 버튼 — 세부 테이블 행을 인덱스로 참조하기 위한 평면 배열 + 이송 대상
+let stockDetailFlat = [];
+let stockTransferTarget = null;
 
 // ── 유틸 ──
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
@@ -1427,9 +1477,10 @@ function renderStockDetail(model){
   const panel = document.getElementById('stock-detail-panel');
   const tbody = document.getElementById('stock-detail-body');
   setText('stock-detail-title', `📋 ${model} — 세부 내역 (${rows.length}건)`);
+  stockDetailFlat = []; // [v22신규 2026-07-16] 이송 버튼이 참조할 행 배열 초기화
 
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="7" class="empty">데이터 없음</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" class="empty">데이터 없음</td></tr>';
     panel.style.display='block';
     return;
   }
@@ -1459,11 +1510,19 @@ function renderStockDetail(model){
         📍 ${nameLabel}
       </td>
       <td style="text-align:center;font-weight:700;color:var(--navy);font-size:14px">${g.total}대</td>
-      <td colspan="2"></td>
+      <td colspan="3"></td>
     </tr>`;
     // 세부 행
     g.rows.forEach(r=>{
       const hasOrder = r['오더번호'] && String(r['오더번호']).trim();
+      // [v22신규 2026-07-16] 이송 버튼 — 행 데이터를 stockDetailFlat에 담고 인덱스로 참조
+      //   (오더번호/주소를 HTML 속성에 직접 넣지 않아 이스케이프 문제가 없다)
+      //   오더번호 없는 재고는 서버(transferCarrierStock)가 행을 특정할 수 없으므로 비활성.
+      const flatIdx = stockDetailFlat.length;
+      stockDetailFlat.push(r);
+      const transferCell = hasOrder
+        ? `<button onclick="openTransferModal(${flatIdx})" style="background:var(--navy);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer">이송</button>`
+        : `<span style="color:var(--gray);font-size:10px">오더번호 필요</span>`;
       html += `<tr>
         <td style="padding-left:20px;font-size:11px;color:var(--gray)">${r['설치점코드']||'—'}</td>
         <td style="font-size:11px">${r['설치점명']||'—'}</td>
@@ -1472,6 +1531,7 @@ function renderStockDetail(model){
         <td style="text-align:center">${r['수량']||1}</td>
         <td>${fmtD(r['납기요구일'])||'—'}</td>
         <td>${r['매입단가(VAT-)']?wfmt(r['매입단가(VAT-)']):'—'}</td>
+        <td style="text-align:center">${transferCell}</td>
       </tr>`;
     });
   });
@@ -1480,6 +1540,60 @@ function renderStockDetail(model){
   panel.style.display='block';
   setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
 }
+
+// ── [v22신규 2026-07-16] 재고 이송 모달 ──
+// 원칙: 버튼은 재고 위치만 옮기고, 판단(기존재고 분류·오더번호 연결·사용중 전환)은
+// 전부 업로드(매입처발주.py v1.11)가 한다. 서버는 orderNo+대기중+모델코드+출발지코드로
+// 행을 특정하고, 하나로 특정되지 않으면 추측 없이 에러로 중단한다.
+function openTransferModal(flatIdx){
+  const r = stockDetailFlat[flatIdx];
+  if(!r){alert('행 정보를 찾을 수 없습니다. 화면을 새로고침해 주세요.');return;}
+  stockTransferTarget = r;
+  setText('tr-model',   r['모델코드']||'—');
+  setText('tr-qty',     r['수량']||1);
+  setText('tr-orderno', r['오더번호']||'—');
+  const fromName = r['설치점명'] ? `${r['설치점명']} (${r['설치점코드']||'—'})` : (r['설치점코드']||'—');
+  setText('tr-from', fromName);
+  document.getElementById('tr-tocode').value='';
+  document.getElementById('tr-toaddr').value='';
+  document.getElementById('tr-memo').value='';
+  document.getElementById('tr-chk').checked=false;
+  const trBtn=document.getElementById('tr-btn');
+  trBtn.disabled=true; trBtn.textContent='이송 처리';
+  document.getElementById('tr-success').style.display='none';
+  document.getElementById('tr-error').style.display='none';
+  document.getElementById('transferModal').style.display='flex';
+}
+function closeTransferModal(){
+  document.getElementById('transferModal').style.display='none';
+  stockTransferTarget=null;
+}
+async function doStockTransfer(){
+  if(!stockTransferTarget)return;
+  const r = stockTransferTarget;
+  const toCode    = document.getElementById('tr-tocode').value.trim();
+  const toAddress = document.getElementById('tr-toaddr').value.trim();
+  const memo      = document.getElementById('tr-memo').value.trim();
+  const fromCode  = String(r['설치점코드']||'').trim();
+  if(!toCode){showMsgBox('tr-error','받을 설치점코드를 입력하세요');return;}
+  if(toCode===fromCode){showMsgBox('tr-error','출발지와 도착지 설치점이 동일합니다');return;}
+  const btn=document.getElementById('tr-btn');
+  btn.disabled=true;btn.textContent='이송 중...';
+  try{
+    const result=await apiCall({
+      action:'transferCarrierStock',
+      orderNo:String(r['오더번호']||'').trim(),
+      modelCode:String(r['모델코드']||'').trim(),
+      fromCode, toCode, toAddress, memo
+    });
+    showMsgBox('tr-success',`이송 완료: ${result.from} → ${result.to}${result.toName?' ('+result.toName+')':''}`,true);
+    setTimeout(()=>{closeTransferModal();refreshStock();},1500);
+  }catch(e){
+    showMsgBox('tr-error','이송 실패: '+e.message);
+    btn.disabled=false;btn.textContent='이송 처리';
+  }
+}
+
 function filterOrders(f,btn){
   currentOrderFilter=f;
   document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>t.classList.remove('active'));
