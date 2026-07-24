@@ -5,13 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>매출 현황 — 풍림전자</title>
 <!--
-  sales.html v1.1 (2026-07-24) — 풍림전자 매출 현황판 (읽기 전용)
-  - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1) doGet API
+  sales.html v1.2 (2026-07-25) — 풍림전자 매출 현황판 (읽기 전용)
+  - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1.1) doGet API
   - 시트에 어떤 값도 쓰지 않는다. 표시 전용.
   - 탭: 업무 흐름 / 주문 목록 / 마감·회신 / 월 요약
   - 테스트: ?api=<API URL> 파라미터로 API 주소를 임시 지정할 수 있다.
   - v1.1: 최근 실행 로그 기본 3건만 표시, "전체보기" 버튼으로 확장(API가
     가져오는 최근 20건 범위 내에서 전체 표시 — 백엔드 변경 없음)
+  - v1.2: "업무 흐름" 탭에 "🧾 ERP 대조 현황" 섹션 추가 — 96_ERP대사용비교
+    탭의 마지막 갱신 시각(구글드라이브 자동 가져오기 기준, 30시간 넘게
+    갱신 안 되면 경고)과 등록 건수, 그리고 ERP업로드완료 건 중 "일별
+    자동대사로 처리된 건"과 "실제 아마란스 업로드까지 마친 건"을 구분해
+    보여줌. sales-dashboard.gs v1.1의 erpComparison 필드 + ERP업로드처리자
+    컬럼에 의존(둘 다 없으면 카드가 0/경고로만 표시되고 나머지 탭은
+    그대로 동작 — 백엔드가 방어적으로 설계되어 있음).
 -->
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -162,6 +169,9 @@
     <div class="section-title blue">🚚 출고 → 마감 파이프라인 (진행중 주문 기준)</div>
     <div class="cards six" id="pipe-cards"></div>
     <div class="card-hint">각 단계의 큰 숫자는 <b>대기(지금 처리할 일)</b> 건수입니다. "미도달"은 아직 앞 단계가 끝나지 않아 이 단계에 오지 않은 건수입니다.</div>
+    <div class="section-title green">🧾 ERP 대조 현황 (96_ERP대사용비교 기준)</div>
+    <div class="cards" id="erp-cards"></div>
+    <div class="card-hint" id="erp-hint"></div>
     <div class="table-wrap">
       <div class="table-header red"><span>🚨 오류·제동 — 사람이 확인할 것</span><span id="alert-count"></span></div>
       <div class="table-scroll">
@@ -484,6 +494,8 @@ function renderFlow(){
     if(excl>0) descBits.push(`제외 ${excl}`);
     return card(st.name, wait, numCls, descBits.join(' · '), true, wait>0?('pipe:'+idx):null);
   }).join('');
+  // ERP 대조 현황 (96_ERP대사용비교 최신성 + 자동대사/실제업로드 구분)
+  renderErpComparison();
   // 오류·제동 테이블 — 원장 행 + 91_오류로그 미처리 건
   const alertRows = rows.filter(isAlertRow);
   const errLogs = (DATA.errLogs||[]);
@@ -522,6 +534,43 @@ function toggleRunlog(){
   runlogShowAll = !runlogShowAll;
   renderRunlog();
 }
+// ERP 대조 현황 — 96_ERP대사용비교(사방넷↔ERP 대사자료) 최신성 + 원장의
+// ERP업로드상태/ERP업로드처리자로 "일별 자동대사로 끝난 건"과 "실제로
+// 아마란스에 업로드한 건"을 구분해 보여준다. 진행중(정상 & 비취소) 주문 기준.
+function renderErpComparison(){
+  const ec = (DATA && DATA.erpComparison) || { 존재여부:false, 행수:0, 마지막갱신일시:null };
+  const rows = allOrders.filter(isActive);
+  let autoDone = 0, manualDone = 0, fileReady = 0, mapMissing = 0;
+  rows.forEach(r=>{
+    const es = str(r['ERP업로드상태']);
+    if(es==='업로드완료'){
+      if(str(r['ERP업로드처리자']).indexOf('자동대사')>=0) autoDone++;
+      else manualDone++;
+    }else if(es==='파일생성완료'){
+      fileReady++;
+    }
+    if(str(r['오류상태'])==='확인필요' && str(r['오류유형'])==='점포명매핑누락') mapMissing++;
+  });
+  const lastDt = toDate(ec.마지막갱신일시);
+  let freshLabel = '가져온 적 없음', freshCls = 'red', staleHrs = null;
+  if(lastDt){
+    staleHrs = (Date.now() - lastDt.getTime()) / 3600000;
+    freshLabel = fmtDT(lastDt);
+    freshCls = staleHrs > 30 ? 'orange' : 'green';
+  }
+  document.getElementById('erp-cards').innerHTML = [
+    card('비교자료 마지막 갱신', freshLabel, freshCls, ec.존재여부 ? '96_ERP대사용비교' : '<span class="d-red">탭 없음</span>'),
+    card('비교자료 등록 건수', ec.행수, ec.행수>0?'dark':'gray', '현재 96_ERP대사용비교 행수'),
+    card('ERP 자동대사 완료', autoDone, autoDone>0?'blue':'gray', '일별 자동대사로 처리(수동 업로드 불필요)', false, autoDone>0?'erpAutoDone':null),
+    card('ERP 실제 업로드 완료', manualDone, manualDone>0?'green':'gray', '파일 생성→아마란스 업로드까지 완료', false, manualDone>0?'erpManualDone':null),
+    card('점포명매핑 확인필요', mapMissing, mapMissing>0?'red':'gray', '94_ERP거래처코드마스터 등록 필요', false, mapMissing>0?'erpMapMissing':null)
+  ].join('');
+  const staleWarn = (staleHrs!==null && staleHrs>30)
+    ? ' · <span class="d-red">⚠️ 비교자료가 30시간 넘게 갱신되지 않았습니다 — 구글드라이브 ERP비교자료_업로드용 폴더에 최신 대사자료를 올려주세요.</span>'
+    : (lastDt===null ? ' · <span class="d-red">⚠️ 아직 한 번도 자동 가져오기가 실행되지 않았습니다.</span>' : '');
+  document.getElementById('erp-hint').innerHTML =
+    `ERP 파일생성 대기(아직 업로드 전) <b>${fileReady}건</b>` + staleWarn;
+}
 function card(label, n, cls, desc, alignTop, drillKey){
   const clickable = drillKey ? ' clickable" onclick="openDrilldown(\''+drillKey+'\')' : '';
   return `<div class="card${clickable}"><div class="card-label">${label}</div><div class="card-num ${cls}">${n}</div><div class="card-desc">${desc||''}</div></div>`;
@@ -552,6 +601,15 @@ function openDrilldown(key){
     const st = PIPE_STAGES[Number(key.split(':')[1])];
     title = st.name + ' — 대기 중';
     list = rows.filter(r=>!isCancelFamily(r)).filter(r=>str(r[st.key])==='대기');
+  }else if(key==='erpAutoDone'){
+    title = 'ERP 자동대사 완료 (96_ERP대사용비교 기준으로 자동 처리됨)';
+    list = rows.filter(r=>!isCancelFamily(r) && str(r['ERP업로드상태'])==='업로드완료' && str(r['ERP업로드처리자']).indexOf('자동대사')>=0);
+  }else if(key==='erpManualDone'){
+    title = 'ERP 실제 업로드 완료 (파일 생성 → 아마란스 업로드)';
+    list = rows.filter(r=>!isCancelFamily(r) && str(r['ERP업로드상태'])==='업로드완료' && str(r['ERP업로드처리자']).indexOf('자동대사')<0);
+  }else if(key==='erpMapMissing'){
+    title = '점포명매핑 확인필요 (94_ERP거래처코드마스터 등록 필요)';
+    list = rows.filter(r=>!isCancelFamily(r) && str(r['오류상태'])==='확인필요' && str(r['오류유형'])==='점포명매핑누락');
   }else{
     return;
   }
