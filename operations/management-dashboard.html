@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>풍림전자 경영현황판</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --green: #2e7d32; --green-bg: #e8f5e9;
+    --orange: #e65100; --orange-bg: #fff3e0;
+    --red: #c62828; --red-bg: #ffebee;
+    --gray: #757575; --gray-bg: #f5f5f5;
+    --ink: #1a1a1a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    margin: 0; padding: 32px 20px; background: #fafafa; color: var(--ink);
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 28px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px; max-width: 900px;
+  }
+  .card {
+    background: #fff; border-radius: 12px; padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-top: 4px solid var(--gray);
+  }
+  .card.ok { border-top-color: var(--green); }
+  .card.warn { border-top-color: var(--orange); }
+  .card.bad { border-top-color: var(--red); }
+  .card.disabled { opacity: 0.55; }
+  .card-title { font-size: 13px; color: #666; margin-bottom: 8px; }
+  .card-value { font-size: 32px; font-weight: 700; line-height: 1; }
+  .card-value.small { font-size: 18px; font-weight: 600; }
+  .card-detail { font-size: 12px; color: #888; margin-top: 8px; line-height: 1.5; }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px;
+    margin-top: 6px; font-weight: 600;
+  }
+  .badge.ok { background: var(--green-bg); color: var(--green); }
+  .badge.warn { background: var(--orange-bg); color: var(--orange); }
+  .badge.bad { background: var(--red-bg); color: var(--red); }
+  .badge.gray { background: var(--gray-bg); color: var(--gray); }
+  .loading, .error { font-size: 13px; color: #888; padding: 20px 0; }
+  .error { color: var(--red); }
+  .refresh-row { margin-top: 20px; font-size: 12px; color: #999; }
+  .refresh-row button {
+    font-size: 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px;
+    padding: 4px 12px; cursor: pointer; margin-right: 8px;
+  }
+  .refresh-row button:hover { background: #f0f0f0; }
+</style>
+</head>
+<body>
+
+  <h1>📊 풍림전자 경영현황판</h1>
+  <div class="sub">Dr. Corcan 전용 — 사방넷 ↔ ERP(아마란스10) 대사 진행 상황을 한눈에 봅니다.</div>
+
+  <div id="content" class="grid">
+    <div class="loading">불러오는 중...</div>
+  </div>
+
+  <div class="refresh-row">
+    <button onclick="loadAll()">🔄 새로고침</button>
+    <span id="last-checked"></span>
+  </div>
+
+<script>
+  // 2026-07-26 배포 완료 — management-dashboard.gs를 별도 스탠드얼론
+  // Apps Script 프로젝트("경영현황판-백엔드")로 배포한 실제 웹 앱 URL.
+  const API_URL = 'https://script.google.com/macros/s/AKfycby1pREUI5J3TuHsrRXinIBSBytDISZbJlhuLj0P-n5vN13OCZqD_meWfUOXpzi1UatW/exec';
+
+  async function fetchAction(action) {
+    const res = await fetch(`${API_URL}?action=${encodeURIComponent(action)}&t=${Date.now()}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || `${action} 조회 실패`);
+    return json.data;
+  }
+
+  function shipmentCardHtml(d) {
+    if (d.대상건수 === 0) {
+      return `
+        <div class="card">
+          <div class="card-title">🚚 출고 대사 상태</div>
+          <div class="card-value small">대상 없음</div>
+          <div class="card-detail">ERP 업로드 완료로 표시된 사방넷 주문이 아직 없습니다.</div>
+        </div>`;
+    }
+    const pct = Math.round((d.출고확인됨 / d.대상건수) * 100);
+    const cls = d.비교자료비어있음 ? 'bad' : (d.출고미확인 === 0 ? 'ok' : (pct >= 80 ? 'warn' : 'bad'));
+    const badgeText = d.비교자료비어있음
+      ? '⚠️ 출고현황 비교자료 없음'
+      : (d.출고미확인 === 0 ? '✅ 전건 확인됨' : `⏳ ${d.출고미확인}건 미확인`);
+    return `
+      <div class="card ${cls}">
+        <div class="card-title">🚚 출고 대사 상태</div>
+        <div class="card-value">${pct}%</div>
+        <div class="card-detail">
+          ERP 업로드 완료 ${d.대상건수}건 중 실제 출고현황에서 확인됨 ${d.출고확인됨}건<br>
+          비교자료(98_출고현황비교) ${d.비교자료건수}행 · 마지막 갱신: ${d.마지막갱신일시 || '가져온 적 없음'}
+        </div>
+        <span class="badge ${cls === 'ok' ? 'ok' : cls === 'warn' ? 'warn' : 'bad'}">${badgeText}</span>
+      </div>`;
+  }
+
+  function placeholderCardHtml(title, icon) {
+    return `
+      <div class="card disabled">
+        <div class="card-title">${icon} ${title}</div>
+        <div class="card-value small">준비중</div>
+        <div class="card-detail">다음 단계에서 연결 예정입니다.</div>
+        <span class="badge gray">개발 예정</span>
+      </div>`;
+  }
+
+  async function loadAll() {
+    const content = document.getElementById('content');
+    content.innerHTML = '<div class="loading">불러오는 중...</div>';
+    try {
+      const shipment = await fetchAction('shipmentStatus');
+      content.innerHTML =
+        shipmentCardHtml(shipment) +
+        placeholderCardHtml('마감 대사 상태', '📋') +
+        placeholderCardHtml('미수금 현황', '💰');
+      document.getElementById('last-checked').textContent =
+        '마지막 조회: ' + new Date().toLocaleString('ko-KR');
+    } catch (e) {
+      content.innerHTML = `<div class="error">❌ 데이터 로드 실패: ${e.message}<br>API_URL이 올바른지, 웹 앱 배포 권한이 "누구나"로 되어 있는지 확인해주세요.</div>`;
+    }
+  }
+
+  loadAll();
+</script>
+
+</body>
+</html>
