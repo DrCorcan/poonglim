@@ -136,7 +136,6 @@ h1{
 .button.c-navy{ background:var(--navy); }
 .button.c-amber{ background:var(--amber); }
 .button.c-teal{ background:var(--teal); }
-
 /* 보조 카드 — 향후 추가 예정 */
 .card.minor{
     padding:18px 22px;
@@ -162,17 +161,39 @@ footer{
     font-size:12px;
     color:#B4B2A9;
 }
+/* 우하단 참조용 소형 버튼 — 경영현황판(Dr. Corcan 전용) 바로가기.
+   메인 카드와 동급으로 노출하지 않고, 필요한 사람만 알아보는
+   보조 링크 형태로만 둔다. */
+.fab-dashboard{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background:var(--ink);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    text-decoration:none;
+    box-shadow:0 4px 14px rgba(0,0,0,0.22);
+    opacity:0.55;
+    transition:opacity .15s, transform .15s;
+}
+.fab-dashboard:hover{
+    opacity:1;
+    transform:scale(1.06);
+}
 </style>
 </head>
 <body>
 <div class="container">
 <h1>풍림전자 업무포털</h1>
 <p class="subtitle">POONGLIM OPERATIONS PORTAL</p>
-
 <div class="section-label">매입 · 매출 · A/S — 사업 현황 한눈에 보기</div>
-
 <div class="card-grid">
-
 <div class="card accent-navy">
   <h2><span class="icon-badge ib-navy">📦</span><span class="title-text">매입 현황</span></h2>
   <a class="button c-navy" href="operations/suppliers.html">매입처 발주 관리 열기 →</a>
@@ -181,7 +202,6 @@ footer{
     가용재고, CS 관리, 취소 처리, 단가 추이를 통합 관리합니다.
   </p>
 </div>
-
 <div class="card accent-amber">
   <h2><span class="icon-badge ib-amber">🧾</span><span class="title-text">매출 현황</span></h2>
   <a class="button c-amber" href="operations/sales.html">매출 현황판 열기 →</a>
@@ -191,7 +211,6 @@ footer{
     <a href="operations/sabang-amaranth-workflow.html" style="color:var(--muted)">사방넷 · 아마란스 매일 업무 흐름 문서 →</a>
   </p>
 </div>
-
 <div class="card accent-teal">
   <h2><span class="icon-badge ib-teal">🔄</span><span class="title-text">A/S 및 회수 현황</span></h2>
   <a class="button c-teal" href="operations/hoisu-as.html">A/S 및 제품 회수 현황판 열기 →</a>
@@ -200,9 +219,7 @@ footer{
     택배 입고 처리, A/S 접수 및 처리 결과 입력이 가능합니다.
   </p>
 </div>
-
 </div>
-
 <div class="card minor">
   <h2>향후 추가 예정</h2>
   <ul>
@@ -212,9 +229,10 @@ footer{
     <li>신규 직원 교육자료</li>
   </ul>
 </div>
-
 <footer>풍림전자주식회사 경영관리실</footer>
-
 </div>
+
+<a class="fab-dashboard" href="operations/management-dashboard.html" title="경영현황판 (Dr. Corcan 전용)">📊</a>
+
 </body>
 </html>
