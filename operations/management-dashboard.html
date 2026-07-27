@@ -43,6 +43,8 @@
   .badge.warn { background: var(--orange-bg); color: var(--orange); }
   .badge.bad { background: var(--red-bg); color: var(--red); }
   .badge.gray { background: var(--gray-bg); color: var(--gray); }
+  .badge.clickable { cursor: pointer; text-decoration: underline; }
+  .badge.clickable:hover { opacity: 0.8; }
   .loading, .error { font-size: 13px; color: #888; padding: 20px 0; }
   .error { color: var(--red); }
   .refresh-row { margin-top: 20px; font-size: 12px; color: #999; }
@@ -51,6 +53,14 @@
     padding: 4px 12px; cursor: pointer; margin-right: 8px;
   }
   .refresh-row button:hover { background: #f0f0f0; }
+  .detail-box { margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; }
+  .detail-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .detail-table th, .detail-table td {
+    text-align: left; padding: 4px 6px; border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+  }
+  .detail-table th { color: #888; font-weight: 600; }
+  .detail-more { font-size: 11px; color: #999; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -79,6 +89,46 @@
     return json.data;
   }
 
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function truncateText(s, n) {
+    s = String(s == null ? '' : s);
+    return s.length > n ? s.slice(0, n) + '…' : s;
+  }
+
+  // v1.1: 미확인 목록을 펼쳐 보여주는 표. 여러 카드에서 재사용할 수 있게
+  // 범용으로 만들어둠(마감 대사 상태/미수금 현황 카드도 나중에 같은
+  // 패턴으로 "숫자 → 클릭 → 상세" 구조를 쓸 예정).
+  function detailTableHtml(boxId, rows, columns, moreNote) {
+    const thead = columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('');
+    const tbody = rows.map(row => {
+      const tds = columns.map(c => {
+        const raw = row[c.key];
+        const text = c.truncate ? truncateText(raw, c.truncate) : (raw == null ? '' : raw);
+        return `<td title="${escapeHtml(raw)}">${escapeHtml(text)}</td>`;
+      }).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `
+      <div id="${boxId}" class="detail-box" style="display:none;">
+        <table class="detail-table">
+          <thead><tr>${thead}</tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>
+        ${moreNote ? `<div class="detail-more">${escapeHtml(moreNote)}</div>` : ''}
+      </div>`;
+  }
+
+  function toggleDetail(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
   function shipmentCardHtml(d) {
     if (d.대상건수 === 0) {
       return `
@@ -90,9 +140,27 @@
     }
     const pct = Math.round((d.출고확인됨 / d.대상건수) * 100);
     const cls = d.비교자료비어있음 ? 'bad' : (d.출고미확인 === 0 ? 'ok' : (pct >= 80 ? 'warn' : 'bad'));
+    const badgeCls = cls === 'ok' ? 'ok' : cls === 'warn' ? 'warn' : 'bad';
+    const hasDetail = d.출고미확인 > 0 && Array.isArray(d.미확인목록) && d.미확인목록.length > 0;
     const badgeText = d.비교자료비어있음
       ? '⚠️ 출고현황 비교자료 없음'
-      : (d.출고미확인 === 0 ? '✅ 전건 확인됨' : `⏳ ${d.출고미확인}건 미확인`);
+      : (d.출고미확인 === 0 ? '✅ 전건 확인됨' : `⏳ ${d.출고미확인}건 미확인${hasDetail ? ' (클릭해서 보기)' : ''}`);
+    const badgeHtml = hasDetail
+      ? `<span class="badge ${badgeCls} clickable" onclick="toggleDetail('shipment-detail')">${badgeText}</span>`
+      : `<span class="badge ${badgeCls}">${badgeText}</span>`;
+    let detailHtml = '';
+    if (hasDetail) {
+      const moreNote = d.미확인목록잘림여부
+        ? `그 외 ${d.출고미확인 - d.미확인목록.length}건 더 있음(목록은 최대 ${d.미확인목록.length}건까지만 표시)`
+        : '';
+      detailHtml = detailTableHtml('shipment-detail', d.미확인목록, [
+        { key: '점포명', label: '점포명' },
+        { key: '주문번호', label: '주문번호' },
+        { key: '사방넷주문번호', label: '사방넷주문번호' },
+        { key: '상품명', label: '상품명', truncate: 18 },
+        { key: '모델코드', label: '모델코드' }
+      ], moreNote);
+    }
     return `
       <div class="card ${cls}">
         <div class="card-title">🚚 출고 대사 상태</div>
@@ -101,7 +169,8 @@
           ERP 업로드 완료 ${d.대상건수}건 중 실제 출고현황에서 확인됨 ${d.출고확인됨}건<br>
           비교자료(98_출고현황비교) ${d.비교자료건수}행 · 마지막 갱신: ${d.마지막갱신일시 || '가져온 적 없음'}
         </div>
-        <span class="badge ${cls === 'ok' ? 'ok' : cls === 'warn' ? 'warn' : 'bad'}">${badgeText}</span>
+        ${badgeHtml}
+        ${detailHtml}
       </div>`;
   }
 
