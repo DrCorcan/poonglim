@@ -21,7 +21,8 @@
   .sub { color: #666; font-size: 13px; margin-bottom: 28px; }
   .grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px; max-width: 900px;
+    gap: 16px; max-width: 1100px;
+    align-items: start;
   }
   .card {
     background: #fff; border-radius: 12px; padding: 20px;
@@ -31,6 +32,9 @@
   .card.warn { border-top-color: var(--orange); }
   .card.bad { border-top-color: var(--red); }
   .card.disabled { opacity: 0.55; }
+  /* v1.3: 상세 목록을 펼쳤을 때 그 카드만 그리드 전체 너비를 쓰게 해서
+     표가 좁은 카드 폭 안에 억지로 눌려 들어가지 않도록 함. */
+  .card.expanded { grid-column: 1 / -1; }
   .card-title { font-size: 13px; color: #666; margin-bottom: 8px; }
   .card-value { font-size: 32px; font-weight: 700; line-height: 1; }
   .card-value.small { font-size: 18px; font-weight: 600; }
@@ -45,22 +49,46 @@
   .badge.gray { background: var(--gray-bg); color: var(--gray); }
   .badge.clickable { cursor: pointer; text-decoration: underline; }
   .badge.clickable:hover { opacity: 0.8; }
-  .loading, .error { font-size: 13px; color: #888; padding: 20px 0; }
-  .error { color: var(--red); }
+  .loading { font-size: 13px; color: #888; padding: 20px 0; }
+  /* v1.3: 에러 메시지를 카드 형태의 눈에 띄는 박스로 - 원인 문구를
+     그대로 캡처해서 Claude에게 보여주면 바로 진단할 수 있게 안내 문구
+     포함. */
+  .error-box {
+    background: #fff; border: 1px solid var(--red-bg); border-left: 4px solid var(--red);
+    border-radius: 10px; padding: 16px 18px; max-width: 640px;
+    font-size: 13px; color: var(--ink); line-height: 1.6;
+  }
+  .error-box .error-title { color: var(--red); font-weight: 700; margin-bottom: 6px; }
+  .error-box .error-msg {
+    background: var(--red-bg); border-radius: 6px; padding: 8px 10px; margin: 8px 0;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px;
+    color: #8a1f1f; word-break: break-all;
+  }
+  .error-box .error-hint { color: #666; font-size: 12px; }
   .refresh-row { margin-top: 20px; font-size: 12px; color: #999; }
   .refresh-row button {
     font-size: 12px; border: 1px solid #ddd; background: #fff; border-radius: 6px;
     padding: 4px 12px; cursor: pointer; margin-right: 8px;
   }
   .refresh-row button:hover { background: #f0f0f0; }
-  .detail-box { margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; }
-  .detail-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .detail-table th, .detail-table td {
-    text-align: left; padding: 4px 6px; border-bottom: 1px solid #f0f0f0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+  .detail-box { margin-top: 14px; border-top: 1px solid #eee; padding-top: 14px; }
+  /* v1.3: 표를 감싸는 스크롤 컨테이너 - 화면이 좁으면 표 자체를 잘라
+     쓰는 대신 좌우로 스크롤되게 해서 내용이 뭉개지지 않게 함. */
+  .detail-table-wrap {
+    overflow-x: auto; border: 1px solid #eee; border-radius: 8px;
   }
-  .detail-table th { color: #888; font-weight: 600; }
-  .detail-more { font-size: 11px; color: #999; margin-top: 6px; }
+  .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 620px; }
+  .detail-table th, .detail-table td {
+    text-align: left; padding: 9px 14px; border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+  }
+  .detail-table th {
+    color: #555; font-weight: 700; background: #f7f7f8;
+  }
+  .detail-table tbody tr:last-child td { border-bottom: none; }
+  .detail-table tbody tr:nth-child(even) { background: #fafafa; }
+  .detail-table tbody tr:hover { background: #eef5ff; }
+  .detail-more { font-size: 12px; color: #999; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -78,6 +106,13 @@
   </div>
 
 <script>
+  // management-dashboard.html v1.3 (2026-07-27)
+  // v1.3 변경: (1) 상세 목록을 펼치면 그 카드가 그리드 전체 너비로
+  // 확장되도록(.card.expanded) 해서 표가 좁은 카드 폭에 눌려 뭉개지던
+  // 문제 해결. (2) 표 자체도 폰트 확대·줄무늬·가로 스크롤 컨테이너로
+  // 가독성 개선. (3) 에러 발생 시 원본 메시지 + "캡처해서 Claude에게
+  // 보여주기" 안내를 포함한 눈에 띄는 박스로 표시.
+  //
   // 2026-07-26 배포 완료 — management-dashboard.gs를 별도 스탠드얼론
   // Apps Script 프로젝트("경영현황판-백엔드")로 배포한 실제 웹 앱 URL.
   const API_URL = 'https://script.google.com/macros/s/AKfycby1pREUI5J3TuHsrRXinIBSBytDISZbJlhuLj0P-n5vN13OCZqD_meWfUOXpzi1UatW/exec';
@@ -108,6 +143,9 @@
     const tbody = rows.map(row => {
       const tds = columns.map(c => {
         const raw = row[c.key];
+        // v1.3: 카드가 펼쳐지면 전체 너비를 쓰므로 예전만큼 심하게 자를
+        // 필요가 없음 - truncate 지정 시에도 넉넉한 길이까지만 자르고,
+        // 표 자체는 detail-table-wrap이 가로 스크롤을 대신 처리한다.
         const text = c.truncate ? truncateText(raw, c.truncate) : (raw == null ? '' : raw);
         return `<td title="${escapeHtml(raw)}">${escapeHtml(text)}</td>`;
       }).join('');
@@ -115,18 +153,26 @@
     }).join('');
     return `
       <div id="${boxId}" class="detail-box" style="display:none;">
-        <table class="detail-table">
-          <thead><tr>${thead}</tr></thead>
-          <tbody>${tbody}</tbody>
-        </table>
+        <div class="detail-table-wrap">
+          <table class="detail-table">
+            <thead><tr>${thead}</tr></thead>
+            <tbody>${tbody}</tbody>
+          </table>
+        </div>
         ${moreNote ? `<div class="detail-more">${escapeHtml(moreNote)}</div>` : ''}
       </div>`;
   }
 
+  // v1.3: 상세 표를 펼칠 때 그 표를 담고 있는 카드에 'expanded'를 붙여
+  // 그리드 전체 너비로 확장시키고, 접을 때는 다시 원래 카드 크기로
+  // 되돌린다(표가 좁은 카드 폭 안에서 뭉개지는 문제 해결).
   function toggleDetail(id) {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    const card = el.closest('.card');
+    const willShow = el.style.display === 'none';
+    el.style.display = willShow ? 'block' : 'none';
+    if (card) card.classList.toggle('expanded', willShow);
   }
 
   function shipmentCardHtml(d) {
@@ -157,7 +203,7 @@
         { key: '점포명', label: '점포명' },
         { key: '주문번호', label: '주문번호' },
         { key: '사방넷주문번호', label: '사방넷주문번호' },
-        { key: '상품명', label: '상품명', truncate: 18 },
+        { key: '상품명', label: '상품명', truncate: 34 },
         { key: '모델코드', label: '모델코드' }
       ], moreNote);
     }
@@ -196,7 +242,19 @@
       document.getElementById('last-checked').textContent =
         '마지막 조회: ' + new Date().toLocaleString('ko-KR');
     } catch (e) {
-      content.innerHTML = `<div class="error">❌ 데이터 로드 실패: ${e.message}<br>API_URL이 올바른지, 웹 앱 배포 권한이 "누구나"로 되어 있는지 확인해주세요.</div>`;
+      // v1.3: 에러가 나면 무엇이 잘못됐는지(원본 메시지)와 다음에 뭘
+      // 하면 되는지(이 화면을 캡처해서 Claude에게 보여주기)를 한 박스에
+      // 같이 보여준다 - Dr. Corcan이 원인을 직접 해석할 필요 없이,
+      // 이 박스를 그대로 캡처해서 전달하면 Claude가 바로 진단 가능.
+      content.innerHTML = `
+        <div class="error-box">
+          <div class="error-title">⚠️ 데이터를 불러오지 못했습니다</div>
+          <div>아래 원본 오류 메시지를 그대로 캡처해서 Claude에게 보여주시면 원인을 바로 확인할 수 있어요.</div>
+          <div class="error-msg">${escapeHtml(e.message)}</div>
+          <div class="error-hint">참고로 흔한 원인은 API_URL이 바뀌었거나, 웹 앱 배포 권한이 "누구나"가 아니거나,
+          02_주문상세원장/98_출고현황비교 시트의 컬럼 이름이 바뀐 경우예요 - 다만 정확한 원인은
+          위 메시지를 보고 판단하는 게 가장 정확합니다.</div>
+        </div>`;
     }
   }
 
