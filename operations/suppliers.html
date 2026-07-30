@@ -1014,6 +1014,26 @@ function setDR(fId,tId,from,to){document.getElementById(fId).value=fmt(from);doc
 function showMsgBox(id,msg,isSuccess){const el=document.getElementById(id);if(!el)return;el.textContent=(isSuccess?'✅ ':'❌ ')+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
 function bdg(s){const m={'신규':'badge-new','발주중':'badge-jungoo','발주완료':'badge-done','기존재고':'badge-stock','주문취소':'badge-cancel','취소재고':'badge-cancel','해피콜대기':'badge-happy','발주대기':'badge-wait'};return'badge '+(m[s]||'');}
 function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleString();}
+// [2026-07-30신규] HTML 이스케이프 — 값 안의 따옴표·꺾쇠가 마크업을 깨뜨리지 않게 한다.
+// 배경: 발주현황 목록의 CS 버튼이 onclick 속성 안에 JSON.stringify(CS내용)을 그대로
+// 끼워 넣고 있었는데, JSON.stringify가 만드는 큰따옴표가 onclick="..." 속성을 조기에
+// 닫아버려 실제 렌더링된 onclick이 openCS('...','', 에서 잘려나갔다(2026-07-30 실물
+// 재현 확인). 값은 이스케이프하고, 함수 인자는 인덱스로만 넘기도록 함께 바꾼다.
+function esc_(v){
+  return String(v ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// 빈 값은 '—'로, 값이 있으면 이스케이프해서 표시
+function dv_(v){
+  const t=String(v ?? '').trim();
+  return t ? esc_(t) : '—';
+}
+// 금액 셀 — 0/빈값은 '—'
+function dmoney_(v){
+  const n=money_(v);
+  return n ? wfmt(n) : '—';
+}
 // [v9신규 2026-06-30] 윈세이/스타리온 마감 섹션에서 쓰던 숫자 파싱을 캐리어 마감금액 카드에도 동일하게 사용
 function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
 function currentYm_(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
@@ -1656,7 +1676,7 @@ function renderOrders(){
     <span style="width:14px;flex-shrink:0"></span>
   </div>
   <div style="padding:0 0 12px">`+
-  rows.map(r=>{
+  rows.map((r,i)=>{
     const isCS=r['CS여부']==='Y';
     // [2026-06-30 2차 수정] 목록 금액을 VAT포함 한 줄 표시에서 VAT제외/VAT포함 병기로 변경.
     // 마감금액(매입정산 기준)이 없는 행(백필 전이거나 단가 매칭 실패한 구형 모델 등)은
@@ -1666,8 +1686,12 @@ function renderOrders(){
          <span style="font-size:11px;color:var(--gray);margin-left:4px">VAT+</span> ${wfmt(r['마감금액_VAT포함'])}`
       : (r['발주금액_VAT포함'] ? `${wfmt(r['발주금액_VAT포함'])} (발주서기준)` : '—');
     const sno=r['사방넷주문번호']||'';
-    const csContent=r['CS내용']||'';
-    const detailId='od-'+sno;
+    // [2026-07-30수정] detailId를 사방넷주문번호에서 조회결과 인덱스로 변경.
+    // 배경: 사방넷주문번호가 비어 있는 행(이마트 에브리데이 VRF 발주 등 사방넷 미경유)이
+    // 여러 건이면 id가 전부 'od-'로 같아져, getElementById가 항상 첫 행만 찾아
+    // 두 번째 행부터는 클릭해도 아무 반응이 없었다(2026-07-30 실물 재현으로 확인).
+    // v1.10 부분재고 분할로 같은 주문번호가 두 행으로 나뉘는 경우에도 같은 충돌이 있었다.
+    const detailId='od-'+i;
     const hasOrder=r['오더번호']&&String(r['오더번호']).trim();
     return`<div style="border-bottom:1px solid #F0F0F0;">
       <div style="display:flex;align-items:center;padding:10px 16px;gap:10px;cursor:pointer;${isCS?'background:#FEF9E7;border-left:3px solid var(--orange);':''}" onclick="toggleOD('${detailId}')">
@@ -1678,21 +1702,11 @@ function renderOrders(){
         <span style="color:var(--dark);flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r['실구매자명']||''} ${r['채널']?'('+r['채널']+')':''}</span>
         <span style="font-size:12px;color:var(--dark);flex-shrink:0;white-space:nowrap">${amtHtml}</span>
         ${isCS?`<span style="color:var(--orange);font-weight:700;font-size:11px;flex-shrink:0">●CS</span>`:''}
-        <button onclick="event.stopPropagation();openCS('${sno}','${r['CS여부']||''}',${JSON.stringify(csContent)})" style="background:var(--blue);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">CS</button>
+        <button onclick="event.stopPropagation();openCSByIndex(${i})" style="background:var(--blue);color:white;border:none;padding:3px 10px;border-radius:10px;font-size:11px;cursor:pointer;flex-shrink:0">CS</button>
         <span style="color:var(--gray);font-size:11px;flex-shrink:0">▼</span>
       </div>
-      <div id="${detailId}" style="display:none;padding:10px 16px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px">
-          <div><span style="color:var(--gray)">오더번호: </span>${hasOrder?r['오더번호']:'<span style="color:var(--red)">미입력</span>'}</div>
-          <div><span style="color:var(--gray)">수량: </span>${r['수량']||1}</div>
-          <div><span style="color:var(--gray)">설치점: </span>${r['설치점코드']||'—'}</div>
-          <div><span style="color:var(--gray)">납기요구일: </span>${fmtD(r['납기요구일'])}</div>
-          <div><span style="color:var(--gray)">우편번호: </span>${r['실구매자우편번호']||'—'}</div>
-          <div style="grid-column:span 3"><span style="color:var(--gray)">주소: </span>${r['실구매자주소']||'—'}</div>
-        </div>
-        ${r['물류메시지']?`<div><span style="color:var(--gray)">물류메시지: </span>${r['물류메시지']}</div>`:''}
-        ${r['배송구분']==='설치점' && r['마감금액_VAT포함']?`<div style="margin-top:6px"><span style="color:var(--gray)">매입정산 마감금액(설치비포함, VAT+): </span><strong>${wfmt(r['마감금액_VAT포함'])}</strong></div>`:''}
-        ${isCS&&csContent?`<div style="margin-top:6px;padding:6px 10px;background:#FEF9E7;border-radius:4px"><span style="color:var(--orange);font-weight:700">CS내용: </span>${csContent}</div>`:''}
+      <div id="${detailId}" style="display:none;padding:4px 16px 14px;background:#F8FAFC;border-top:1px solid #EEE;font-size:12px">
+        ${orderDetailHtml_(r)}
       </div>
     </div>`;
   }).join('')+`</div>
@@ -1703,6 +1717,88 @@ function renderOrders(){
   </div>`;
 }
 
+// [2026-07-30신규] 발주현황 행 상세 — 캐리어_발주원장(CARRIER_COLS) 항목을 구역별로 전부 보여준다.
+// 배경: 구글시트에는 값이 잘 들어갔는데 화면에서 확인할 방법이 없어(주소/전화번호 등이
+// 안 나옴) 업로드가 제대로 됐는지 대조가 안 된다는 Dr. Corcan 요청(2026-07-30).
+// 원장에 없는 컬럼은 조용히 '—'로 표시되므로, API가 일부 컬럼을 안 내려줘도 화면이 깨지지 않는다.
+function odCell_(label, valueHtml, span){
+  return '<div'+(span?' style="grid-column:span '+span+'"':'')+'>'
+       + '<span style="color:var(--gray)">'+label+': </span>'+valueHtml+'</div>';
+}
+function odSection_(title){
+  return '<div style="font-size:11px;font-weight:700;color:var(--navy);margin:10px 0 5px;padding-bottom:3px;border-bottom:1px solid #E3E8EE">'+title+'</div>';
+}
+function orderDetailHtml_(r){
+  const 오더 = String(r['오더번호']||'').trim();
+  const 오더Html = 오더 ? esc_(오더) : '<span style="color:var(--red)">미입력</span>';
+  const sno = String(r['사방넷주문번호']||'').trim();
+  const snoHtml = sno ? esc_(sno) : '<span style="color:var(--gray)">없음 (사방넷 미경유 건)</span>';
+  const G = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px">';
+
+  let h = '';
+  h += odSection_('📋 주문 정보');
+  h += G;
+  h += odCell_('접수일',   dv_(fmtD(r['접수일'])));
+  h += odCell_('완료여부', dv_(r['완료여부']));
+  h += odCell_('처리구분', dv_(r['처리구분']));
+  h += odCell_('채널',     dv_(r['채널']));
+  h += odCell_('모델코드', dv_(r['모델코드']));
+  h += odCell_('수량',     dv_(r['수량']||1));
+  h += odCell_('배송구분', dv_(r['배송구분']));
+  h += odCell_('구분',     dv_(r['구분']));
+  h += odCell_('사방넷주문번호', snoHtml);
+  h += odCell_('오더번호', 오더Html);
+  h += odCell_('설치점구분', dv_(r['설치점구분']));
+  h += odCell_('설치점코드', dv_(r['설치점코드']));
+  h += odCell_('납기요구일', dv_(fmtD(r['납기요구일'])));
+  h += odCell_('주문상태',   dv_(r['주문상태']));
+  h += odCell_('처리키',     dv_(r['처리키']), 2);
+  h += '</div>';
+
+  h += odSection_('👤 고객 · 배송 정보');
+  h += G;
+  h += odCell_('주문자명',   dv_(r['주문자명']));
+  h += odCell_('실구매자명', dv_(r['실구매자명']));
+  h += odCell_('휴대폰',     dv_(r['실구매자휴대폰']));
+  h += odCell_('전화번호',   dv_(r['실구매자전화번호']));
+  h += odCell_('우편번호',   dv_(r['실구매자우편번호']));
+  h += odCell_('주소',       dv_(r['실구매자주소']), 3);
+  h += odCell_('설치점주소', dv_(r['설치점주소']), 4);
+  h += '</div>';
+
+  h += odSection_('💰 금액 정보');
+  h += G;
+  h += odCell_('캐리어공급가(VAT-)', dmoney_(r['캐리어공급가_VAT제외']));
+  h += odCell_('발주금액(VAT+)',     dmoney_(r['발주금액_VAT포함']));
+  h += odCell_('설치비(VAT-)',       dmoney_(r['설치비_VAT제외']));
+  h += odCell_('마감단가(VAT-)',     dmoney_(r['마감단가_VAT제외']));
+  h += odCell_('<strong>마감금액(VAT-)</strong>', '<strong>'+dmoney_(r['마감금액_VAT제외'])+'</strong>');
+  h += odCell_('<strong>마감금액(VAT+)</strong>', '<strong>'+dmoney_(r['마감금액_VAT포함'])+'</strong>');
+  h += '</div>';
+
+  const 물류 = String(r['물류메시지']||'').trim();
+  if(물류){
+    h += '<div style="margin-top:10px;padding:7px 10px;background:#EBF5FB;border-radius:4px">'
+       + '<span style="color:var(--gray)">물류메시지: </span>'+esc_(물류)+'</div>';
+  }
+  const csContent = String(r['CS내용']||'').trim();
+  if(String(r['CS여부']||'').trim()==='Y' && csContent){
+    h += '<div style="margin-top:6px;padding:6px 10px;background:#FEF9E7;border-radius:4px">'
+       + '<span style="color:var(--orange);font-weight:700">CS내용: </span>'+esc_(csContent)+'</div>';
+  }
+  return h;
+}
+// CS 버튼은 값을 인라인으로 넘기지 않고 현재 조회결과 배열의 인덱스만 넘긴다.
+function openCSByIndex(i){
+  const r = currentCarrierRowsForExport[i];
+  if(!r){alert('행 정보를 찾을 수 없습니다. 새로고침 후 다시 시도해 주세요.');return;}
+  const sno = String(r['사방넷주문번호']||'').trim();
+  if(!sno){
+    alert('사방넷주문번호가 없는 건은 CS 입력을 사용할 수 없습니다.\n\nCS 저장은 사방넷주문번호로 원장 행을 찾기 때문입니다.\n(이마트 에브리데이 VRF 발주처럼 사방넷을 거치지 않는 건)');
+    return;
+  }
+  openCS(sno, r['CS여부']||'', r['CS내용']||'');
+}
 function toggleOD(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 // ── 해피콜대기 전용 뷰 ──
