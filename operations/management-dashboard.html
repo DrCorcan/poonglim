@@ -106,7 +106,19 @@
   </div>
 
 <script>
-  // management-dashboard.html v1.3 (2026-07-27)
+  // management-dashboard.html v1.4 (2026-07-30)
+  // v1.4 변경: 🆕 "이마트 에브리데이 매입↔매출 대사" 카드 신규 추가.
+  //   에브리데이는 사방넷을 거치지 않아 매입 원장과 매출/ERP 사이에
+  //   공통 키가 없다. 2026-07-29에 에브리데이 매출 11건(17,549,089원)이
+  //   원장에 아예 안 잡혀 있던 걸 뒤늦게 발견한 사고가 있었고, 이 카드가
+  //   그런 누락을 자동으로 드러내는 역할을 한다.
+  //   대사 키는 [매입 물류메시지의 점포명+발주일] ↔ [ERP 비고(내역)+출고일]
+  //   + [ERP 품번→92_품목마스터→모델코드]이며, 2026-07-30 실물 데이터로
+  //   전수 검증했다(상세: claude/에브리데이_매입매출_대사규칙.md).
+  //   ★ 에브리데이 카드 조회가 실패해도(예: 매입 시트 권한 문제) 출고
+  //     카드는 그대로 보이도록 각 카드를 개별적으로 try/catch 한다 —
+  //     한 카드의 문제가 현황판 전체를 못 쓰게 만들지 않도록.
+  //
   // v1.3 변경: (1) 상세 목록을 펼치면 그 카드가 그리드 전체 너비로
   // 확장되도록(.card.expanded) 해서 표가 좁은 카드 폭에 눌려 뭉개지던
   // 문제 해결. (2) 표 자체도 폰트 확대·줄무늬·가로 스크롤 컨테이너로
@@ -220,6 +232,83 @@
       </div>`;
   }
 
+  // v1.4: 'YYYYMMDD' → 'YYYY-MM-DD' (백엔드는 대사 키 형태 그대로 내려준다)
+  function formatYmd(v) {
+    const s = String(v == null ? '' : v);
+    return /^\d{8}$/.test(s) ? `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}` : s;
+  }
+
+  // v1.4: 이마트 에브리데이 매입↔매출 대사 카드.
+  // 숫자만 보여주지 않고 "무엇을 확인해야 하는지"를 바로 펼쳐볼 수 있게
+  // 출고 카드와 같은 배지→상세표 패턴을 그대로 재사용한다.
+  function everydayCardHtml(d) {
+    const 심각 = (d.수량불일치 || 0) + (d.매입없음 || 0) + (d.키추출실패 || 0);
+    const 확인 = d.확인필요건수 || 0;
+    const cls = 확인 === 0 ? 'ok' : (심각 > 0 ? 'bad' : 'warn');
+
+    const rows = (d.확인필요목록 || []).map(r => Object.assign({}, r, { 일자: formatYmd(r.일자) }));
+    const hasDetail = rows.length > 0;
+    const badgeText = 확인 === 0
+      ? '✅ 이상 없음'
+      : `⚠️ 확인 필요 ${확인}건${hasDetail ? ' (클릭해서 보기)' : ''}`;
+    const badgeHtml = hasDetail
+      ? `<span class="badge ${cls} clickable" onclick="toggleDetail('everyday-detail')">${badgeText}</span>`
+      : `<span class="badge ${cls}">${badgeText}</span>`;
+
+    const waitRows = (d.대기목록 || []).map(r => Object.assign({}, r, { 일자: formatYmd(r.일자) }));
+    const waitBadge = (d.매출대기 || 0) > 0 && waitRows.length > 0
+      ? ` <span class="badge gray clickable" onclick="toggleDetail('everyday-wait')">🟡 출고 대기 ${d.매출대기}건</span>`
+      : '';
+
+    const cols = [
+      { key: '구분', label: '구분' },
+      { key: '점포명', label: '점포명' },
+      { key: '일자', label: '발주/출고일' },
+      { key: '모델코드', label: '모델코드' },
+      { key: '매입수량', label: '매입' },
+      { key: '출고수량', label: '출고' },
+      { key: '비고', label: '비고', truncate: 46 }
+    ];
+
+    let detailHtml = '';
+    if (hasDetail) {
+      const moreNote = d.목록잘림여부
+        ? `그 외 ${확인 - rows.length}건 더 있음(목록은 최대 ${rows.length}건까지만 표시)`
+        : '';
+      detailHtml += detailTableHtml('everyday-detail', rows, cols, moreNote);
+    }
+    if (waitRows.length > 0) {
+      const waitNote = d.대기목록잘림여부
+        ? `그 외 ${d.매출대기 - waitRows.length}건 더 있음`
+        : '아직 발주 후 ' + d.지연기준일수 + '일이 안 지난 건입니다 — 정상적인 출고 대기 상태입니다.';
+      detailHtml += detailTableHtml('everyday-wait', waitRows, cols, waitNote);
+    }
+
+    return `
+      <div class="card ${cls}">
+        <div class="card-title">🏬 에브리데이 매입↔매출 대사</div>
+        <div class="card-value">${확인 === 0 ? '이상 없음' : 확인 + '건'}</div>
+        <div class="card-detail">
+          일치 ${d.일치}건 · 수량불일치 ${d.수량불일치}건 · 매출지연 ${d.매출지연}건 · 매입없음 ${d.매입없음}건<br>
+          설치용역 ${d.설치용역}건(매입 없는 게 정상) · 출고 대기 ${d.매출대기}건<br>
+          매입 원장 ${d.매입행수}행 ↔ ERP 출고 ${d.출고행수}행 · 지연 기준 ${d.지연기준일수}일
+        </div>
+        ${badgeHtml}${waitBadge}
+        ${detailHtml}
+      </div>`;
+  }
+
+  // v1.4: 카드 하나가 실패해도 나머지는 계속 보이게 하는 래퍼.
+  function failedCardHtml(title, icon, message) {
+    return `
+      <div class="card bad">
+        <div class="card-title">${icon} ${escapeHtml(title)}</div>
+        <div class="card-value small">불러오기 실패</div>
+        <div class="card-detail">아래 메시지를 캡처해서 Claude에게 보여주시면 원인을 바로 확인할 수 있어요.</div>
+        <div class="error-msg" style="margin-top:8px">${escapeHtml(message)}</div>
+      </div>`;
+  }
+
   function placeholderCardHtml(title, icon) {
     return `
       <div class="card disabled">
@@ -234,9 +323,22 @@
     const content = document.getElementById('content');
     content.innerHTML = '<div class="loading">불러오는 중...</div>';
     try {
-      const shipment = await fetchAction('shipmentStatus');
+      // v1.4: 카드별로 따로 받아온다. 한 카드가 실패해도(권한/헤더 변경 등)
+      // 나머지 카드는 정상적으로 보여야 하므로 Promise.allSettled를 쓴다.
+      const [shipRes, everydayRes] = await Promise.allSettled([
+        fetchAction('shipmentStatus'),
+        fetchAction('everydayReconcile')
+      ]);
+
+      // 출고 카드가 실패하면 그건 현황판의 근간이라 기존처럼 전체 에러로 처리.
+      if (shipRes.status === 'rejected') throw shipRes.reason;
+
       content.innerHTML =
-        shipmentCardHtml(shipment) +
+        shipmentCardHtml(shipRes.value) +
+        (everydayRes.status === 'fulfilled'
+          ? everydayCardHtml(everydayRes.value)
+          : failedCardHtml('에브리데이 매입↔매출 대사', '🏬',
+              (everydayRes.reason && everydayRes.reason.message) || String(everydayRes.reason))) +
         placeholderCardHtml('마감 대사 상태', '📋') +
         placeholderCardHtml('미수금 현황', '💰');
       document.getElementById('last-checked').textContent =
