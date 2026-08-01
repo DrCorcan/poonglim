@@ -333,7 +333,7 @@
         <div class="card carrier-close-toggle" onclick="toggleCarrierCloseDetails()">
           <div class="card-label">📦 <span data-close-month-label="carrier">이번달</span><br>마감건수</div>
           <div class="card-num blue" id="s-close-cnt">—</div>
-          <div class="card-desc" id="s-close-cnt-desc">접수일 기준 · 클릭하여 내역 보기</div>
+          <div class="card-desc" id="s-close-cnt-desc">마감월 기준 · 클릭하여 내역 보기</div>
         </div>
         <div class="card carrier-close-toggle" onclick="toggleCarrierCloseDetails()" style="text-align:left;padding:14px 16px">
           <div class="card-label" style="justify-content:flex-start">💰 <span data-close-month-label="carrier">이번달</span> 마감금액 — 설치 건은 설치비 포함</div>
@@ -355,15 +355,15 @@
           <div class="table-header">
             <span id="carrierCloseDetailsTitle">이번달 매입정산 마감 내역</span>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <span style="font-size:11px;color:#D6EAF8;font-weight:400">접수일 기준 · 발주완료만 집계 · 기존재고 제외</span>
+              <span style="font-size:11px;color:#D6EAF8;font-weight:400">매입마감월 지정분 우선 · 미지정은 접수일 · 발주완료만 · 기존재고 제외</span>
               <button onclick="downloadCarrierCloseCsv()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.45);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
             </div>
           </div>
-          <table><thead><tr><th>접수일</th><th>사방넷주문번호</th><th>오더번호</th><th>구매자</th><th>모델코드</th><th>수량</th><th>배송구분</th><th>마감금액(VAT-)</th><th>마감금액(VAT+)</th></tr></thead>
-          <tbody id="carrierCloseBody"><tr><td colspan="9" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
+          <table><thead><tr><th>접수일</th><th>마감기준월</th><th>사방넷주문번호</th><th>오더번호</th><th>구매자</th><th>모델코드</th><th>수량</th><th>배송구분</th><th>마감금액(VAT-)</th><th>마감금액(VAT+)</th></tr></thead>
+          <tbody id="carrierCloseBody"><tr><td colspan="10" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
         </div>
       </div>
-      <div class="card-hint">→ 선택한 마감 기준월의 접수일 기준으로 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 기존재고 사용 건은 과거에 매입할 때 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
+      <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
 
       <!-- 3-2단: 이번달 발주 현황 (건수만 참고용) -->
       <div class="section-title blue" style="margin-top:16px">📅 이번달 발주 현황</div>
@@ -1122,12 +1122,13 @@ function downloadCarrierOrdersCsv(){
     r['사방넷주문번호']||'',
     r['오더번호']||'',
     qty_(r['수량']),
+    carrierCloseYm_(r),
     money_(r['마감금액_VAT제외']),
     money_(r['마감금액_VAT포함'])
   ]);
   downloadCsv_(
     '캐리어_발주현황_'+fmt(new Date())+'.csv',
-    ['접수일','완료여부','모델코드','실구매자','채널','사방넷주문번호','오더번호','수량','마감금액(VAT-)','마감금액(VAT+)'],
+    ['접수일','완료여부','모델코드','실구매자','채널','사방넷주문번호','오더번호','수량','마감기준월','마감금액(VAT-)','마감금액(VAT+)'],
     csvRows
   );
 }
@@ -1141,6 +1142,8 @@ function downloadCarrierCloseCsv(){
 
   const csvRows=rows.map(r=>[
     fmtD(r['접수일']),
+    carrierCloseYm_(r),
+    carrierCloseYmIsExplicit_(r)?'지정':'',
     r['사방넷주문번호']||'',
     r['오더번호']||'',
     r['실구매자명']||'',
@@ -1153,7 +1156,7 @@ function downloadCarrierCloseCsv(){
 
   downloadCsv_(
     '캐리어_매입정산마감내역_'+ym+'.csv',
-    ['접수일','사방넷주문번호','오더번호','구매자','모델코드','수량','배송구분','마감금액(VAT-)','마감금액(VAT+)'],
+    ['접수일','마감기준월','마감월지정','사방넷주문번호','오더번호','구매자','모델코드','수량','배송구분','마감금액(VAT-)','마감금액(VAT+)'],
     csvRows
   );
 }
@@ -1244,10 +1247,39 @@ function updateHeaderDate(){
 // 기존재고는 과거 매입분이므로 이번 마감에서 제외된다.
 let carrierCloseDetailsOpen=false;
 
+// [2026-08-01신규] 캐리어 매입마감 귀속월 판정.
+// 배경: 캐리어 마감은 원래 '접수일의 월'로 집계해왔다. 발주하면 대체로 곧
+// 출고되니 접수일을 출고일의 근사치로 쓴 것인데, 2026-07-30 접수된 30대짜리
+// 대량 주문(EARP-0161GAWSD, 24,935,691원)이 8월에 출고되면서 그 근사가 깨졌다
+// — 7월 마감에 2,500만원이 잘못 얹히면 캐리어 마감명세서와 그만큼 어긋난다.
+// 참고로 다른 매입처는 이미 "물건이 실제로 나간 시점"을 기준으로 쓰고 있다
+// (윈세이=송장입력일, 스타리온=설치완료일). 캐리어만 그 필드가 없어 접수일로
+// 대신하고 있었던 것이라, 여기서 빠진 조각을 채운다.
+// 규칙: 캐리어_발주원장 '매입마감월'에 값이 있으면 그 월, 없으면 접수일의 월.
+// 과거 데이터는 전부 빈칸이라 지금까지의 집계 결과가 그대로 유지된다(하위호환).
+// 입력 형식은 관대하게 — 구글시트가 "2026-08"을 날짜로 자동 변환해 Date로
+// 넘기는 경우가 있어 텍스트/6자리/날짜형을 모두 'YYYY-MM'으로 해석한다.
+function carrierCloseYm_(r){
+  const raw=String(r['매입마감월'] ?? '').trim();
+  if(raw){
+    if(/^\d{4}-\d{2}$/.test(raw)) return raw;
+    const digits=raw.replace(/[^0-9]/g,'');
+    if(digits.length===6) return digits.slice(0,4)+'-'+digits.slice(4,6);
+    const parsed=monthOf_(raw);
+    if(/^\d{4}-\d{2}$/.test(parsed)) return parsed;
+  }
+  return monthOf_(r['접수일']);
+}
+// 사람이 마감월을 지정했고 그게 접수월과 다른 건 — 화면에서 강조 표시용
+function carrierCloseYmIsExplicit_(r){
+  const raw=String(r['매입마감월'] ?? '').trim();
+  return !!raw && carrierCloseYm_(r)!==monthOf_(r['접수일']);
+}
+
 function carrierCloseRows_(ym){
   return allOrders.filter(r=>{
     const complete=String(r['완료여부']||'').trim();
-    return complete==='발주완료' && monthOf_(r['접수일'])===ym;
+    return complete==='발주완료' && carrierCloseYm_(r)===ym;
   }).sort((a,b)=>{
     const aDate=fmtD(a['접수일'])||'9999-12-31';
     const bDate=fmtD(b['접수일'])||'9999-12-31';
@@ -1273,7 +1305,7 @@ function toggleCarrierCloseDetails(){
   const panel=document.getElementById('carrierCloseDetailsPanel');
   if(panel) panel.style.display=carrierCloseDetailsOpen?'block':'none';
   const guide=carrierCloseDetailsOpen?'▲ 접기':'클릭하여 내역 보기';
-  setText('s-close-cnt-desc',carrierCloseDetailsOpen?'접수일 기준 · '+guide: '접수일 기준 · '+guide);
+  setText('s-close-cnt-desc','마감월 기준 · '+guide);
   setText('s-closeamt-desc',guide);
 }
 
@@ -1284,15 +1316,21 @@ function renderCarrierCloseDetails(closeYm){
   const tbody=document.getElementById('carrierCloseBody');
   if(!tbody) return;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="9" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
     return;
   }
   tbody.innerHTML=rows.map(r=>{
     const net=money_(r['마감금액_VAT제외']);
     const gross=money_(r['마감금액_VAT포함']);
     const 오더=String(r['오더번호']||'').trim();
+    // 마감기준월이 접수월과 다르면(=매입마감월을 지정한 건) 눈에 띄게 표시
+    const 기준월=carrierCloseYm_(r);
+    const 기준월Html=carrierCloseYmIsExplicit_(r)
+      ? '<strong style="color:var(--orange)">'+기준월+'</strong><br><span style="font-size:10px;color:var(--gray)">마감월 지정</span>'
+      : '<span style="color:var(--gray)">'+기준월+'</span>';
     return '<tr>'
       + '<td>'+fmtD(r['접수일'])+'</td>'
+      + '<td>'+기준월Html+'</td>'
       + '<td>'+String(r['사방넷주문번호']||'')+'</td>'
       + '<td>'+(오더||'<span style="color:var(--red);font-size:11px">미입력</span>')+'</td>'
       + '<td>'+String(r['실구매자명']||'')+'</td>'
@@ -1752,7 +1790,13 @@ function orderDetailHtml_(r){
   h += odCell_('설치점코드', dv_(r['설치점코드']));
   h += odCell_('납기요구일', dv_(fmtD(r['납기요구일'])));
   h += odCell_('주문상태',   dv_(r['주문상태']));
-  h += odCell_('처리키',     dv_(r['처리키']), 2);
+  // [2026-08-01추가] 매입마감 귀속월 — 지정값이 있으면 강조, 없으면 접수월(자동)
+  const 마감기준월 = carrierCloseYm_(r);
+  const 마감기준월Html = carrierCloseYmIsExplicit_(r)
+    ? '<strong style="color:var(--orange)">'+esc_(마감기준월)+'</strong> <span style="font-size:10px;color:var(--gray)">(지정)</span>'
+    : esc_(마감기준월)+' <span style="font-size:10px;color:var(--gray)">(접수월 자동)</span>';
+  h += odCell_('매입마감월', 마감기준월Html);
+  h += odCell_('처리키',     dv_(r['처리키']));
   h += '</div>';
 
   h += odSection_('👤 고객 · 배송 정보');
