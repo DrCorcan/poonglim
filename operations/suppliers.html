@@ -1008,7 +1008,26 @@ let stockTransferTarget = null;
 
 // ── 유틸 ──
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
-function fmtD(v){if(!v)return'';const s=String(v).trim();if(/^\d{8}$/.test(s))return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8);if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const d=new Date(v);if(!isNaN(d))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return String(v).slice(0,10);}
+// [2026-08-01 수정] 구글시트의 '날짜형' 셀은 Apps Script→JSON을 거치며
+// UTC 표기 ISO 문자열로 넘어온다(예: KST 2026-08-01 00:00 → "2026-07-31T15:00:00.000Z").
+// 종전 코드는 이 문자열을 그대로 앞 10자리만 잘라 써서 9시간(하루, 월초면 한 달)이
+// 밀렸다. 실사고: 매입마감월에 2026-08을 적은 143행이 7월 마감에 잡히고,
+// 2026-07을 적은 43·45행이 7월 마감에서 빠졌다(2026-08-01 실물 확인).
+// → 'T'가 붙은 ISO 문자열은 반드시 Date로 파싱해 로컬(KST) 기준 연·월·일을 읽는다.
+function fmtD(v){
+  if(!v)return'';
+  const s=String(v).trim();
+  if(/^\d{8}$/.test(s))return s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8);
+  if(/^\d{4}-\d{2}-\d{2}[T ]/.test(s)){
+    const dt=new Date(s);
+    if(!isNaN(dt))return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  }
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s.slice(0,10);
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  const d=new Date(v);
+  if(!isNaN(d))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return String(v).slice(0,10);
+}
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function setDR(fId,tId,from,to){document.getElementById(fId).value=fmt(from);document.getElementById(tId).value=fmt(to);}
 function showMsgBox(id,msg,isSuccess){const el=document.getElementById(id);if(!el)return;el.textContent=(isSuccess?'✅ ':'❌ ')+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
