@@ -246,7 +246,7 @@
     <button class="nav-tab" onclick="showTab('cancel')">❌ 취소처리</button>
     <button class="nav-tab" onclick="showTab('csInput')">🚨 CS입력</button>
     <button class="nav-tab" onclick="showTab('price')">📈 단가추이</button>
-    <button class="nav-tab" onclick="showTab('erp')">🔍 ERP 대사</button>
+    <button class="nav-tab" onclick="showTab('erp')">🔍 매입 대사</button>
   </div>
 
   <!-- 탭0: 현황판 -->
@@ -365,6 +365,29 @@
         </div>
       </div>
       <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
+
+      <!-- 3-2-2단: 캐리어 전산 매입내역 대사 — 캐리어 청구 ↔ 우리 마감
+           [2026-08-02 신규] 서버 액션 getCarrierBuyReconcile(13_캐리어매입.gs).
+           위 마감금액 카드가 "우리가 얼마로 잡았나"라면 여기는 "캐리어가 얼마를 청구했나"다. -->
+      <div class="section-title dark" style="margin-top:16px">🧾 캐리어 청구 대사 <span id="cbReconMonthLabel" style="font-weight:400;font-size:12px">—</span></div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">🧾 캐리어 청구<br>세금계산서 기준</div>
+          <div class="card-num dark" id="s-cb-amt">—</div>
+          <div class="card-desc" id="s-cb-amt-desc">영업오더번호 기준 집계</div>
+        </div>
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">↔️ 우리 마감과<br>차이</div>
+          <div class="card-num orange" id="s-cb-diff">—</div>
+          <div class="card-desc" id="s-cb-diff-desc">클릭하여 상세 보기</div>
+        </div>
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">✅ 완전 일치<br>오더</div>
+          <div class="card-num green" id="s-cb-match">—</div>
+          <div class="card-desc" id="s-cb-match-desc">—</div>
+        </div>
+      </div>
+      <div class="card-hint">→ 캐리어 전산의 <b>매입내역 상세조회 리스트</b>를 그 달 누적으로 내려받아 <b>[매입 마감 &gt; 3. 캐리어 매입내역 가져오기]</b>로 올린 뒤 대사한 결과입니다. 캐리어는 한 오더를 실내기·실외기·설치자재로 쪼개 청구하므로 <b>영업오더번호로 집계</b>해서 비교합니다. 매입 후 전량 환입된 건은 순액 0이라 대사에서 빠집니다.</div>
 
       <!-- 3-3단: ERP(아마란스10) 입고 대사 — 발주원장 ↔ ERP 입고
            [2026-08-02 신규] 서버 액션 getErpReconcile(12_ERP대사.gs)의 결과를 그대로 보여준다.
@@ -701,6 +724,72 @@
       </div>
 
       <div class="card-hint" style="margin-top:14px">→ ①은 실장님이 아마란스10에 입고를 등록하시면 사라집니다. ②는 발주원장에 없는 입고라 오등록이거나 원장 누락입니다. ③④는 등록은 됐지만 금액·품번이 다른 건으로, 어느 쪽이 맞는지 확인해 <b>세금계산서·ERP·발주원장 세 곳을 함께</b> 맞춰야 합니다.</div>
+    </div>
+
+    <!-- ══════ 캐리어 청구 대사 ══════ -->
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
+      <span class="carrier-close-title-text">🧾 캐리어 청구 대사 <span id="cbTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+      <div class="carrier-close-month-inline" aria-label="캐리어 청구 대사 기준월">
+        <button class="carrier-close-month-btn" onclick="shiftCbReconMonth_(-1)">◀ 이전달</button>
+        <input type="month" id="cbReconMonth" onchange="loadCbRecon(true)" aria-label="캐리어 청구 대사 기준월">
+        <button class="carrier-close-month-btn" onclick="shiftCbReconMonth_(1)">다음달 ▶</button>
+        <button class="carrier-close-month-btn" onclick="loadCbRecon(true)">🔄 다시 대사</button>
+      </div>
+    </div>
+    <div style="margin:8px 0 2px"><span id="cbReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
+
+    <div id="cbReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
+    <div id="cbReconBody" style="display:none">
+
+      <div class="table-wrap" style="margin-top:4px">
+        <div class="table-header"><span>총액 대조</span></div>
+        <table><thead><tr><th>구분</th><th>오더 수</th><th>금액(VAT포함)</th></tr></thead>
+        <tbody id="cbSummaryBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>① 캐리어에만 있음 — 청구는 왔는데 우리 원장에 없음</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">발주원장 누락이거나 마감월이 다른 달로 잡혀 있는 건</span>
+        </div>
+        <table><thead><tr><th>오더번호</th><th>매입일</th><th>금액</th><th>수량</th><th>캐리어 행수</th><th>품목(일부)</th></tr></thead>
+        <tbody id="cbOnlyCarrierBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>② 우리에만 있음 — 마감은 잡았는데 캐리어 청구가 없음</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">아직 출고 전이거나 오더번호가 잘못 적힌 건</span>
+        </div>
+        <table><thead><tr><th>오더번호</th><th>접수일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>원장금액</th><th>원장행</th></tr></thead>
+        <tbody id="cbOnlyOursBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>③ 금액 다름</span>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11px;color:#D6EAF8;font-weight:400">대량할인·홈쇼핑 단가는 수작업 정정 대상</span>
+            <button onclick="downloadCbDiffCsv()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.45);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
+          </div>
+        </div>
+        <table><thead><tr><th>오더번호</th><th>매입일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>캐리어 청구</th><th>원장 마감</th><th>차이</th><th>원장행</th></tr></thead>
+        <tbody id="cbAmtBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>④ 환입 상쇄 — 매입 후 전량 환입되어 순액 0 (대사에서 제외)</span></div>
+        <table><thead><tr><th>원오더번호</th><th>매입일</th><th>환입오더번호</th><th>환입일</th><th>금액</th></tr></thead>
+        <tbody id="cbReturnBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>⑤ 오더번호가 비어 있는 발주원장 행 — 오더번호로 대조 불가</span></div>
+        <table><thead><tr><th>원장행</th><th>접수일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>금액</th></tr></thead>
+        <tbody id="cbNoOrderBody"></tbody></table>
+      </div>
+
+      <div class="card-hint" style="margin-top:14px">→ ①②가 0이면 오더 단위로는 빠짐없이 맞은 것입니다. ③만 남으면 그 금액이 곧 캐리어와의 차이이고, 대량할인·홈쇼핑 단가처럼 <b>정책상 예외</b>인 경우가 있으니 캐리어 오류로 단정하기 전에 확인하세요. VAT 반올림 ±2원은 자동으로 무시합니다.</div>
     </div>
   </div>
 
@@ -1383,6 +1472,102 @@ function carrierCloseYmIsExplicit_(r){
   const raw=String(r['매입마감월'] ?? '').trim();
   return !!raw && carrierCloseYm_(r)!==monthOf_(r['접수일']);
 }
+// [2026-08-02신규] 셀에 실제로 들어 있는 마감월('YYYY-MM'). 비어 있으면 ''.
+// carrierCloseYmIsExplicit_는 "접수월과 다른가"까지 보지만, 입력칸에 채울
+// 값은 접수월과 같더라도 저장된 값 그대로여야 하므로 따로 둔다.
+function carrierCloseYmRaw_(r){
+  const raw=String(r['매입마감월'] ?? '').trim();
+  if(!raw) return '';
+  if(/^\d{4}-\d{2}$/.test(raw)) return raw;
+  const digits=raw.replace(/[^0-9]/g,'');
+  if(digits.length===6) return digits.slice(0,4)+'-'+digits.slice(4,6);
+  const parsed=monthOf_(raw);
+  return /^\d{4}-\d{2}$/.test(parsed) ? parsed : '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// 매입마감월 화면 지정  [2026-08-02 신규]
+//   월말 주문이 익월로 출고 이월될 때, 구글시트를 열지 않고 여기서 지정한다.
+//   ★ 행 특정은 _row(시트 행번호)로 한다. 사방넷주문번호도 오더번호도
+//     여러 행에 걸칠 수 있어서 키로는 행을 하나로 못 좁힌다.
+//   ★ onclick 속성에는 숫자(rowNo)만 넘긴다. 값은 아래 맵에 담아둔다 —
+//     속성 안에 문자열을 끼워 넣으면 따옴표가 속성을 조기에 닫는다(v52 CS 사고).
+// ══════════════════════════════════════════════════════════════
+let closeMonthCtx = {};
+
+function addMonth_(ym, delta){
+  const [y,m]=String(ym||currentYm_()).split('-').map(Number);
+  const d=new Date(y,(m-1)+Number(delta||0),1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+
+function closeMonthEditorHtml_(r){
+  const rowNo=Number(r['_row']||0);
+  if(!rowNo){
+    return '<div style="grid-column:span 4;margin-top:4px;font-size:11px;color:var(--gray)">'
+         + '매입마감월을 화면에서 바꾸려면 웹앱을 <b>v17</b>로 다시 배포해야 합니다(행 정보가 오지 않습니다).</div>';
+  }
+  const 접수월=monthOf_(r['접수일']);
+  const cur=carrierCloseYmRaw_(r);
+  closeMonthCtx[rowNo]={
+    sno:String(r['사방넷주문번호']||'').trim(),
+    orderNo:String(r['오더번호']||'').trim(),
+    model:String(r['모델코드']||'').trim(),
+    접수월:접수월,
+    고객명:String(r['실구매자명']||'').trim()
+  };
+  const nextYm=addMonth_(접수월,1);
+  const btn='padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:white';
+  return `<div style="grid-column:span 4;margin-top:6px;padding:8px 10px;background:#FFF8E7;border:1px solid #F5D9A0;border-radius:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--gray)">출고가 다음 달로 넘어갔다면:</span>
+    <button onclick="event.stopPropagation();saveCloseMonth(${rowNo},'next')" style="${btn};background:var(--orange);color:white;border-color:var(--orange)">▶ ${esc_(nextYm)}로 이월</button>
+    <span style="width:1px;height:16px;background:#E0D0B0"></span>
+    <input type="month" id="cm-${rowNo}" value="${esc_(cur)}" onclick="event.stopPropagation()" style="padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;width:135px">
+    <button onclick="event.stopPropagation();saveCloseMonth(${rowNo},'save')" style="${btn}">저장</button>
+    <button onclick="event.stopPropagation();saveCloseMonth(${rowNo},'clear')" style="${btn};color:var(--gray)">지우기(접수월로)</button>
+  </div>`;
+}
+
+async function saveCloseMonth(rowNo, mode){
+  const ctx=closeMonthCtx[rowNo];
+  if(!ctx){ alert('행 정보를 찾지 못했습니다. 새로고침한 뒤 다시 시도하세요.'); return; }
+
+  let ym='';
+  if(mode==='clear')      ym='';
+  else if(mode==='next')  ym=addMonth_(ctx.접수월,1);
+  else {
+    const el=document.getElementById('cm-'+rowNo);
+    ym=el?String(el.value||'').trim():'';
+    if(!ym){ alert('지정할 월을 고르세요.\n접수월 기준으로 되돌리려면 [지우기]를 누르세요.'); return; }
+  }
+
+  const who=(ctx.고객명||ctx.orderNo||(rowNo+'행'));
+  const what=ym ? (ym+' 마감으로 지정') : ('지정 해제 — 접수월 '+ctx.접수월+' 기준으로 되돌림');
+  if(!confirm(who+' 건을\n'+what+'\n\n진행할까요?')) return;
+
+  try{
+    const res=await apiCall({
+      action:'updateCloseMonth', rowNo:rowNo, closeMonth:ym,
+      expectSaBangNo:ctx.sno, expectOrderNo:ctx.orderNo, expectModel:ctx.model
+    });
+
+    // 화면 데이터도 같이 고쳐 전체 새로고침 없이 즉시 반영한다
+    const row=allOrders.find(x=>Number(x['_row'])===Number(rowNo));
+    if(row) row['매입마감월']= ym ? (ym+'-01') : '';
+
+    // 서버에서 계산하는 두 대사는 기준이 바뀌었으니 다음에 볼 때 다시 받는다
+    erpRecon=null; cbRecon=null;
+
+    renderCarrierCloseAmt();
+    renderOrders();
+
+    alert(res.updated
+      ? ('✅ '+who+'\n매입마감월 '+(res.prev매입마감월||'(미지정)')+' → '+(res.매입마감월||('(미지정 · 접수월 '+res.접수월+')')))
+      : ('ℹ️ '+(res.note||'변경 사항이 없습니다.')));
+  }catch(e){
+    alert('❌ 저장 실패\n\n'+e.message);
+  }
+}
 
 function carrierCloseRows_(ym){
   return allOrders.filter(r=>{
@@ -1595,6 +1780,119 @@ function downloadErpMissCsv(){
   );
 }
 
+// ══════════════════════════════════════════════════════════════
+// 캐리어 청구 대사  [2026-08-02 신규]
+//   서버 액션 getCarrierBuyReconcile(13_캐리어매입.gs) 결과를 그대로 표시.
+//   ERP 대사와 같은 구조 — 화면에서 다시 집계하지 않는다.
+// ══════════════════════════════════════════════════════════════
+let cbRecon = null;
+let cbReconLoading = false;
+
+function shiftCbReconMonth_(delta){
+  const el=document.getElementById('cbReconMonth');
+  const base=(el&&el.value)||(cbRecon&&cbRecon.대상월)||currentYm_();
+  const [y,m]=String(base).split('-').map(Number);
+  const d=new Date(y,m-1+Number(delta||0),1);
+  if(el) el.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  loadCbRecon(true);
+}
+
+async function loadCbRecon(force){
+  if(cbReconLoading) return;
+  if(cbRecon && !force){ renderCbRecon(); return; }
+  cbReconLoading=true;
+  const L=document.getElementById('cbReconLoading'), B=document.getElementById('cbReconBody');
+  if(L){ L.style.display='block'; L.textContent='대사 결과를 불러오는 중…'; }
+  if(B) B.style.display='none';
+  try{
+    const mEl=document.getElementById('cbReconMonth');
+    const params={action:'getCarrierBuyReconcile'};
+    if(mEl && mEl.value) params.month=mEl.value;
+    cbRecon=await apiCall(params);
+    if(mEl && !mEl.value && cbRecon && cbRecon.대상월) mEl.value=cbRecon.대상월;
+    renderCbRecon();
+  }catch(e){
+    cbRecon=null;
+    setText('s-cb-amt','—'); setText('s-cb-diff','—'); setText('s-cb-match','—');
+    setText('s-cb-amt-desc','대사 실패');
+    if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">[97_캐리어매입] 탭이 비어 있으면 매입처 관리시트에서 [매입 마감 &gt; 3. 캐리어 매입내역 가져오기]를 먼저 실행하세요.</span>'; }
+  }finally{ cbReconLoading=false; }
+}
+
+function renderCbRecon(){
+  if(!cbRecon) return;
+  const R=cbRecon, s=R.요약||{};
+  const label=closeYmLabel_(R.대상월);
+  setText('cbReconMonthLabel','— '+label+' 기준');
+  setText('cbTabMonthLabel','— '+label+' 기준');
+  setText('cbReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
+
+  // ── 현황판 카드
+  const diff=Number(s.차이)||0;
+  const 어긋난=(R.캐리어에만||[]).length+(R.우리에만||[]).length+(R.금액다름||[]).length;
+  setText('s-cb-amt',s.캐리어금액?wfmt(s.캐리어금액):'—');
+  setText('s-cb-amt-desc',(s.캐리어오더수||0)+'개 오더 · 영업오더번호 기준 집계');
+  setText('s-cb-diff',diff?((diff>0?'+':'')+Math.round(diff).toLocaleString()):'0');
+  setText('s-cb-diff-desc',diff?'캐리어 청구가 우리 마감보다 '+(diff>0?'많음':'적음')+' · 클릭하여 상세':'✅ 총액 일치');
+  setText('s-cb-match',R.일치건수||0);
+  setText('s-cb-match-desc','어긋난 오더 '+어긋난+'건'+((R.환입상쇄||[]).length?(' · 환입 상쇄 '+R.환입상쇄.length+'쌍'):''));
+
+  // ── 총액 대조
+  document.getElementById('cbSummaryBody').innerHTML =
+    '<tr><td><b>캐리어 청구(세금계산서)</b></td><td>'+(s.캐리어오더수||0)+'</td><td style="text-align:right">'+wfmt(s.캐리어금액)+'</td></tr>'+
+    '<tr><td><b>우리 발주원장 마감</b></td><td>'+(s.원장오더수||0)+'</td><td style="text-align:right">'+wfmt(s.원장금액)+'</td></tr>'+
+    '<tr><td style="color:var(--gray)">　그중 오더번호 없는 행</td><td style="color:var(--gray)">'+(R.오더번호없음||[]).length+'행</td><td style="text-align:right;color:var(--gray)">'+((s.오더번호없음금액)?wfmt(s.오더번호없음금액):'—')+'</td></tr>'+
+    '<tr><td><b>차이</b></td><td>—</td><td style="text-align:right;font-weight:700;color:'+(diff?'var(--red)':'var(--green)')+'">'+(diff?((diff>0?'+':'')+Math.round(diff).toLocaleString()):'0')+'</td></tr>'+
+    '<tr><td>완전 일치 오더</td><td>'+(R.일치건수||0)+'</td><td>—</td></tr>';
+
+  // ── ① 캐리어에만
+  const a=R.캐리어에만||[];
+  document.getElementById('cbOnlyCarrierBody').innerHTML = a.length
+    ? a.map(x=>'<tr><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.매입일)+'</td><td style="text-align:right">'+wfmt(x.캐리어금액)+'</td><td>'+dv_(x.수량)+'</td><td>'+dv_(x.행수)+'</td><td>'+dv_(x.품목)+'</td></tr>').join('')
+    : '<tr><td colspan="6" class="empty">✅ 캐리어 청구가 전부 우리 원장에 있습니다</td></tr>';
+
+  // ── ② 우리에만
+  const b=R.우리에만||[];
+  document.getElementById('cbOnlyOursBody').innerHTML = b.length
+    ? b.map(x=>'<tr><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.접수일)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td><td style="text-align:right">'+wfmt(x.원장금액)+'</td><td>'+dv_(x.원장행)+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">✅ 우리 마감이 전부 캐리어에서 청구됐습니다</td></tr>';
+
+  // ── ③ 금액 다름
+  const c=R.금액다름||[];
+  document.getElementById('cbAmtBody').innerHTML = c.length
+    ? c.map(x=>'<tr><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.매입일)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.캐리어금액)+'</td><td style="text-align:right">'+wfmt(x.원장금액)+'</td>'
+        +'<td style="text-align:right;color:var(--red);font-weight:700">'+(Number(x.차이)>0?'+':'')+Math.round(Number(x.차이)||0).toLocaleString()+'</td>'
+        +'<td>'+dv_(x.원장행)+'</td></tr>').join('')
+    : '<tr><td colspan="9" class="empty">✅ 금액 차이가 없습니다</td></tr>';
+
+  // ── ④ 환입 상쇄
+  const d=R.환입상쇄||[];
+  document.getElementById('cbReturnBody').innerHTML = d.length
+    ? d.map(x=>'<tr><td>'+dv_(x.원오더번호)+'</td><td>'+dv_(x.매입일)+'</td><td>'+dv_(x.환입오더번호)+'</td><td>'+dv_(x.환입일)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td></tr>').join('')
+    : '<tr><td colspan="5" class="empty">환입 건이 없습니다</td></tr>';
+
+  // ── ⑤ 오더번호 없는 원장행
+  const e=R.오더번호없음||[];
+  document.getElementById('cbNoOrderBody').innerHTML = e.length
+    ? e.map(x=>'<tr><td>'+dv_(x.행)+'</td><td>'+dv_(x.접수일)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td></tr>').join('')
+    : '<tr><td colspan="6" class="empty">✅ 모든 발주원장 행에 오더번호가 있습니다</td></tr>';
+
+  const L=document.getElementById('cbReconLoading'), B=document.getElementById('cbReconBody');
+  if(L) L.style.display='none';
+  if(B) B.style.display='block';
+}
+
+function downloadCbDiffCsv(){
+  const rows=(cbRecon&&cbRecon.금액다름)||[];
+  if(!rows.length){ alert('다운로드할 금액 차이 건이 없습니다.'); return; }
+  downloadCsv_(
+    '캐리어청구_금액차이_'+((cbRecon&&cbRecon.대상월)||currentYm_())+'.csv',
+    ['오더번호','매입일','설치점','고객명','모델코드','캐리어청구','원장마감','차이','원장행'],
+    rows.map(x=>[x.오더번호,x.매입일,x.설치점,x.고객명,x.모델코드,x.캐리어금액,x.원장금액,x.차이,x.원장행])
+  );
+}
+
 async function loadAll(){
   updateHeaderDate();
   document.getElementById('dash-loading').style.display='block';
@@ -1654,9 +1952,10 @@ async function loadAll(){
     document.getElementById('dash-loading').style.display='none';
     document.getElementById('dash-content').style.display='block';
 
-    // ERP 대사는 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
-    // 실패해도 위 화면은 이미 다 그려진 상태다.
+    // 매입 대사 2종은 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
+    // 실패해도 위 화면은 이미 다 그려진 상태다. 서로도 독립적이다.
     loadErpRecon(false);
+    loadCbRecon(false);
   }catch(e){
     document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
   }
@@ -1682,7 +1981,7 @@ function showTab(tab){
   if(tab==='happycall') renderHappyCallList();
   if(tab==='csInput') renderCSList();
   if(tab==='price')   setTimeout(drawChart,50);
-  if(tab==='erp')     loadErpRecon(false);
+  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); }
 }
 
 async function refreshStock(){
@@ -2058,6 +2357,7 @@ function orderDetailHtml_(r){
     : esc_(마감기준월)+' <span style="font-size:10px;color:var(--gray)">(접수월 자동)</span>';
   h += odCell_('매입마감월', 마감기준월Html);
   h += odCell_('처리키',     dv_(r['처리키']));
+  h += closeMonthEditorHtml_(r);   // [2026-08-02추가] 월말 이월을 화면에서 지정
   h += '</div>';
 
   h += odSection_('👤 고객 · 배송 정보');
