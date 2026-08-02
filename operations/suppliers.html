@@ -325,9 +325,9 @@
       <div class="section-title dark carrier-close-title-row" style="margin-top:16px">
         <span class="carrier-close-title-text" id="carrierCloseTitle">🧾 이번달 매입정산 마감금액 — 설치비포함, 캐리어 마감 대조용</span>
         <div class="carrier-close-month-inline" aria-label="캐리어 매입정산 마감 기준월">
-          <button class="carrier-close-month-btn" onclick="shiftCloseMonth_('carrierCloseMonth',-1,'carrier')">◀ 이전달</button>
-          <input type="month" id="carrierCloseMonth" onchange="renderCarrierCloseAmt()" aria-label="캐리어 마감 기준월">
-          <button class="carrier-close-month-btn" onclick="shiftCloseMonth_('carrierCloseMonth',1,'carrier')">다음달 ▶</button>
+          <button class="carrier-close-month-btn" onclick="shiftMonthAll_(-1)">◀ 이전달</button>
+          <input type="month" id="carrierCloseMonth" onchange="setMonthAll_(this.value)" aria-label="매입 마감 기준월 — 아래 두 대사도 같이 바뀝니다">
+          <button class="carrier-close-month-btn" onclick="shiftMonthAll_(1)">다음달 ▶</button>
         </div>
       </div>
       <div class="cards" style="grid-template-columns:repeat(2,1fr)">
@@ -364,7 +364,7 @@
           <tbody id="carrierCloseBody"><tr><td colspan="10" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
         </div>
       </div>
-      <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
+      <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다. <b>여기서 월을 바꾸면 아래 캐리어 청구 대사·ERP 입고 대사도 같은 달로 함께 바뀝니다.</b></div>
 
       <!-- 3-2-2단: 캐리어 전산 매입내역 대사 — 캐리어 청구 ↔ 우리 마감
            [2026-08-02 신규] 서버 액션 getCarrierBuyReconcile(13_캐리어매입.gs).
@@ -671,7 +671,7 @@
       <span class="carrier-close-title-text">🔍 ERP 입고 대사 <span id="erpTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="ERP 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftErpReconMonth_(-1)">◀ 이전달</button>
-        <input type="month" id="erpReconMonth" onchange="loadErpRecon(true)" aria-label="ERP 대사 기준월">
+        <input type="month" id="erpReconMonth" onchange="setMonthAll_(this.value)" aria-label="ERP 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftErpReconMonth_(1)">다음달 ▶</button>
         <button class="carrier-close-month-btn" onclick="loadErpRecon(true)">🔄 다시 대사</button>
       </div>
@@ -731,7 +731,7 @@
       <span class="carrier-close-title-text">🧾 캐리어 청구 대사 <span id="cbTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="캐리어 청구 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftCbReconMonth_(-1)">◀ 이전달</button>
-        <input type="month" id="cbReconMonth" onchange="loadCbRecon(true)" aria-label="캐리어 청구 대사 기준월">
+        <input type="month" id="cbReconMonth" onchange="setMonthAll_(this.value)" aria-label="캐리어 청구 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftCbReconMonth_(1)">다음달 ▶</button>
         <button class="carrier-close-month-btn" onclick="loadCbRecon(true)">🔄 다시 대사</button>
       </div>
@@ -1661,14 +1661,42 @@ function erpDelayCell_(days){
   return '<span style="color:var(--gray)">⚪ 대기중</span>';
 }
 
-function shiftErpReconMonth_(delta){
-  const el=document.getElementById('erpReconMonth');
-  const base=(el&&el.value)||(erpRecon&&erpRecon.대상월)||currentYm_();
-  const [y,m]=String(base).split('-').map(Number);
-  const d=new Date(y,m-1+Number(delta||0),1);
-  if(el) el.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  loadErpRecon(true);
+// ── 기준월 하나로 묶기 [2026-08-02] ─────────────────────────────
+// 마감금액 · 캐리어 청구 대사 · ERP 입고 대사는 "이 달 매입을 닫는다"는
+// 하나의 맥락이다. 셋이 서로 다른 달을 보고 있으면 숫자를 나란히 놓고
+// 읽을 수가 없다(실제로 마감금액 8월 / 대사 7월로 갈려 있었다).
+// 어느 컨트롤에서 월을 바꾸든 세 곳이 같이 움직인다.
+let closeMonthUserSet = false;   // 사용자가 한 번이라도 월을 직접 골랐는가
+
+function setMonthAll_(ym, opts){
+  if(!/^\d{4}-\d{2}$/.test(String(ym||''))) return;
+  closeMonthUserSet = true;
+  ['carrierCloseMonth','erpReconMonth','cbReconMonth'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value=ym;
+  });
+  renderCarrierCloseAmt();
+  if(!opts || opts.reloadRecon!==false){ loadErpRecon(true); loadCbRecon(true); }
 }
+
+function shiftMonthAll_(delta){
+  const base=document.getElementById('carrierCloseMonth')?.value
+          || (erpRecon&&erpRecon.대상월) || (cbRecon&&cbRecon.대상월) || currentYm_();
+  setMonthAll_(addMonth_(base, delta));
+}
+
+// 첫 로딩 때는 사용자가 고른 값이 없다. 이때는 "대사 자료가 있는 최신 월"을
+// 기준으로 삼는다 — 그 달 누적 파일을 올리는 운영 방식이라, 8월 파일을
+// 올리면 자동으로 8월로 넘어가고 안 올렸으면 아직 7월을 닫는 중이라는 뜻이다.
+function adoptReconMonth_(ym){
+  if(closeMonthUserSet || !/^\d{4}-\d{2}$/.test(String(ym||''))) return;
+  const el=document.getElementById('carrierCloseMonth');
+  if(el && el.value===ym) return;
+  if(el) el.value=ym;
+  renderCarrierCloseAmt();
+}
+
+function shiftErpReconMonth_(delta){ shiftMonthAll_(delta); }
 
 async function loadErpRecon(force){
   if(erpReconLoading) return;
@@ -1704,6 +1732,7 @@ function renderErpRecon(){
   const label=closeYmLabel_(R.대상월);
   setText('erpReconMonthLabel','— '+label+' 기준');
   setText('erpTabMonthLabel','— '+label+' 기준');
+  adoptReconMonth_(R.대상월);
   setText('erpReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
 
   // ── 현황판 카드
@@ -1788,14 +1817,7 @@ function downloadErpMissCsv(){
 let cbRecon = null;
 let cbReconLoading = false;
 
-function shiftCbReconMonth_(delta){
-  const el=document.getElementById('cbReconMonth');
-  const base=(el&&el.value)||(cbRecon&&cbRecon.대상월)||currentYm_();
-  const [y,m]=String(base).split('-').map(Number);
-  const d=new Date(y,m-1+Number(delta||0),1);
-  if(el) el.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  loadCbRecon(true);
-}
+function shiftCbReconMonth_(delta){ shiftMonthAll_(delta); }
 
 async function loadCbRecon(force){
   if(cbReconLoading) return;
@@ -1826,6 +1848,30 @@ function renderCbRecon(){
   setText('cbReconMonthLabel','— '+label+' 기준');
   setText('cbTabMonthLabel','— '+label+' 기준');
   setText('cbReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
+
+  // ── 그 달 캐리어 매입내역이 아예 없는 경우
+  //    파일을 아직 안 올린 것뿐인데 "우리에만 있음 N건"으로 보이면
+  //    청구 누락으로 오해한다. 그래서 그 사실부터 먼저 알린다.
+  if((Number(s.캐리어오더수)||0)===0){
+    setText('s-cb-amt','—');
+    setText('s-cb-amt-desc','⚠️ '+label+' 캐리어 매입내역이 아직 없습니다');
+    setText('s-cb-diff','—');
+    setText('s-cb-diff-desc','캐리어 전산에서 내려받아 올린 뒤 다시 대사하세요');
+    setText('s-cb-match','—');
+    setText('s-cb-match-desc','우리 마감 '+(s.원장오더수||0)+'오더 / '+wfmt(s.원장금액));
+    document.getElementById('cbSummaryBody').innerHTML =
+      '<tr><td colspan="3" class="empty">⚠️ '+esc_(label)+' 캐리어 매입내역이 [97_캐리어매입] 탭에 없습니다.<br>'
+      + '캐리어 전산에서 그 달 누적으로 내려받아 <b>[매입 마감 &gt; 3. 캐리어 매입내역 가져오기]</b>를 실행한 뒤 [🔄 다시 대사]를 누르세요.<br>'
+      + '<span style="color:var(--gray)">우리 발주원장에는 '+(s.원장오더수||0)+'오더 '+wfmt(s.원장금액)+'이 잡혀 있습니다 — 청구 누락이 아니라 자료 미업로드입니다.</span></td></tr>';
+    ['cbOnlyCarrierBody','cbOnlyOursBody','cbAmtBody','cbReturnBody','cbNoOrderBody'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.innerHTML='<tr><td colspan="9" class="empty">캐리어 매입내역을 올린 뒤 확인할 수 있습니다</td></tr>';
+    });
+    const L0=document.getElementById('cbReconLoading'), B0=document.getElementById('cbReconBody');
+    if(L0) L0.style.display='none';
+    if(B0) B0.style.display='block';
+    return;
+  }
 
   // ── 현황판 카드
   const diff=Number(s.차이)||0;
