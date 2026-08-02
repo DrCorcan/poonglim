@@ -246,6 +246,7 @@
     <button class="nav-tab" onclick="showTab('cancel')">❌ 취소처리</button>
     <button class="nav-tab" onclick="showTab('csInput')">🚨 CS입력</button>
     <button class="nav-tab" onclick="showTab('price')">📈 단가추이</button>
+    <button class="nav-tab" onclick="showTab('erp')">🔍 ERP 대사</button>
   </div>
 
   <!-- 탭0: 현황판 -->
@@ -364,6 +365,30 @@
         </div>
       </div>
       <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다.</div>
+
+      <!-- 3-3단: ERP(아마란스10) 입고 대사 — 발주원장 ↔ ERP 입고
+           [2026-08-02 신규] 서버 액션 getErpReconcile(12_ERP대사.gs)의 결과를 그대로 보여준다.
+           계산은 전부 서버에서 하고 화면은 표시만 한다 — 캐리어 마감 카드처럼
+           화면에서 다시 집계하지 않는다(집계 로직이 두 군데로 갈라지면 어긋난다). -->
+      <div class="section-title dark" style="margin-top:16px">🔍 ERP 입고 대사 <span id="erpReconMonthLabel" style="font-weight:400;font-size:12px">—</span></div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">📥 ERP 미등록<br>건수</div>
+          <div class="card-num red" id="s-erp-miss-cnt">—</div>
+          <div class="card-desc" id="s-erp-miss-desc">발주했는데 ERP 입고가 없음</div>
+        </div>
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">💸 ERP 미등록<br>금액 (VAT포함)</div>
+          <div class="card-num red" id="s-erp-miss-amt">—</div>
+          <div class="card-desc">등록되면 사라집니다</div>
+        </div>
+        <div class="card" onclick="showTab('erp')">
+          <div class="card-label">⚠️ 어긋난 건<br>금액·품번·경고</div>
+          <div class="card-num orange" id="s-erp-diff">—</div>
+          <div class="card-desc" id="s-erp-diff-desc">클릭하여 상세 보기</div>
+        </div>
+      </div>
+      <div class="card-hint" id="erpReconHint">→ ERP(아마란스10) 입고 조회 자료를 매입처 관리시트의 <b>[ERP 입고 &gt; 1. ERP 입고 가져오기]</b>로 올린 뒤 대사한 결과입니다. 빨간 숫자는 <b>실장님이 ERP에 입고를 아직 등록하지 않은 건</b>이고, 주황은 등록은 됐지만 금액·품번이 발주원장과 다른 건입니다. 상세는 <b>🔍 ERP 대사</b> 탭에서 봅니다.</div>
 
       <!-- 3-2단: 이번달 발주 현황 (건수만 참고용) -->
       <div class="section-title blue" style="margin-top:16px">📅 이번달 발주 현황</div>
@@ -612,6 +637,70 @@
           <tbody id="priceBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- 탭7: ERP 입고 대사  [2026-08-02 신규] -->
+  <div id="tab-erp" style="display:none">
+    <!-- 월 선택·재대사 버튼은 어두운 제목줄 안에서만 보이는 스타일(.carrier-close-month-btn)이다.
+         흰 배경에 두면 흰 글자라 안 보인다 — 반드시 section-title.dark 안에 둘 것. -->
+    <div class="section-title dark carrier-close-title-row">
+      <span class="carrier-close-title-text">🔍 ERP 입고 대사 <span id="erpTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+      <div class="carrier-close-month-inline" aria-label="ERP 대사 기준월">
+        <button class="carrier-close-month-btn" onclick="shiftErpReconMonth_(-1)">◀ 이전달</button>
+        <input type="month" id="erpReconMonth" onchange="loadErpRecon(true)" aria-label="ERP 대사 기준월">
+        <button class="carrier-close-month-btn" onclick="shiftErpReconMonth_(1)">다음달 ▶</button>
+        <button class="carrier-close-month-btn" onclick="loadErpRecon(true)">🔄 다시 대사</button>
+      </div>
+    </div>
+    <div style="margin:8px 0 2px"><span id="erpReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
+
+    <div id="erpReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
+    <div id="erpReconBody" style="display:none">
+
+      <div class="table-wrap" style="margin-top:4px">
+        <div class="table-header"><span>매입처별 요약</span></div>
+        <table><thead><tr><th>매입처</th><th>ERP 입고 건수</th><th>ERP 입고 금액</th><th>발주원장 건수</th><th>발주원장 금액</th><th>ERP 미등록 건수</th><th>ERP 미등록 금액</th></tr></thead>
+        <tbody id="erpSummaryBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>① ERP 미등록 — 발주원장엔 있는데 ERP 입고가 없음</span>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11px;color:#D6EAF8;font-weight:400">D+0~4 대기중 · D+5~9 주의 · D+10~ 확인 필요</span>
+            <button onclick="downloadErpMissCsv()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.45);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
+          </div>
+        </div>
+        <table><thead><tr><th>상태</th><th>매입처</th><th>접수일</th><th>경과</th><th>오더번호</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th><th>사방넷주문번호</th></tr></thead>
+        <tbody id="erpMissBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>② 원장에 없는 ERP 입고</span></div>
+        <table><thead><tr><th>ERP행</th><th>입고일자</th><th>거래처</th><th>비고(내역)</th><th>주문번호</th><th>금액</th><th>사유</th></tr></thead>
+        <tbody id="erpOrphanBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>③ 금액 다름</span></div>
+        <table><thead><tr><th>매입처</th><th>오더번호</th><th>고객명</th><th>입고일자</th><th>ERP 금액</th><th>원장 금액</th><th>차이</th></tr></thead>
+        <tbody id="erpAmtBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>④ 품번·모델 다름</span></div>
+        <table><thead><tr><th>매입처</th><th>오더번호</th><th>고객명</th><th>입고일자</th><th>ERP 품번</th><th>ERP 품명</th><th>원장 모델코드</th></tr></thead>
+        <tbody id="erpModelBody"></tbody></table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header"><span>⑤ 경고</span></div>
+        <table><thead><tr><th>내용</th></tr></thead>
+        <tbody id="erpWarnBody"></tbody></table>
+      </div>
+
+      <div class="card-hint" style="margin-top:14px">→ ①은 실장님이 아마란스10에 입고를 등록하시면 사라집니다. ②는 발주원장에 없는 입고라 오등록이거나 원장 누락입니다. ③④는 등록은 됐지만 금액·품번이 다른 건으로, 어느 쪽이 맞는지 확인해 <b>세금계산서·ERP·발주원장 세 곳을 함께</b> 맞춰야 합니다.</div>
     </div>
   </div>
 
@@ -1363,6 +1452,149 @@ function renderCarrierCloseDetails(closeYm){
 }
 
 // ── 전체 로딩 ──
+// ══════════════════════════════════════════════════════════════
+// ERP(아마란스10) 입고 대사  [2026-08-02 신규]
+//   서버 액션 getErpReconcile(12_ERP대사.gs)의 결과를 그대로 표시한다.
+//   ★ 화면에서 다시 집계하지 않는다 — 집계 로직이 서버·화면 두 군데로
+//     갈라지면 어느 쪽이 맞는지 다투게 된다(v52 fmtD 사고의 교훈).
+//   ★ loadAll의 Promise.all에 넣지 않는다. 이 액션은 02_주문상세원장까지
+//     읽어서 다른 액션보다 느리므로, 현황판 첫 로딩을 붙잡지 않도록
+//     loadAll이 끝난 뒤 따로 띄운다(실패해도 나머지 화면엔 영향 없음).
+// ══════════════════════════════════════════════════════════════
+let erpRecon = null;
+let erpReconLoading = false;
+
+// 지연 판정 기준 — D+0~4 대기중(회색) / D+5~9 주의(노랑) / D+10~ 확인 필요(빨강)
+const ERP_DELAY_WARN = 5;
+const ERP_DELAY_ALERT = 10;
+
+function erpDelayCell_(days){
+  const d = Number(days);
+  if(!isFinite(d)) return '<span style="color:var(--gray)">—</span>';
+  if(d >= ERP_DELAY_ALERT) return '<span style="color:var(--red);font-weight:700">🔴 확인 필요</span>';
+  if(d >= ERP_DELAY_WARN)  return '<span style="color:var(--orange);font-weight:700">🟡 주의</span>';
+  return '<span style="color:var(--gray)">⚪ 대기중</span>';
+}
+
+function shiftErpReconMonth_(delta){
+  const el=document.getElementById('erpReconMonth');
+  const base=(el&&el.value)||(erpRecon&&erpRecon.대상월)||currentYm_();
+  const [y,m]=String(base).split('-').map(Number);
+  const d=new Date(y,m-1+Number(delta||0),1);
+  if(el) el.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  loadErpRecon(true);
+}
+
+async function loadErpRecon(force){
+  if(erpReconLoading) return;
+  if(erpRecon && !force) { renderErpRecon(); return; }
+  erpReconLoading = true;
+  const loadingEl=document.getElementById('erpReconLoading');
+  const bodyEl=document.getElementById('erpReconBody');
+  if(loadingEl){ loadingEl.style.display='block'; loadingEl.textContent='대사 결과를 불러오는 중…'; }
+  if(bodyEl) bodyEl.style.display='none';
+  try{
+    const monthEl=document.getElementById('erpReconMonth');
+    const params={action:'getErpReconcile'};
+    if(monthEl && monthEl.value) params.month=monthEl.value;
+    erpRecon = await apiCall(params);
+    // 서버가 정한 대상월을 화면 입력칸에 되돌려 준다(처음엔 비어 있으므로)
+    if(monthEl && !monthEl.value && erpRecon && erpRecon.대상월) monthEl.value=erpRecon.대상월;
+    renderErpRecon();
+  }catch(e){
+    erpRecon=null;
+    setText('s-erp-miss-cnt','—');
+    setText('s-erp-miss-amt','—');
+    setText('s-erp-diff','—');
+    setText('s-erp-miss-desc','대사 실패');
+    if(loadingEl){ loadingEl.style.display='block'; loadingEl.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">[97_ERP입고] 탭이 비어 있으면 매입처 관리시트에서 [ERP 입고 &gt; 1. ERP 입고 가져오기]를 먼저 실행하세요.</span>'; }
+  }finally{
+    erpReconLoading=false;
+  }
+}
+
+function renderErpRecon(){
+  if(!erpRecon) return;
+  const R=erpRecon;
+  const label=closeYmLabel_(R.대상월);
+  setText('erpReconMonthLabel','— '+label+' 기준');
+  setText('erpTabMonthLabel','— '+label+' 기준');
+  setText('erpReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
+
+  // ── 현황판 카드
+  const miss=R.ERP미등록||[];
+  const missAmt=miss.reduce((s,x)=>s+(Number(x.금액)||0),0);
+  const diffCnt=(R.금액다름||[]).length+(R.모델다름||[]).length+(R.원장에없음||[]).length+(R.경고||[]).length;
+  const alertCnt=miss.filter(x=>Number(x.경과일수)>=ERP_DELAY_ALERT).length;
+  setText('s-erp-miss-cnt',miss.length);
+  setText('s-erp-miss-amt',missAmt?wfmt(missAmt):'—');
+  setText('s-erp-diff',diffCnt);
+  setText('s-erp-miss-desc',alertCnt?('그중 '+alertCnt+'건은 D+'+ERP_DELAY_ALERT+' 넘음 — 확인 필요'):'발주했는데 ERP 입고가 없음');
+  setText('s-erp-diff-desc','원장에없음 '+(R.원장에없음||[]).length+' · 금액 '+(R.금액다름||[]).length+' · 품번 '+(R.모델다름||[]).length+' · 경고 '+(R.경고||[]).length);
+
+  // ── 요약표
+  const sum=R.요약||[];
+  document.getElementById('erpSummaryBody').innerHTML = sum.length
+    ? sum.map(s=>'<tr><td><b>'+dv_(s.매입처)+'</b></td><td>'+(s.ERP건수||0)+'</td><td>'+wfmt(s.ERP금액)+'</td><td>'+(s.원장건수||0)+'</td><td>'+wfmt(s.원장금액)+'</td>'
+        +'<td style="color:'+(s.ERP미등록건수?'var(--red)':'var(--gray)')+';font-weight:700">'+(s.ERP미등록건수||0)+'</td>'
+        +'<td style="color:'+(s.ERP미등록건수?'var(--red)':'var(--gray)')+';font-weight:700">'+(s.ERP미등록금액?wfmt(s.ERP미등록금액):'—')+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">대상 데이터가 없습니다</td></tr>';
+
+  // ── ① ERP 미등록
+  document.getElementById('erpMissBody').innerHTML = miss.length
+    ? miss.map(x=>'<tr><td>'+erpDelayCell_(x.경과일수)+'</td><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.접수일)+'</td><td>D+'+dv_(x.경과일수)+'</td>'
+        +'<td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.금액)+'</td><td>'+dv_(x.사방넷주문번호)+'</td></tr>').join('')
+    : '<tr><td colspan="10" class="empty">✅ ERP 미등록 건이 없습니다</td></tr>';
+
+  // ── ② 원장에 없는 ERP 입고
+  const orphan=R.원장에없음||[];
+  document.getElementById('erpOrphanBody').innerHTML = orphan.length
+    ? orphan.map(x=>'<tr><td>'+dv_(x.ERP행)+'</td><td>'+dv_(x.입고일자)+'</td><td>'+dv_(x.거래처)+'</td><td>'+dv_(x.비고)+'</td>'
+        +'<td>'+dv_(x.주문번호)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td><td>'+dv_(x.사유)+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">✅ 전부 발주원장과 연결됐습니다</td></tr>';
+
+  // ── ③ 금액 다름
+  const amt=R.금액다름||[];
+  document.getElementById('erpAmtBody').innerHTML = amt.length
+    ? amt.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.입고일자)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.ERP금액)+'</td><td style="text-align:right">'+wfmt(x.원장금액)+'</td>'
+        +'<td style="text-align:right;color:var(--red);font-weight:700">'+(Number(x.차이)>0?'+':'')+Math.round(Number(x.차이)||0).toLocaleString()+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">✅ 금액 차이가 없습니다</td></tr>';
+
+  // ── ④ 품번·모델 다름
+  const mdl=R.모델다름||[];
+  document.getElementById('erpModelBody').innerHTML = mdl.length
+    ? mdl.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.입고일자)+'</td>'
+        +'<td>'+dv_(x.ERP품번)+'</td><td style="color:var(--red)">'+dv_(x.ERP품명)+'</td><td>'+dv_(x.원장모델코드)+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">✅ 품번·모델 차이가 없습니다</td></tr>';
+
+  // ── ⑤ 경고
+  const warn=R.경고||[];
+  document.getElementById('erpWarnBody').innerHTML = warn.length
+    ? warn.map(w=>'<tr><td style="text-align:left">'+dv_(w)+'</td></tr>').join('')
+    : '<tr><td class="empty">✅ 경고 없음</td></tr>';
+
+  const loadingEl=document.getElementById('erpReconLoading');
+  const bodyEl=document.getElementById('erpReconBody');
+  if(loadingEl) loadingEl.style.display='none';
+  if(bodyEl) bodyEl.style.display='block';
+}
+
+function downloadErpMissCsv(){
+  const rows=(erpRecon&&erpRecon.ERP미등록)||[];
+  if(!rows.length){ alert('다운로드할 ERP 미등록 건이 없습니다.'); return; }
+  downloadCsv_(
+    'ERP미등록_'+((erpRecon&&erpRecon.대상월)||currentYm_())+'.csv',
+    ['상태','매입처','접수일','경과일수','오더번호','설치점','고객명','모델코드','금액(VAT포함)','사방넷주문번호','원장행'],
+    rows.map(x=>{
+      const d=Number(x.경과일수);
+      const st=(d>=ERP_DELAY_ALERT)?'확인 필요':(d>=ERP_DELAY_WARN)?'주의':'대기중';
+      return [st,x.매입처,x.접수일,x.경과일수,x.오더번호,x.설치점,x.고객명,x.모델코드,x.금액,x.사방넷주문번호,x.원장행];
+    })
+  );
+}
+
 async function loadAll(){
   updateHeaderDate();
   document.getElementById('dash-loading').style.display='block';
@@ -1421,6 +1653,10 @@ async function loadAll(){
 
     document.getElementById('dash-loading').style.display='none';
     document.getElementById('dash-content').style.display='block';
+
+    // ERP 대사는 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
+    // 실패해도 위 화면은 이미 다 그려진 상태다.
+    loadErpRecon(false);
   }catch(e){
     document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
   }
@@ -1428,12 +1664,17 @@ async function loadAll(){
 
 // ── 탭 전환 + 탭별 재로딩 ──
 function showTab(tab){
-  ['dashboard','stock','orders','noorder','happycall','cancel','csInput','price'].forEach(t=>{
+  // ⚠️ 아래 두 배열은 성격이 다르다.
+  //   첫 배열 = 존재하는 모든 탭 id(숨은 탭 noorder/happycall 포함)
+  //   둘째 배열 = nav-tab 버튼의 "표시 순서"와 1:1 대응(숨은 탭은 버튼이 없어 빠져 있다)
+  // 새 탭은 반드시 버튼을 맨 뒤에 추가하고 둘째 배열 끝에도 같은 이름을 붙일 것.
+  // 중간에 끼워 넣으면 인덱스가 밀려 엉뚱한 버튼이 활성화된다.
+  ['dashboard','stock','orders','noorder','happycall','cancel','csInput','price','erp'].forEach(t=>{
     const el=document.getElementById('tab-'+t);
     if(el)el.style.display=t===tab?'block':'none';
   });
   document.querySelectorAll('#mainView .nav-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['dashboard','stock','orders','cancel','csInput','price'][i]===tab);
+    t.classList.toggle('active',['dashboard','stock','orders','cancel','csInput','price','erp'][i]===tab);
   });
   if(tab==='stock')   refreshStock();
   if(tab==='orders')  refreshOrders();
@@ -1441,6 +1682,7 @@ function showTab(tab){
   if(tab==='happycall') renderHappyCallList();
   if(tab==='csInput') renderCSList();
   if(tab==='price')   setTimeout(drawChart,50);
+  if(tab==='erp')     loadErpRecon(false);
 }
 
 async function refreshStock(){
