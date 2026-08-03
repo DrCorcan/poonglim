@@ -19,7 +19,6 @@
     --border: #DDE1E7;
   }
   body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: var(--light); color: var(--dark); min-height: 100vh; }
-
   /* 헤더 */
   header { background: var(--navy); color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
   header h1 { font-size: 17px; font-weight: 700; }
@@ -31,21 +30,17 @@
   .dot-w { background: #2ECC71; } .dot-s { background: #9B59B6; }
   .refresh-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 5px 13px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .refresh-btn:hover { background: rgba(255,255,255,0.25); }
-
   .container { padding: 18px 24px; max-width: 1200px; margin: 0 auto; }
-
   /* 탭 */
   .nav-tabs { display: flex; gap: 8px; margin-bottom: 18px; margin-top: 6px; flex-wrap: wrap; }
   .nav-tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: white; color: var(--gray); transition: all .2s; }
   .nav-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
-
   /* 섹션 타이틀 */
   .section-title { font-size: 14px; font-weight: 700; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; margin-top: 20px; }
   .section-title.navy  { background: var(--navy); }
   .section-title.blue  { background: var(--blue); }
   .section-title.green { background: var(--green); }
   .section-title.dark  { background: var(--dark); }
-
   /* 카드 그리드 (현황판) */
   .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; margin-bottom: 4px; }
   .card { padding: 14px 10px; text-align: center; border-right: 1px solid var(--border); cursor: pointer; transition: background .15s; }
@@ -62,7 +57,6 @@
   .card-num.gray   { color: var(--gray); }
   .card-desc { font-size: 11px; color: var(--gray); }
   .card-hint { font-size: 11px; color: #888; padding: 7px 16px; background: #FFFDE7; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; margin-bottom: 4px; font-style: italic; }
-
   /* 테이블 */
   .table-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 16px; }
   .table-header { padding: 11px 16px; background: var(--navy); color: white; font-size: 13px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -74,7 +68,6 @@
   td { padding: 8px 12px; border-bottom: 1px solid #F0F0F0; vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #F8FAFC; }
-
   /* 배지 */
   .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
   .badge-new    { background: #EBF5FB; color: #2980B9; }
@@ -87,7 +80,6 @@
   /* [2026-08-03 신규] 반품회수 — 원 주문의 회수 송장 레그. 발주 실체가 없어
      매입에도 환입에도 참여하지 않는다. 취소(빨강)와 구분되도록 회색으로 둔다. */
   .badge-return { background: #EEF1F4; color: #5D6D7E; }
-
   /* 폼 */
   .form-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
   .form-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--navy); padding-bottom: 10px; border-bottom: 2px solid var(--light); }
@@ -102,7 +94,6 @@
   .submit-btn:hover { background: #163d5f; }
   .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
   .note-box { background: #FEF9E7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #633806; margin-bottom: 12px; line-height: 1.6; border: 1px solid #F9A825; }
-
   /* 윈세이 서브탭 / 마감내역 접기·펼치기 */
   .winsei-subtabs { margin: 14px 0 16px; }
   .winsei-tab-content { display: none; }
@@ -113,8 +104,6 @@
   .winsei-action-list table td { font-size: 12px; }
   .winsei-action-pick { padding: 4px 9px; border: none; border-radius: 4px; color: white; background: var(--navy); font-size: 11px; cursor: pointer; white-space: nowrap; }
   .winsei-action-pick:hover { background: #163d5f; }
-
-
   /* 스타리온 서브탭 / 설치마감 접기·펼치기 — 다른 매입처에도 재사용 가능 */
   .vendor-subtabs { margin: 14px 0 16px; }
   .vendor-tab-content { display: none; }
@@ -127,13 +116,11 @@
   .install-inline input { width:122px; padding:4px 6px; font-size:11px; }
   .install-inline button { padding:4px 8px; background:var(--green); color:white; border:none; border-radius:4px; font-size:11px; cursor:pointer; white-space:nowrap; }
   .install-inline button:disabled { background:#aaa; cursor:not-allowed; }
-
   /* 서브뷰 */
   .subview { display: none; }
   .subview.active { display: block; }
   .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; border: 2px solid var(--border); background: white; color: var(--gray); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
   .back-btn:hover { border-color: var(--navy); color: var(--navy); }
-
   /* ── 가용재고 상단 모델 카드 ── */
   .model-card-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
   .model-card {
@@ -148,7 +135,6 @@
   .model-card-qty { font-size: 32px; font-weight: 800; color: var(--green); line-height: 1; }
   .model-card-unit { font-size: 11px; color: var(--gray); margin-top: 2px; }
   .model-card-pts { font-size: 11px; color: var(--blue); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; }
-
   /* ── 가용재고 하단 세부 테이블 ── */
   .stock-detail-panel {
     background: white; border: 1px solid var(--border);
@@ -159,7 +145,6 @@
     padding: 10px 16px; font-size: 13px; font-weight: 700;
     display: flex; align-items: center; justify-content: space-between;
   }
-
   /* 오더번호 미입력 뷰 */
   .order-input-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 12px; }
   .order-input-header { padding: 11px 16px; background: var(--red); color: white; font-size: 13px; font-weight: 700; }
@@ -169,15 +154,12 @@
   .save-btn { padding: 6px 16px; background: var(--navy); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .save-btn:hover { background: #163d5f; }
   .save-btn:disabled { background: #aaa; cursor: not-allowed; }
-
   /* 기간 조회 */
   .search-bar { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 11px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .search-bar span { font-size: 13px; font-weight: 600; color: var(--dark); }
-
   /* 발주현황 조회 결과 합계 */
   .query-summary { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; margin: 0 0 12px; font-size: 13px; color: var(--dark); }
   .query-summary strong { color: var(--navy); }
-
   /* 윈세이·스타리온 월별 매입마감 조회 */
   .close-month-bar { background: white; border: 1px solid var(--border); border-top: none; padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .close-month-bar > span:first-child { font-size: 13px; font-weight: 700; color: var(--dark); }
@@ -185,7 +167,6 @@
   .close-month-btn { background: #F0F4F8; color: var(--dark); border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .close-month-btn:hover { border-color: var(--navy); color: var(--navy); }
   .close-month-note { font-size: 11px; color: var(--gray); margin-left: 4px; }
-
   /* 캐리어 월별 매입정산 마감 조회 */
   .carrier-close-title-row { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .carrier-close-title-text { min-width:0; }
@@ -195,14 +176,12 @@
   .carrier-close-month-btn:hover { background:rgba(255,255,255,.24); }
   .carrier-close-toggle { cursor:pointer; }
   .carrier-close-toggle:hover { background:#F0F4F8; box-shadow:inset 0 0 0 2px rgba(31,78,121,.10); }
-
   /* 차트 */
   .chart-wrap { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 12px; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; max-height: 100px; overflow-y: auto; }
   .chip { padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--light); color: var(--gray); font-size: 12px; cursor: pointer; }
   .chip:hover { border-color: var(--navy); color: var(--navy); }
   .chip.on { border-color: var(--navy); color: var(--navy); background: #EBF5FB; }
-
   /* 로딩/빈값 */
   .loading { text-align: center; padding: 36px; color: var(--gray); font-size: 14px; }
   .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--navy); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
@@ -210,7 +189,6 @@
   .empty { text-align: center; padding: 28px; color: var(--gray); font-size: 13px; }
   .success-msg { display: none; background: #E9F7EF; color: var(--green); border: 1px solid #A9DFBF; border-radius: 8px; padding: 11px 16px; font-size: 13px; font-weight: 600; margin-top: 12px; text-align: center; }
   .error-msg { display: none; background: #FDEDEC; color: var(--red); border: 1px solid #FADBD8; border-radius: 8px; padding: 11px 16px; font-size: 13px; margin-top: 12px; text-align: center; }
-
   @media (max-width: 768px) {
     .cards { grid-template-columns: repeat(3, 1fr); }
     .container { padding: 12px 14px; }
@@ -221,7 +199,6 @@
 </style>
 </head>
 <body>
-
 <header>
   <div>
     <h1>📦 매입처 발주 관리</h1>
@@ -240,11 +217,9 @@
     <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">🔄 새로고침</button>
   </div>
 </header>
-
 <!-- ══════════ 캐리어 메인 ══════════ -->
 <div id="mainView">
 <div class="container">
-
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showTab('dashboard')">📊 현황판</button>
     <button class="nav-tab" onclick="showTab('stock')">📦 가용재고</button>
@@ -253,12 +228,10 @@
     <button class="nav-tab" onclick="showTab('csInput')">🚨 CS입력</button>
     <button class="nav-tab" onclick="showTab('price')">📈 단가추이</button>
   </div>
-
   <!-- 탭0: 현황판 -->
   <div id="tab-dashboard">
     <div id="dash-loading" class="loading"><span class="spinner"></span>데이터 불러오는 중...</div>
     <div id="dash-content" style="display:none">
-
       <!-- 1단: 캐리어 에어컨 발주 현황 -->
       <div class="section-title navy">📦 캐리어 에어컨 발주 현황</div>
       <div class="cards" style="grid-template-columns:repeat(6,1fr)">
@@ -294,7 +267,6 @@
         </div>
       </div>
       <div class="card-hint">→ 카드 클릭 시 해당 발주현황으로 이동</div>
-
       <!-- 2단: 오늘의 주문 접수 현황 -->
       <div class="section-title green" style="margin-top:16px">📋 오늘의 주문 접수 현황</div>
       <div class="cards" style="grid-template-columns:repeat(5,1fr)">
@@ -325,7 +297,6 @@
         </div>
       </div>
       <div class="card-hint">→ 카드 클릭 시 오늘 접수 건 필터 조회</div>
-
       <!-- 3단: 캐리어 월별 매입정산 마감금액 (설치비포함, 캐리어 마감 대조용) -->
       <div class="section-title dark carrier-close-title-row" style="margin-top:16px">
         <span class="carrier-close-title-text" id="carrierCloseTitle">🧾 이번달 매입정산 마감금액 — 설치비포함, 캐리어 마감 대조용</span>
@@ -370,7 +341,6 @@
         </div>
       </div>
       <div class="card-hint">→ 캐리어에 새로 발주해 청구되는 건만 집계합니다(발주완료 기준). 귀속월은 발주원장의 <b>'매입마감월'</b>에 값이 있으면 그 월, 비어 있으면 접수일의 월입니다 — 7월에 주문했는데 8월에 출고되는 건처럼 월을 넘기면 그 칸에 <b>2026-08</b>처럼 적어두시면 8월 마감으로 넘어갑니다. 기존재고 사용 건은 과거에 이미 정산이 끝난 건이라 마감에서 제외됩니다. <b>여기서 월을 바꾸면 아래 캐리어 청구 대사·ERP 입고 대사도 같은 달로 함께 바뀝니다.</b></div>
-
       <!-- 3-2-2단: 캐리어 전산 매입내역 대사 — 캐리어 청구 ↔ 우리 마감
            [2026-08-02 신규] 서버 액션 getCarrierBuyReconcile(13_캐리어매입.gs).
            위 마감금액 카드가 "우리가 얼마로 잡았나"라면 여기는 "캐리어가 얼마를 청구했나"다. -->
@@ -393,7 +363,6 @@
         </div>
       </div>
       <div class="card-hint">→ 캐리어 전산의 <b>매입내역 상세조회 리스트</b>를 그 달 누적으로 내려받아 <b>[매입 마감 &gt; 3. 캐리어 매입내역 가져오기]</b>로 올린 뒤 대사한 결과입니다. 캐리어는 한 오더를 실내기·실외기·설치자재로 쪼개 청구하므로 <b>영업오더번호로 집계</b>해서 비교합니다. 매입 후 전량 환입된 건은 순액 0이라 대사에서 빠집니다.</div>
-
       <!-- 3-3단: ERP(아마란스10) 입고 대사 — 발주원장 ↔ ERP 입고
            [2026-08-02 신규] 서버 액션 getErpReconcile(12_ERP대사.gs)의 결과를 그대로 보여준다.
            계산은 전부 서버에서 하고 화면은 표시만 한다 — 캐리어 마감 카드처럼
@@ -417,7 +386,6 @@
         </div>
       </div>
       <div class="card-hint" id="erpReconHint">→ ERP(아마란스10) 입고 조회 자료를 매입처 관리시트의 <b>[ERP 입고 &gt; 1. ERP 입고 가져오기]</b>로 올린 뒤 대사한 결과입니다. 빨간 숫자는 <b>실장님이 ERP에 입고를 아직 등록하지 않은 건</b>이고, 주황은 등록은 됐지만 금액·품번이 발주원장과 다른 건입니다. 상세는 <b>🔍 ERP 대사</b> 탭에서 봅니다.</div>
-
       <!-- 3-2단: 이번달 발주 현황 (건수만 참고용) -->
       <div class="section-title blue" style="margin-top:16px">📅 이번달 발주 현황</div>
       <div class="cards" style="grid-template-columns:repeat(2,1fr)">
@@ -433,7 +401,6 @@
         </div>
       </div>
       <div class="card-hint">→ 왼쪽은 이번달 발주완료 처리행, 오른쪽은 이번달 접수 주문건수(사방넷주문번호 기준)입니다.</div>
-
       <!-- 4단: 취소 및 CS 내역 -->
       <div class="section-title dark" style="margin-top:16px">📋 취소 및 CS 내역</div>
       <div class="cards" style="grid-template-columns:repeat(3,1fr)">
@@ -454,21 +421,17 @@
         </div>
       </div>
       <div class="card-hint">→ 카드 클릭 시 해당 발주현황 또는 CS 입력으로 이동</div>
-
     </div>
   </div>
-
   <!-- 탭1: 가용재고 -->
   <div id="tab-stock" style="display:none">
     <div class="section-title green" style="border-radius:8px;margin-top:0">
       📦 선매입재고 가용현황 — 사용상태 = 대기중
     </div>
-
     <!-- 상단: 모델 카드 -->
     <div id="model-card-grid" class="model-card-grid">
       <div class="loading"><span class="spinner"></span>로딩 중...</div>
     </div>
-
     <!-- 하단: 세부 테이블 (선택 후 표시) -->
     <div id="stock-detail-panel" class="stock-detail-panel" style="display:none">
       <div class="stock-detail-header">
@@ -492,7 +455,6 @@
       </table>
     </div>
   </div>
-
   <!-- 탭2: 발주현황 -->
   <div id="tab-orders" style="display:none">
     <div class="search-bar">
@@ -523,7 +485,6 @@
       <div id="order-list"></div>
     </div>
   </div>
-
   <!-- 탭2-B: 오더번호 미입력 전용 뷰 -->
   <div id="tab-noorder" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -535,7 +496,6 @@
       <div id="noorder-list"><div class="loading"><span class="spinner"></span>로딩 중...</div></div>
     </div>
   </div>
-
   <!-- 탭: 해피콜대기 전용 뷰 -->
   <div id="tab-happycall" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -550,7 +510,6 @@
       <div id="happycall-list"><div class="loading"><span class="spinner"></span>로딩 중...</div></div>
     </div>
   </div>
-
   <!-- 탭3: CS 입력 -->
   <div id="tab-csInput" style="display:none">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
@@ -601,7 +560,6 @@
       </div>
     </div>
   </div>
-
   <!-- 탭4: 취소처리 -->
   <div id="tab-cancel" style="display:none">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
@@ -643,7 +601,6 @@
       </div>
     </div>
   </div>
-
   <!-- 탭4: 단가추이 -->
   <div id="tab-price" style="display:none">
     <div class="chart-wrap">
@@ -667,10 +624,8 @@
       </div>
     </div>
   </div>
-
   <!-- 탭7: 매입 마감 대사 (3사 공통 — 헤더의 [🔍 매입 마감]으로 진입) -->
   <div id="tab-erp" style="display:none">
-
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 10px">
       <span style="font-size:12px;color:var(--gray);font-weight:600">매입처</span>
       <div class="chips" id="reconVendorChips" style="margin:0">
@@ -681,7 +636,6 @@
       </div>
       <span style="font-size:11px;color:var(--gray)">← 한 매입처만 골라 볼 수 있습니다. 총액을 맞출 때는 [전체]로 보세요.</span>
     </div>
-
     <!-- 월 선택·재대사 버튼은 어두운 제목줄 안에서만 보이는 스타일(.carrier-close-month-btn)이다.
          흰 배경에 두면 흰 글자라 안 보인다 — 반드시 section-title.dark 안에 둘 것. -->
     <div class="section-title dark carrier-close-title-row">
@@ -694,10 +648,8 @@
       </div>
     </div>
     <div style="margin:8px 0 2px"><span id="erpReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
-
     <div id="erpReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
     <div id="erpReconBody" style="display:none">
-
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header">
           <span>매입처별 요약</span>
@@ -711,7 +663,6 @@
         </tr></thead>
         <tbody id="erpSummaryBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>① ERP 미등록 — 발주원장엔 있는데 ERP 입고가 없음</span>
@@ -723,25 +674,21 @@
         <table><thead><tr><th>상태</th><th>매입처</th><th>접수일</th><th>경과</th><th>오더번호</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>금액(VAT+)</th><th>사방넷주문번호</th></tr></thead>
         <tbody id="erpMissBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>② 원장에 없는 ERP 입고</span></div>
         <table><thead><tr><th>ERP행</th><th>입고일자</th><th>거래처</th><th>비고(내역)</th><th>주문번호</th><th>금액</th><th>사유</th></tr></thead>
         <tbody id="erpOrphanBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>③ 금액 다름</span></div>
         <table><thead><tr><th>매입처</th><th>오더번호</th><th>고객명</th><th>입고일자</th><th>ERP 금액</th><th>원장 금액</th><th>차이</th></tr></thead>
         <tbody id="erpAmtBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>④ 품번·모델 다름</span></div>
         <table><thead><tr><th>매입처</th><th>오더번호</th><th>고객명</th><th>입고일자</th><th>ERP 품번</th><th>ERP 품명</th><th>원장 모델코드</th></tr></thead>
         <tbody id="erpModelBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>⑤ 반품·환입 짝 맞음 — ERP 음수 입고 ↔ 원장 환입·취소 차감</span>
@@ -750,7 +697,6 @@
         <table><thead><tr><th>매입처</th><th>구분</th><th>고객명</th><th>모델</th><th>금액</th><th>원장 확정일</th><th>원장행</th><th>ERP 입고일</th><th>ERP행</th></tr></thead>
         <tbody id="erpRetPairBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>⑥ ERP에만 있는 반품(음수)</span>
@@ -759,7 +705,6 @@
         <table><thead><tr><th>매입처</th><th>입고일자</th><th>입고구분</th><th>품번</th><th>품명</th><th>수량</th><th>금액</th><th>ERP행</th></tr></thead>
         <tbody id="erpRetErpOnlyBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>⑦ 원장에만 있는 환입·취소 차감</span>
@@ -768,16 +713,65 @@
         <table><thead><tr><th>매입처</th><th>구분</th><th>확정일</th><th>고객명</th><th>모델</th><th>금액</th><th>사방넷주문번호</th><th>원장행</th></tr></thead>
         <tbody id="erpRetLedOnlyBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>⑧ 경고</span></div>
         <table><thead><tr><th>내용</th></tr></thead>
         <tbody id="erpWarnBody"></tbody></table>
       </div>
-
       <div class="card-hint" style="margin-top:14px">→ ①은 실장님이 아마란스10에 입고를 등록하시면 사라집니다. ②는 발주원장에 없는 입고라 오등록이거나 원장 누락입니다. ③④는 등록은 됐지만 금액·품번이 다른 건으로, 어느 쪽이 맞는지 확인해 <b>세금계산서·ERP·발주원장 세 곳을 함께</b> 맞춰야 합니다.<br>→ <b>⑤⑥⑦은 반품입니다.</b> ERP는 반품을 <b>음수 입고 한 줄</b>로 적고, 우리 원장은 원 주문 행을 그대로 두고 <b>환입차감금액</b> 칸에 적습니다. 모양이 달라 그냥 두면 어긋난 것처럼 보이므로 따로 떼어 짝을 맞춥니다. ⑤에 짝이 맞으면 정상이고, <b>⑥⑦에 남는 것이 손볼 대상</b>입니다.</div>
     </div>
-
+    <!-- ══════ 입고 ↔ 마감 대사 (3사 공통) ══════
+         [2026-08-03 신규] 서버 액션 getCloseReconcile(15_ERP마감대사.gs v1.1).
+         위 ERP 입고 대사가 "원장 ↔ ERP 입고"라면 여기는 "ERP 입고 ↔ ERP 마감"이다.
+         마감(실장님 확정본)이 세금계산서 기준의 최종 진실이고, 입고는 그 재료다.
+         조인 키는 입고번호+입고순번 — 정확 1:1이라 퍼지 매칭이 없다.
+         월 선택이 없는 이유: 두 자료(97_ERP입고·96_ERP마감)는 올린 파일 그대로라
+         "지금 올라와 있는 달"을 대사한다. 라벨의 마감월이 위 기준월과 다르면 ⚠️로 알린다. -->
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
+      <span class="carrier-close-title-text">🔗 입고 ↔ 마감 대사 <span id="clsTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+      <div class="carrier-close-month-inline" aria-label="입고 마감 대사">
+        <button class="carrier-close-month-btn" onclick="loadClsRecon(true)">🔄 다시 대사</button>
+      </div>
+    </div>
+    <div style="margin:8px 0 2px"><span id="clsReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
+    <div id="clsReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
+    <div id="clsReconBody" style="display:none">
+      <div class="table-wrap" style="margin-top:4px">
+        <div class="table-header">
+          <span>거래처별 요약 — ERP 입고 ↔ ERP 마감</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">마감 = 실장님 확정본(세금계산서 기준) · 차이 0이면 ERP 안이 닫힌 것</span>
+        </div>
+        <table><thead><tr>
+          <th>거래처</th><th>입고 행수</th><th>입고 합계</th><th>마감 행수</th><th>마감 합계</th><th>차이(입고-마감)</th>
+        </tr></thead>
+        <tbody id="clsSummaryBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>① 입고에만 있음 — 마감 누락</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">새로 등록한 입고는 실장님이 마감을 다시 잡기 전까지 여기 뜨는 것이 정상입니다</span>
+        </div>
+        <table><thead><tr><th>입고번호</th><th>순번</th><th>거래처</th><th>품번</th><th>품명</th><th>입고일자</th><th>금액</th></tr></thead>
+        <tbody id="clsInvOnlyBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>② 마감에만 있음 — 입고 조회에 없는 입고번호</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">입고 조회를 다시 내려받아 [1번]으로 올리면 대개 사라집니다</span>
+        </div>
+        <table><thead><tr><th>마감번호</th><th>입고번호</th><th>입고순번</th><th>거래처</th><th>품번</th><th>품명</th><th>금액</th><th>사유</th></tr></thead>
+        <tbody id="clsCloseOnlyBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>③ 짝은 맞는데 금액·품번 다름</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">'단수보정 추정'은 실장님이 세금계산서에 맞춰 일부러 흡수한 보정 — 정상입니다</span>
+        </div>
+        <table><thead><tr><th>입고번호</th><th>순번</th><th>거래처</th><th>품번(입고)</th><th>품번(마감)</th><th>합계액(입고)</th><th>합계(마감)</th><th>차이</th><th>판정</th></tr></thead>
+        <tbody id="clsDiffBody"></tbody></table>
+      </div>
+      <div class="card-hint" style="margin-top:14px">→ 이 대사는 <b>ERP 안에서</b> 입고와 마감이 맞는지를 봅니다. 자료는 매입처 관리시트의 <b>[매입 마감 &gt; 1. ERP 입고 가져오기]</b>와 <b>[5. ERP 마감현황 가져오기]</b>로 올린 것을 씁니다. 마감은 실장님이 세금계산서와 맞춘 확정본이므로, ③의 <b>단수보정 추정</b>(±2원)과 의도적으로 흡수한 보정은 지우지 말고 기록으로 남깁니다. <b>①에 남은 건이 곧 "마감 재실행 필요" 신호</b>이고, ②는 입고 조회 스냅샷이 마감보다 오래된 경우가 대부분입니다.</div>
+    </div>
     <!-- ══════ 캐리어 청구 대사 (캐리어 전용) ══════ -->
     <div id="cbReconSection">
     <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
@@ -790,16 +784,13 @@
       </div>
     </div>
     <div style="margin:8px 0 2px"><span id="cbReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
-
     <div id="cbReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
     <div id="cbReconBody" style="display:none">
-
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header"><span>총액 대조</span></div>
         <table><thead><tr><th>구분</th><th>오더 수</th><th>금액(VAT포함)</th></tr></thead>
         <tbody id="cbSummaryBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>① 캐리어에만 있음 — 청구는 왔는데 우리 원장에 없음</span>
@@ -808,7 +799,6 @@
         <table><thead><tr><th>오더번호</th><th>매입일</th><th>금액</th><th>수량</th><th>캐리어 행수</th><th>품목(일부)</th></tr></thead>
         <tbody id="cbOnlyCarrierBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>② 우리에만 있음 — 마감은 잡았는데 캐리어 청구가 없음</span>
@@ -817,7 +807,6 @@
         <table><thead><tr><th>오더번호</th><th>접수일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>원장금액</th><th>원장행</th></tr></thead>
         <tbody id="cbOnlyOursBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
           <span>③ 금액 다름</span>
@@ -829,32 +818,26 @@
         <table><thead><tr><th>오더번호</th><th>매입일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>캐리어 청구</th><th>원장 마감</th><th>차이</th><th>원장행</th></tr></thead>
         <tbody id="cbAmtBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>④ 환입 상쇄 — 매입 후 전량 환입되어 순액 0 (대사에서 제외)</span></div>
         <table><thead><tr><th>원오더번호</th><th>매입일</th><th>환입오더번호</th><th>환입일</th><th>금액</th></tr></thead>
         <tbody id="cbReturnBody"></tbody></table>
       </div>
-
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header"><span>⑤ 오더번호가 비어 있는 발주원장 행 — 오더번호로 대조 불가</span></div>
         <table><thead><tr><th>원장행</th><th>접수일</th><th>설치점</th><th>고객명</th><th>모델코드</th><th>금액</th></tr></thead>
         <tbody id="cbNoOrderBody"></tbody></table>
       </div>
-
       <div class="card-hint" style="margin-top:14px">→ ①②가 0이면 오더 단위로는 빠짐없이 맞은 것입니다. ③만 남으면 그 금액이 곧 캐리어와의 차이이고, 대량할인·홈쇼핑 단가처럼 <b>정책상 예외</b>인 경우가 있으니 캐리어 오류로 단정하기 전에 확인하세요. VAT 반올림 ±2원은 자동으로 무시합니다.</div>
     </div>
     </div><!-- /cbReconSection -->
-
     <div id="cbReconHidden" style="display:none;margin-top:22px" class="card-hint">
       → <b>캐리어 청구 대사</b>는 캐리어 전용입니다. 캐리어 전산에서만 매입내역을 내려받을 수 있어서요.
       보시려면 위 매입처 칩을 <b>[전체]</b> 또는 <b>[캐리어]</b>로 바꾸세요.
     </div>
   </div>
-
 </div><!-- /container -->
 </div><!-- /mainView -->
-
 <!-- ══════════ 윈세이 서브뷰 ══════════ -->
 <div class="subview" id="winseiView">
 <div class="container">
@@ -862,12 +845,10 @@
   <div class="section-title blue" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-w"></span> 윈세이 발주현황
   </div>
-
   <div class="nav-tabs winsei-subtabs">
     <button class="nav-tab active" data-winsei-tab="orders" onclick="showWinseiTab('orders',this)">📊 발주현황</button>
     <button class="nav-tab" data-winsei-tab="actions" onclick="showWinseiTab('actions',this)">❌ 취소·반품</button>
   </div>
-
   <!-- 윈세이 서브탭 1: 발주현황 -->
   <div id="winseiTab-orders" class="winsei-tab-content active">
     <!-- 주문 처리 현황 -->
@@ -892,7 +873,6 @@
       <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="w-total">—</div><div class="card-desc"></div></div>
     </div>
     <div class="card-hint">→ 송장번호 입력은 기존처럼 마감 처리입니다. 반품·환입은 <b>❌ 취소·반품</b> 탭에서 처리합니다.</div>
-
     <!-- 월별 1차 매입마감: 접수일 조회와 별도로 송장입력일·환입완료일 기준월을 선택한다. -->
     <div class="section-title blue" id="winseiCloseTitle" style="margin-top:16px">💰 이번달 1차 매입마감 — 송장입력일 기준</div>
     <div class="close-month-bar" aria-label="윈세이 매입마감 기준월">
@@ -916,7 +896,6 @@
       <div class="card"><div class="card-label">↩️ <span data-close-month-label="winsei">이번달</span><br>환입차감</div><div class="card-num red" id="w-returndeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">환입완료일 기준</div></div>
       <div class="card"><div class="card-label">✅ <span data-close-month-label="winsei">이번달</span><br>순매입</div><div class="card-num green" id="w-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 환입차감</div></div>
     </div>
-
     <!-- 기본 접힘: 마감건수/마감매입 카드 클릭으로 열고 닫음 -->
     <div id="winseiCloseDetailsPanel" style="display:none">
       <div class="table-wrap" style="margin-top:12px">
@@ -931,7 +910,6 @@
         <tbody id="winseiCloseBody"><tr><td colspan="6" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
       </div>
     </div>
-
     <div class="search-bar" style="margin-top:16px">
       <span>📅 접수일 조회</span>
       <input type="date" id="wf-from" style="width:140px">
@@ -961,7 +939,6 @@
       <tbody id="winseiBody"><tr><td colspan="12" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
     </div>
   </div>
-
   <!-- 윈세이 서브탭 2: 취소·반품 -->
   <div id="winseiTab-actions" class="winsei-tab-content">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
@@ -993,13 +970,11 @@
         <div class="success-msg" id="winseiAction-success"></div>
         <div class="error-msg" id="winseiAction-error"></div>
       </div>
-
       <div class="form-card" style="flex:1;min-width:300px">
         <h3 id="winseiActionGuideTitle">📌 윈세이 취소 규칙</h3>
         <div id="winseiActionGuide">
           <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>송장번호 입력 전 취소</strong><br>송장번호가 공란인 건만 주문취소로 처리합니다.<br>매입마감에는 영향을 주지 않습니다.</div>
         </div>
-
         <div id="winseiActionListWrap" style="display:none;margin-top:18px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px">
             <strong id="winseiActionListTitle" style="font-size:13px;color:var(--navy)">반품·환입 대상 목록</strong>
@@ -1018,7 +993,6 @@
   </div>
 </div>
 </div>
-
 <!-- ══════════ 스타리온 서브뷰 ══════════ -->
 <div class="subview" id="starionView">
 <div class="container">
@@ -1026,12 +1000,10 @@
   <div class="section-title dark" style="border-radius:8px;margin-top:0;display:flex;align-items:center;gap:8px">
     <span class="dot dot-s"></span> 스타리온 발주현황
   </div>
-
   <div class="nav-tabs vendor-subtabs">
     <button class="nav-tab active" data-starion-tab="orders" onclick="showStarionTab('orders',this)">📊 발주현황</button>
     <button class="nav-tab" data-starion-tab="actions" onclick="showStarionTab('actions',this)">❌ 취소처리</button>
   </div>
-
   <!-- 스타리온 서브탭 1: 발주현황 -->
   <div id="starionTab-orders" class="vendor-tab-content active">
     <div class="cards" style="margin-top:0;grid-template-columns:repeat(7,1fr)">
@@ -1044,7 +1016,6 @@
       <div class="card"><div class="card-label">📊 전체</div><div class="card-num dark" id="st-total">—</div><div class="card-desc">전체 주문 기준</div></div>
     </div>
     <div class="card-hint">→ 전체 = 해피콜대기 + 발주대기 + 발주완료(설치상태 포함) + 취소입니다. 설치미완료·설치완료는 발주완료의 세부 현황입니다.</div>
-
     <!-- 월별 1차 매입마감: 접수일 조회와 별도로 설치완료일·취소확정일 기준월을 선택한다. -->
     <div class="section-title dark" id="starionCloseTitle" style="margin-top:16px">💰 이번달 1차 매입마감 — 설치완료일 기준</div>
     <div class="close-month-bar" aria-label="스타리온 매입마감 기준월">
@@ -1061,7 +1032,6 @@
       <div class="card"><div class="card-label">❌ <span data-close-month-label="starion">이번달</span><br>취소차감</div><div class="card-num red" id="st-canceldeduct" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">설치후취소 기준</div></div>
       <div class="card"><div class="card-label">✅ <span data-close-month-label="starion">이번달</span><br>순매입</div><div class="card-num green" id="st-netamt" style="font-size:20px;padding-top:6px">—</div><div class="card-desc">마감매입 - 취소차감</div></div>
     </div>
-
     <!-- 기본 접힘: 설치완료건수/마감매입 카드 클릭으로 열고 닫음 -->
     <div id="starionCloseDetailsPanel" style="display:none">
       <div class="table-wrap" style="margin-top:12px">
@@ -1076,7 +1046,6 @@
         <tbody id="starionCloseBody"><tr><td colspan="8" class="empty">이번달 마감 내역이 없습니다</td></tr></tbody></table>
       </div>
     </div>
-
     <div class="search-bar" id="starionOrdersFilterBar" style="margin-top:16px">
       <span>📅 접수일 조회</span>
       <input type="date" id="sf-from" style="width:140px">
@@ -1105,7 +1074,6 @@
       <tbody id="starionBody"><tr><td colspan="11" class="loading"><span class="spinner"></span>로딩 중...</td></tr></tbody></table>
     </div>
   </div>
-
   <!-- 스타리온 서브탭 2: 취소처리 -->
   <div id="starionTab-actions" class="vendor-tab-content">
     <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
@@ -1133,7 +1101,6 @@
         <div class="success-msg" id="starionAction-success"></div>
         <div class="error-msg" id="starionAction-error"></div>
       </div>
-
       <div class="form-card" style="flex:1;min-width:300px">
         <h3>📌 스타리온 취소 규칙</h3>
         <div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>설치 전 취소</strong><br>완료여부를 주문취소로 변경합니다.<br>설치 전이므로 매입마감에는 영향이 없습니다.</div>
@@ -1144,32 +1111,27 @@
   </div>
 </div>
 </div>
-
 <!-- 발주전취소 안내 모달 -->
 <div id="preOrderCancelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:white;border-radius:10px;padding:28px;width:480px;max-width:95vw">
     <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--navy)">📌 발주중 상태 취소 안내</div>
     <div style="font-size:13px;color:var(--gray);margin-bottom:20px">오더번호가 없는 발주중 건입니다</div>
-
     <div style="background:#E9F7EF;border:1px solid #A9DFBF;border-radius:8px;padding:14px 16px;margin-bottom:12px;font-size:13px;line-height:1.8">
       <strong style="color:var(--green)">✅ 캐리어에 발주하기 전 취소라면</strong><br>
       발주 전 취소로 처리됩니다.<br>
       <span style="color:var(--gray)">재고에 전혀 영향을 미치지 않습니다.</span>
     </div>
-
     <div style="background:#FEF9E7;border:1px solid #F9A825;border-radius:8px;padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.8">
       <strong style="color:var(--orange)">⚠️ 캐리어에 이미 발주해서 오더번호가 있다면</strong><br>
       지금 취소를 중단하고, <strong>오더번호를 먼저 입력</strong>해 주세요.<br>
       <span style="color:var(--gray)">오더번호 입력 후 취소해야 설치점 보관 재고로 복구됩니다.</span>
     </div>
-
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="closePreOrderCancelModal()" style="padding:10px 20px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:13px;font-weight:600">닫기 (취소 중단)</button>
       <button onclick="confirmPreOrderCancel()" style="padding:10px 20px;background:var(--red);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">발주 전 취소 진행</button>
     </div>
   </div>
 </div>
-
 <!-- CS 모달 -->
 <div id="csModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:white;border-radius:10px;padding:24px;width:420px;max-width:95vw">
@@ -1188,21 +1150,18 @@
     <div class="error-msg" id="cs-error"></div>
   </div>
 </div>
-
 <!-- [v22신규 2026-07-16] 재고 이송 모달 — 원장의 재고 "위치"만 옮긴다.
      사용상태는 대기중 유지. 기존재고 전환·오더번호 연결은 매입처발주.py v1.11(업로드)이 담당. -->
 <div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
   <div style="background:white;border-radius:10px;padding:26px;width:480px;max-width:95vw">
     <div style="font-size:16px;font-weight:700;margin-bottom:4px;color:var(--navy)">📦 재고 이송 — 위치만 이동</div>
     <div style="font-size:12px;color:var(--gray);margin-bottom:16px">사용상태는 대기중 유지 · 기존재고 전환은 다음 발주총괄 업로드 때 자동</div>
-
     <div id="transferInfo" style="background:#EBF5FB;border:1px solid #90CAF9;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">모델코드</span><strong id="tr-model"></strong></div>
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">수량</span><span id="tr-qty"></span></div>
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">오더번호</span><span id="tr-orderno"></span></div>
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--gray)">현재 설치점</span><span id="tr-from"></span></div>
     </div>
-
     <div class="form-row full" style="margin-bottom:10px"><div>
       <label>받을 설치점코드 <span>*</span></label>
       <input type="text" id="tr-tocode" placeholder="예: 10000748">
@@ -1215,17 +1174,14 @@
       <label>메모 (주문번호·고객명)</label>
       <input type="text" id="tr-memo" placeholder="예: 2128556608 권화자">
     </div></div>
-
     <div style="background:#FEF9E7;border:1px solid #F9A825;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.7">
       ⚠️ 이 버튼은 <strong>원장의 재고 위치만</strong> 옮깁니다.<br>
       <strong>캐리어 이송 요청</strong>과 <strong>사방넷 설치점 변경(출고대기)</strong>은 별도로 진행하세요.
     </div>
-
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer">
       <input type="checkbox" id="tr-chk" onchange="document.getElementById('tr-btn').disabled=!this.checked">
       해피콜에서 이송이 결정된 건이 맞습니다
     </label>
-
     <div style="display:flex;gap:10px;justify-content:flex-end">
       <button onclick="closeTransferModal()" style="padding:9px 18px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:13px;font-weight:600">닫기</button>
       <button id="tr-btn" onclick="doStockTransfer()" disabled style="padding:9px 18px;background:var(--green);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">이송 처리</button>
@@ -1234,10 +1190,8 @@
     <div class="error-msg" id="tr-error"></div>
   </div>
 </div>
-
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx9ibo2XK7OF4F-eqpXqBCoVpRE8Tq3dqXEKwziIuO0VWh1sGUi1UYNtEf6qEQYD5J7Bw/exec";
-
 let allOrders=[], allStock=[], allPrices=[], allWinsei=[], allStarion=[];
 let currentCarrierRowsForExport=[], currentWinseiRowsForExport=[], currentStarionRowsForExport=[];
 let currentOrderFilter='전체', selectedModel='', cancelTarget=null;
@@ -1245,7 +1199,6 @@ let selectedStockModel = null;
 // [v22신규 2026-07-16] 재고 이송 버튼 — 세부 테이블 행을 인덱스로 참조하기 위한 평면 배열 + 이송 대상
 let stockDetailFlat = [];
 let stockTransferTarget = null;
-
 // ── 유틸 ──
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 // [2026-08-01 수정] 구글시트의 '날짜형' 셀은 Apps Script→JSON을 거치며
@@ -1297,7 +1250,6 @@ function dmoney_(v){
 function money_(v){ return parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')) || 0; }
 function currentYm_(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function monthOf_(v){ return fmtD(v).slice(0,7); }
-
 // 월별 매입마감 기준월은 접수일 필터와 독립적으로 관리한다.
 function selectedCloseYm_(inputId){
   const el=document.getElementById(inputId);
@@ -1391,14 +1343,12 @@ function downloadCarrierOrdersCsv(){
     csvRows
   );
 }
-
 function downloadCarrierCloseCsv(){
   // 선택한 캐리어 마감 기준월의 마감내역만 내려받는다.
   // 화면 표와 동일하게 접수일 기준 · 발주완료 · 기존재고 제외 조건을 사용한다.
   const ym=selectedCloseYm_('carrierCloseMonth');
   const rows=carrierCloseRows_(ym);
   if(!rows.length){alert('다운로드할 '+closeYmLabel_(ym)+' 마감 내역이 없습니다.');return;}
-
   const csvRows=rows.map(r=>[
     fmtD(r['접수일']),
     carrierCloseYm_(r),
@@ -1412,15 +1362,12 @@ function downloadCarrierCloseCsv(){
     money_(r['마감금액_VAT제외']),
     money_(r['마감금액_VAT포함'])
   ]);
-
   downloadCsv_(
     '캐리어_매입정산마감내역_'+ym+'.csv',
     ['접수일','마감기준월','마감월지정','사방넷주문번호','오더번호','구매자','모델코드','수량','배송구분','마감금액(VAT-)','마감금액(VAT+)'],
     csvRows
   );
 }
-
-
 // 윈세이 마감카드 표와 동일한 기준월·마감행을 재사용한다.
 // 접수일 조회 조건과 무관하며, 송장입력일·환입완료일 기준의 마감 대조용 파일이다.
 function downloadWinseiCloseCsv(){
@@ -1441,7 +1388,6 @@ function downloadWinseiCloseCsv(){
     csvRows
   );
 }
-
 // 스타리온 마감카드 표와 동일한 기준월·마감행을 재사용한다.
 // 접수일 조회 조건과 무관하며, 설치완료일·취소확정일 기준의 마감 대조용 파일이다.
 function downloadStarionCloseCsv(){
@@ -1464,7 +1410,6 @@ function downloadStarionCloseCsv(){
     csvRows
   );
 }
-
 function downloadWinseiOrdersCsv(){
   const rows=currentWinseiRowsForExport;
   if(!rows.length){alert('다운로드할 조회 결과가 없습니다.');return;}
@@ -1486,7 +1431,6 @@ function downloadStarionOrdersCsv(){
   ]);
   downloadCsv_('스타리온_발주현황_'+fmt(new Date())+'.csv',['접수일','완료여부','점포명','고객명','모델코드','수량','합계(VAT+)','사방넷주문번호','설치완료','설치완료일','취소상태'],csvRows);
 }
-
 // [2026-08-02] 웹앱이 JSON 대신 HTML(구글 오류 페이지)을 돌려주는 일이 있다.
 // 새 버전 배포 직후 전파가 끝나기 전이 대표적이고, 대개 몇 초 뒤면 풀린다.
 // 예전에는 그 HTML을 JSON으로 파싱하다 "Unexpected token '<'"라는,
@@ -1511,7 +1455,6 @@ async function apiFetchOnce_(params){
     throw err;
   }
 }
-
 async function apiCall(params){
   let d;
   try{
@@ -1534,19 +1477,16 @@ async function apiCall(params){
   if(d&&d.error)throw new Error(d.error);
   return d;
 }
-
 function updateHeaderDate(){
   const now=new Date();
   document.getElementById('headerDate').textContent=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
 }
-
 // 캐리어 월별 매입정산 마감금액(설치비포함) — 화면에서 직접 계산.
 // 서버 Apps Script(getCarrierSummary)는 건드리지 않고, 이미 받아온 allOrders의
 // 마감금액_VAT제외 / 마감금액_VAT포함을 합산한다.
 // 매입정산 기준은 선택한 마감 기준월의 접수일이며, 완료여부=발주완료만 포함한다.
 // 기존재고는 과거 매입분이므로 이번 마감에서 제외된다.
 let carrierCloseDetailsOpen=false;
-
 // [2026-08-01신규] 캐리어 매입마감 귀속월 판정.
 // 배경: 캐리어 마감은 원래 '접수일의 월'로 집계해왔다. 발주하면 대체로 곧
 // 출고되니 접수일을 출고일의 근사치로 쓴 것인데, 2026-07-30 접수된 30대짜리
@@ -1587,7 +1527,6 @@ function carrierCloseYmRaw_(r){
   const parsed=monthOf_(raw);
   return /^\d{4}-\d{2}$/.test(parsed) ? parsed : '';
 }
-
 // ══════════════════════════════════════════════════════════════
 // 매입마감월 화면 지정  [2026-08-02 신규]
 //   월말 주문이 익월로 출고 이월될 때, 구글시트를 열지 않고 여기서 지정한다.
@@ -1597,13 +1536,11 @@ function carrierCloseYmRaw_(r){
 //     속성 안에 문자열을 끼워 넣으면 따옴표가 속성을 조기에 닫는다(v52 CS 사고).
 // ══════════════════════════════════════════════════════════════
 let closeMonthCtx = {};
-
 function addMonth_(ym, delta){
   const [y,m]=String(ym||currentYm_()).split('-').map(Number);
   const d=new Date(y,(m-1)+Number(delta||0),1);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
-
 function closeMonthEditorHtml_(r){
   const rowNo=Number(r['_row']||0);
   if(!rowNo){
@@ -1630,7 +1567,6 @@ function closeMonthEditorHtml_(r){
     <button onclick="event.stopPropagation();saveCloseMonth(${rowNo},'clear')" style="${btn};color:var(--gray)">지우기(접수월로)</button>
   </div>`;
 }
-
 // 다시 그린 목록에서 그 행의 상세 패널을 도로 펼친다.
 // 행의 화면 인덱스는 알 수 없지만, 마감월 입력칸 id가 'cm-<시트행번호>'라
 // 그걸 찾아 올라가면 해당 패널을 짚을 수 있다.
@@ -1641,11 +1577,9 @@ function reopenDetailForRow_(rowNo){
   panel.style.display='block';
   try{ panel.scrollIntoView({block:'center'}); }catch(e){}
 }
-
 async function saveCloseMonth(rowNo, mode){
   const ctx=closeMonthCtx[rowNo];
   if(!ctx){ alert('행 정보를 찾지 못했습니다. 새로고침한 뒤 다시 시도하세요.'); return; }
-
   let ym='';
   if(mode==='clear')      ym='';
   else if(mode==='next')  ym=addMonth_(ctx.접수월,1);
@@ -1654,31 +1588,25 @@ async function saveCloseMonth(rowNo, mode){
     ym=el?String(el.value||'').trim():'';
     if(!ym){ alert('지정할 월을 고르세요.\n접수월 기준으로 되돌리려면 [지우기]를 누르세요.'); return; }
   }
-
   const who=(ctx.고객명||ctx.orderNo||(rowNo+'행'));
   const what=ym ? (ym+' 마감으로 지정') : ('지정 해제 — 접수월 '+ctx.접수월+' 기준으로 되돌림');
   if(!confirm(who+' 건을\n'+what+'\n\n진행할까요?')) return;
-
   try{
     const res=await apiCall({
       action:'updateCloseMonth', rowNo:rowNo, closeMonth:ym,
       expectSaBangNo:ctx.sno, expectOrderNo:ctx.orderNo, expectModel:ctx.model
     });
-
     // 화면 데이터도 같이 고쳐 전체 새로고침 없이 즉시 반영한다
     const row=allOrders.find(x=>Number(x['_row'])===Number(rowNo));
     if(row) row['매입마감월']= ym ? (ym+'-01') : '';
-
     // 서버에서 계산하는 두 대사는 기준이 바뀌었으니 다음에 볼 때 다시 받는다
     erpRecon=null; cbRecon=null;
-
     renderCarrierCloseAmt();
     renderOrders();
     // ★ 목록을 다시 그리면 상세 패널이 전부 닫힌다. 저장한 행만 다시 펼쳐
     //   결과를 눈으로 바로 확인할 수 있게 한다. 이게 없으면 "아무 일도 안
     //   일어난 것처럼" 보여서 같은 버튼을 반복해서 누르게 된다(2026-08-02 실사용).
     reopenDetailForRow_(rowNo);
-
     alert(res.updated
       ? ('✅ '+who+'\n매입마감월 '+(res.prev매입마감월||'(미지정)')+' → '+(res.매입마감월||('(미지정 · 접수월 '+res.접수월+')')))
       : ('ℹ️ '+(res.note||'변경 사항이 없습니다.')));
@@ -1686,7 +1614,6 @@ async function saveCloseMonth(rowNo, mode){
     alert('❌ 저장 실패\n\n'+e.message);
   }
 }
-
 function carrierCloseRows_(ym){
   return allOrders.filter(r=>{
     const complete=String(r['완료여부']||'').trim();
@@ -1698,7 +1625,6 @@ function carrierCloseRows_(ym){
     return String(a['사방넷주문번호']||'').localeCompare(String(b['사방넷주문번호']||''));
   });
 }
-
 function renderCarrierCloseAmt(){
   const ym=selectedCloseYm_('carrierCloseMonth');
   updateCloseMonthUi_('carrier',ym);
@@ -1710,7 +1636,6 @@ function renderCarrierCloseAmt(){
   setText('s-close-gross',gross?wfmt(gross):'—');
   renderCarrierCloseDetails(ym);
 }
-
 function toggleCarrierCloseDetails(){
   carrierCloseDetailsOpen=!carrierCloseDetailsOpen;
   const panel=document.getElementById('carrierCloseDetailsPanel');
@@ -1719,7 +1644,6 @@ function toggleCarrierCloseDetails(){
   setText('s-close-cnt-desc','마감월 기준 · '+guide);
   setText('s-closeamt-desc',guide);
 }
-
 function renderCarrierCloseDetails(closeYm){
   const ym=closeYm||selectedCloseYm_('carrierCloseMonth');
   const label=closeYmLabel_(ym);
@@ -1753,7 +1677,6 @@ function renderCarrierCloseDetails(closeYm){
       + '</tr>';
   }).join('');
 }
-
 // ── 전체 로딩 ──
 // ══════════════════════════════════════════════════════════════
 // ERP(아마란스10) 입고 대사  [2026-08-02 신규]
@@ -1768,11 +1691,9 @@ let erpRecon = null;
 let lastReconPromise_ = null;   // [2026-08-03] 새로고침 버튼이 대사 완료까지 기다리기 위한 것
 let erpReconLoading = false;
 let erpReconSeq = 0;      // 요청 순번 — 늦게 도착한 옛 응답을 버리기 위한 것
-
 // 지연 판정 기준 — D+0~4 대기중(회색) / D+5~9 주의(노랑) / D+10~ 확인 필요(빨강)
 const ERP_DELAY_WARN = 5;
 const ERP_DELAY_ALERT = 10;
-
 function erpDelayCell_(days){
   const d = Number(days);
   if(!isFinite(d)) return '<span style="color:var(--gray)">—</span>';
@@ -1780,14 +1701,12 @@ function erpDelayCell_(days){
   if(d >= ERP_DELAY_WARN)  return '<span style="color:var(--orange);font-weight:700">🟡 주의</span>';
   return '<span style="color:var(--gray)">⚪ 대기중</span>';
 }
-
 // ── 기준월 하나로 묶기 [2026-08-02] ─────────────────────────────
 // 마감금액 · 캐리어 청구 대사 · ERP 입고 대사는 "이 달 매입을 닫는다"는
 // 하나의 맥락이다. 셋이 서로 다른 달을 보고 있으면 숫자를 나란히 놓고
 // 읽을 수가 없다(실제로 마감금액 8월 / 대사 7월로 갈려 있었다).
 // 어느 컨트롤에서 월을 바꾸든 세 곳이 같이 움직인다.
 let closeMonthUserSet = false;   // 사용자가 한 번이라도 월을 직접 골랐는가
-
 function setMonthAll_(ym, opts){
   if(!/^\d{4}-\d{2}$/.test(String(ym||''))) return;
   closeMonthUserSet = true;
@@ -1796,15 +1715,16 @@ function setMonthAll_(ym, opts){
     if(el) el.value=ym;
   });
   renderCarrierCloseAmt();
+  // [2026-08-03] 입고↔마감 대사는 월 파라미터가 없다(올라온 파일 그대로 대사).
+  // 기준월이 바뀌면 라벨의 ⚠️ 불일치 표시만 다시 계산한다.
+  if(clsRecon) renderClsRecon();
   if(!opts || opts.reloadRecon!==false){ loadErpRecon(true); loadCbRecon(true); }
 }
-
 function shiftMonthAll_(delta){
   const base=document.getElementById('carrierCloseMonth')?.value
           || (erpRecon&&erpRecon.대상월) || (cbRecon&&cbRecon.대상월) || currentYm_();
   setMonthAll_(addMonth_(base, delta));
 }
-
 // 첫 로딩 때는 사용자가 고른 값이 없다. 이때는 "대사 자료가 있는 최신 월"을
 // 기준으로 삼는다 — 그 달 누적 파일을 올리는 운영 방식이라, 8월 파일을
 // 올리면 자동으로 8월로 넘어가고 안 올렸으면 아직 7월을 닫는 중이라는 뜻이다.
@@ -1815,7 +1735,6 @@ function monthWarn_(ym){
     ? ' <span style="color:#FFD27F">⚠️ 마감금액('+esc_(closeYmLabel_(base))+')과 다름</span>'
     : '';
 }
-
 function adoptReconMonth_(ym){
   if(closeMonthUserSet || !/^\d{4}-\d{2}$/.test(String(ym||''))) return;
   const el=document.getElementById('carrierCloseMonth');
@@ -1826,22 +1745,19 @@ function adoptReconMonth_(ym){
   // (둘 중 빨리 온 쪽이 먼저 렌더되면서 잠깐 ⚠️가 뜨던 잔상 제거)
   if(erpRecon) renderErpRecon();
   if(cbRecon) renderCbRecon();
+  if(clsRecon) renderClsRecon();
 }
-
 function shiftErpReconMonth_(delta){ shiftMonthAll_(delta); }
-
 // 현황판 카드를 누르면 [매입 대사] 탭의 "그 섹션"으로 데려간다.
 // 예전에는 둘 다 showTab('erp')만 해서, 캐리어 청구 카드를 눌러도
 // 탭 맨 위(ERP 섹션)에 떨어졌다 — 캐리어 표는 한참 아래에 있다.
 // 헤더 [🔍 매입 마감] 버튼 — 서브뷰(윈세이·스타리온)에 있어도 돌아와서 연다.
 function openRecon(){ goToRecon('erp'); }
-
 // ── 매입처 필터 칩 [2026-08-03] ──────────────────────────────
 // 매입 마감 대사는 3사 공통 화면이다. 총액을 맞출 때는 [전체]로 보고,
 // 한 매입처만 처리할 때는 칩으로 좁힌다. 서버 결과는 그대로 두고
 // 화면에서 걸러내기만 한다(집계는 서버 한 곳에서만 — v53 원칙).
 let reconVendor = '전체';
-
 function setReconVendor(v){
   reconVendor = v;
   document.querySelectorAll('#reconVendorChips .chip').forEach(c=>{
@@ -1854,15 +1770,14 @@ function setReconVendor(v){
   if(sec) sec.style.display=showCb?'block':'none';
   if(msg) msg.style.display=showCb?'none':'block';
   if(erpRecon) renderErpRecon();
+  if(clsRecon) renderClsRecon();
   if(cbRecon && showCb) renderCbRecon();
 }
-
 /** 매입처 이름이 섞여 있는 문자열(거래처 원문 포함)에서 칩과 맞는지 본다 */
 function reconVendorMatch_(name){
   if(reconVendor==='전체') return true;
   return String(name==null?'':name).indexOf(reconVendor)>=0;
 }
-
 function goToRecon(which){
   showMain();          // 윈세이·스타리온 서브뷰에 있었다면 돌아온다
   showTab('erp');
@@ -1873,7 +1788,6 @@ function goToRecon(which){
     else window.scrollTo({top:0,behavior:'smooth'});
   },80);
 }
-
 async function loadErpRecon(force){
   // ★ 예전에는 여기서 `if(erpReconLoading) return;`으로 진행 중인 요청이 있으면
   //   새 요청을 통째로 버렸다. ERP 대사는 02_주문상세원장까지 읽어 느려서,
@@ -1910,7 +1824,6 @@ async function loadErpRecon(force){
     if(seq === erpReconSeq) erpReconLoading=false;
   }
 }
-
 function renderErpRecon(){
   if(!erpRecon) return;
   const R=erpRecon;
@@ -1920,7 +1833,6 @@ function renderErpRecon(){
   document.getElementById('erpReconMonthLabel').innerHTML='— '+esc_(label)+' 기준'+w;
   document.getElementById('erpTabMonthLabel').innerHTML='— '+esc_(label)+' 기준'+w;
   setText('erpReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
-
   // ── 현황판 카드
   const miss=R.ERP미등록||[];
   const missAmt=miss.reduce((s,x)=>s+(Number(x.금액)||0),0);
@@ -1934,7 +1846,6 @@ function renderErpRecon(){
   setText('s-erp-miss-desc',alertCnt?('그중 '+alertCnt+'건은 D+'+ERP_DELAY_ALERT+' 넘음 — 확인 필요'):'발주했는데 ERP 입고가 없음');
   setText('s-erp-diff-desc','원장에없음 '+(R.원장에없음||[]).length+' · 금액 '+(R.금액다름||[]).length+' · 품번 '+(R.모델다름||[]).length
     +(retUnpaired?(' · 반품짝없음 '+retUnpaired):'')+' · 경고 '+(R.경고||[]).length);
-
   // ── 아래 표들만 매입처 칩으로 거른다. 위 현황판 카드는 항상 3사 합계다.
   const sum=(R.요약||[]).filter(x=>reconVendorMatch_(x.매입처));
   // 순액 차이는 이 화면에서 가장 중요한 한 칸이다 — 0에 가까우면 마감이 닫힌 것이다.
@@ -1947,7 +1858,6 @@ function renderErpRecon(){
   };
   const dedCell_=(cnt,amt)=> '<td style="text-align:right;color:'+(cnt?'#8E44AD':'var(--gray)')+'">'
       +(cnt?('-'+wfmt(amt)+' <span style="font-size:11px">('+cnt+'건)</span>'):'—')+'</td>';
-
   document.getElementById('erpSummaryBody').innerHTML = sum.length
     ? sum.map(s=>'<tr><td><b>'+dv_(s.매입처)+'</b></td>'
         +'<td>'+(s.원장건수||0)+'</td><td style="text-align:right">'+wfmt(s.원장금액)+'</td>'
@@ -1960,7 +1870,6 @@ function renderErpRecon(){
         +'<td style="text-align:right;color:'+(s.ERP미등록건수?'var(--red)':'var(--gray)')+';font-weight:700">'
           +(s.ERP미등록건수?((s.ERP미등록건수)+'건 '+wfmt(s.ERP미등록금액)):'—')+'</td></tr>').join('')
     : '<tr><td colspan="11" class="empty">대상 데이터가 없습니다</td></tr>';
-
   // ── ① ERP 미등록
   const missF = miss.filter(x=>reconVendorMatch_(x.매입처));
   document.getElementById('erpMissBody').innerHTML = missF.length
@@ -1968,14 +1877,12 @@ function renderErpRecon(){
         +'<td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td>'
         +'<td style="text-align:right">'+wfmt(x.금액)+'</td><td>'+dv_(x.사방넷주문번호)+'</td></tr>').join('')
     : '<tr><td colspan="10" class="empty">✅ '+(reconVendor==='전체'?'':esc_(reconVendor)+' ')+'ERP 미등록 건이 없습니다</td></tr>';
-
   // ── ② 원장에 없는 ERP 입고
   const orphan=(R.원장에없음||[]).filter(x=>reconVendorMatch_(x.거래처));
   document.getElementById('erpOrphanBody').innerHTML = orphan.length
     ? orphan.map(x=>'<tr><td>'+dv_(x.ERP행)+'</td><td>'+dv_(x.입고일자)+'</td><td>'+dv_(x.거래처)+'</td><td>'+dv_(x.비고)+'</td>'
         +'<td>'+dv_(x.주문번호)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td><td>'+dv_(x.사유)+'</td></tr>').join('')
     : '<tr><td colspan="7" class="empty">✅ 전부 발주원장과 연결됐습니다</td></tr>';
-
   // ── ③ 금액 다름
   const amt=(R.금액다름||[]).filter(x=>reconVendorMatch_(x.매입처));
   document.getElementById('erpAmtBody').innerHTML = amt.length
@@ -1983,14 +1890,12 @@ function renderErpRecon(){
         +'<td style="text-align:right">'+wfmt(x.ERP금액)+'</td><td style="text-align:right">'+wfmt(x.원장금액)+'</td>'
         +'<td style="text-align:right;color:var(--red);font-weight:700">'+(Number(x.차이)>0?'+':'')+Math.round(Number(x.차이)||0).toLocaleString()+'</td></tr>').join('')
     : '<tr><td colspan="7" class="empty">✅ 금액 차이가 없습니다</td></tr>';
-
   // ── ④ 품번·모델 다름
   const mdl=(R.모델다름||[]).filter(x=>reconVendorMatch_(x.매입처));
   document.getElementById('erpModelBody').innerHTML = mdl.length
     ? mdl.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.입고일자)+'</td>'
         +'<td>'+dv_(x.ERP품번)+'</td><td style="color:var(--red)">'+dv_(x.ERP품명)+'</td><td>'+dv_(x.원장모델코드)+'</td></tr>').join('')
     : '<tr><td colspan="7" class="empty">✅ 품번·모델 차이가 없습니다</td></tr>';
-
   // ── ⑤⑥⑦ 반품·환입
   // 서버가 v1.0이면 반품짝이 없다 — 그때는 표를 비워 두되 "옛 버전" 안내를 띄운다.
   const RR=R.반품짝||null;
@@ -1998,37 +1903,31 @@ function renderErpRecon(){
   const retErpOnly=RR?(RR.ERP만||[]).filter(x=>reconVendorMatch_(x.매입처)):[];
   const retLedOnly=RR?(RR.원장만||[]).filter(x=>reconVendorMatch_(x.매입처)):[];
   const oldSrv='<tr><td colspan="9" class="empty">12_ERP대사.gs를 v1.1로 올린 뒤 [🔄 다시 대사]를 눌러주세요 (반품·환입 대사는 v1.1부터입니다)</td></tr>';
-
   document.getElementById('erpRetPairBody').innerHTML = !RR ? oldSrv : (pairs.length
     ? pairs.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.구분)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델)+'</td>'
         +'<td style="text-align:right">'+wfmt(x.금액)+'</td><td>'+dv_(x.원장확정일)+'</td><td>'+dv_(x.원장행)+'</td>'
         +'<td>'+dv_(x.ERP입고일자)+'</td><td>'+dv_(x.ERP행)+'</td></tr>').join('')
     : '<tr><td colspan="9" class="empty">이 달에는 반품·환입이 없습니다</td></tr>');
-
   document.getElementById('erpRetErpOnlyBody').innerHTML = !RR ? '<tr><td colspan="8" class="empty">—</td></tr>' : (retErpOnly.length
     ? retErpOnly.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.입고일자)+'</td><td>'+dv_(x.입고구분)+'</td><td>'+dv_(x.품번)+'</td>'
         +'<td>'+dv_(x.품명)+'</td><td style="text-align:right">'+dv_(x.수량)+'</td>'
         +'<td style="text-align:right;color:var(--red);font-weight:700">'+wfmt(x.금액)+'</td><td>'+dv_(x.ERP행)+'</td></tr>').join('')
     : '<tr><td colspan="8" class="empty">✅ 짝 없는 ERP 반품이 없습니다</td></tr>');
-
   document.getElementById('erpRetLedOnlyBody').innerHTML = !RR ? '<tr><td colspan="8" class="empty">—</td></tr>' : (retLedOnly.length
     ? retLedOnly.map(x=>'<tr><td>'+dv_(x.매입처)+'</td><td>'+dv_(x.구분)+'</td><td>'+dv_(x.확정일)+'</td><td>'+dv_(x.고객명)+'</td>'
         +'<td>'+dv_(x.모델)+'</td><td style="text-align:right;color:var(--red);font-weight:700">'+wfmt(x.금액)+'</td>'
         +'<td>'+dv_(x.사방넷주문번호)+'</td><td>'+dv_(x.원장행)+'</td></tr>').join('')
     : '<tr><td colspan="8" class="empty">✅ 짝 없는 원장 차감이 없습니다</td></tr>');
-
   // ── ⑧ 경고
   const warn=R.경고||[];
   document.getElementById('erpWarnBody').innerHTML = warn.length
     ? warn.map(w=>'<tr><td style="text-align:left">'+dv_(w)+'</td></tr>').join('')
     : '<tr><td class="empty">✅ 경고 없음</td></tr>';
-
   const loadingEl=document.getElementById('erpReconLoading');
   const bodyEl=document.getElementById('erpReconBody');
   if(loadingEl) loadingEl.style.display='none';
   if(bodyEl) bodyEl.style.display='block';
 }
-
 function downloadErpMissCsv(){
   const rows=(erpRecon&&erpRecon.ERP미등록)||[];
   if(!rows.length){ alert('다운로드할 ERP 미등록 건이 없습니다.'); return; }
@@ -2042,7 +1941,6 @@ function downloadErpMissCsv(){
     })
   );
 }
-
 // ══════════════════════════════════════════════════════════════
 // 캐리어 청구 대사  [2026-08-02 신규]
 //   서버 액션 getCarrierBuyReconcile(13_캐리어매입.gs) 결과를 그대로 표시.
@@ -2051,9 +1949,7 @@ function downloadErpMissCsv(){
 let cbRecon = null;
 let cbReconLoading = false;
 let cbReconSeq = 0;
-
 function shiftCbReconMonth_(delta){ shiftMonthAll_(delta); }
-
 async function loadCbRecon(force){
   if(cbRecon && !force){ renderCbRecon(); return; }
   if(!force && cbReconLoading) return;
@@ -2079,7 +1975,6 @@ async function loadCbRecon(force){
     if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">[97_캐리어매입] 탭이 비어 있으면 매입처 관리시트에서 [매입 마감 &gt; 3. 캐리어 매입내역 가져오기]를 먼저 실행하세요.</span>'; }
   }finally{ if(seq === cbReconSeq) cbReconLoading=false; }
 }
-
 function renderCbRecon(){
   if(!cbRecon) return;
   const R=cbRecon, s=R.요약||{};
@@ -2089,7 +1984,6 @@ function renderCbRecon(){
   document.getElementById('cbReconMonthLabel').innerHTML='— '+esc_(label)+' 기준'+w;
   document.getElementById('cbTabMonthLabel').innerHTML='— '+esc_(label)+' 기준'+w;
   setText('cbReconStamp',R.생성일시?('마지막 대사 '+R.생성일시):'');
-
   // ── 그 달 캐리어 매입내역이 아예 없는 경우
   //    파일을 아직 안 올린 것뿐인데 "우리에만 있음 N건"으로 보이면
   //    청구 누락으로 오해한다. 그래서 그 사실부터 먼저 알린다.
@@ -2113,7 +2007,6 @@ function renderCbRecon(){
     if(B0) B0.style.display='block';
     return;
   }
-
   // ── 현황판 카드
   const diff=Number(s.차이)||0;
   const 어긋난=(R.캐리어에만||[]).length+(R.우리에만||[]).length+(R.금액다름||[]).length;
@@ -2123,7 +2016,6 @@ function renderCbRecon(){
   setText('s-cb-diff-desc',diff?'캐리어 청구가 우리 마감보다 '+(diff>0?'많음':'적음')+' · 클릭하여 상세':'✅ 총액 일치');
   setText('s-cb-match',R.일치건수||0);
   setText('s-cb-match-desc','어긋난 오더 '+어긋난+'건'+((R.환입상쇄||[]).length?(' · 환입 상쇄 '+R.환입상쇄.length+'쌍'):''));
-
   // ── 총액 대조
   document.getElementById('cbSummaryBody').innerHTML =
     '<tr><td><b>캐리어 청구(세금계산서)</b></td><td>'+(s.캐리어오더수||0)+'</td><td style="text-align:right">'+wfmt(s.캐리어금액)+'</td></tr>'+
@@ -2131,19 +2023,16 @@ function renderCbRecon(){
     '<tr><td style="color:var(--gray)">　그중 오더번호 없는 행</td><td style="color:var(--gray)">'+(R.오더번호없음||[]).length+'행</td><td style="text-align:right;color:var(--gray)">'+((s.오더번호없음금액)?wfmt(s.오더번호없음금액):'—')+'</td></tr>'+
     '<tr><td><b>차이</b></td><td>—</td><td style="text-align:right;font-weight:700;color:'+(diff?'var(--red)':'var(--green)')+'">'+(diff?((diff>0?'+':'')+Math.round(diff).toLocaleString()):'0')+'</td></tr>'+
     '<tr><td>완전 일치 오더</td><td>'+(R.일치건수||0)+'</td><td>—</td></tr>';
-
   // ── ① 캐리어에만
   const a=R.캐리어에만||[];
   document.getElementById('cbOnlyCarrierBody').innerHTML = a.length
     ? a.map(x=>'<tr><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.매입일)+'</td><td style="text-align:right">'+wfmt(x.캐리어금액)+'</td><td>'+dv_(x.수량)+'</td><td>'+dv_(x.행수)+'</td><td>'+dv_(x.품목)+'</td></tr>').join('')
     : '<tr><td colspan="6" class="empty">✅ 캐리어 청구가 전부 우리 원장에 있습니다</td></tr>';
-
   // ── ② 우리에만
   const b=R.우리에만||[];
   document.getElementById('cbOnlyOursBody').innerHTML = b.length
     ? b.map(x=>'<tr><td>'+dv_(x.오더번호)+'</td><td>'+dv_(x.접수일)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td><td style="text-align:right">'+wfmt(x.원장금액)+'</td><td>'+dv_(x.원장행)+'</td></tr>').join('')
     : '<tr><td colspan="7" class="empty">✅ 우리 마감이 전부 캐리어에서 청구됐습니다</td></tr>';
-
   // ── ③ 금액 다름
   const c=R.금액다름||[];
   document.getElementById('cbAmtBody').innerHTML = c.length
@@ -2152,24 +2041,20 @@ function renderCbRecon(){
         +'<td style="text-align:right;color:var(--red);font-weight:700">'+(Number(x.차이)>0?'+':'')+Math.round(Number(x.차이)||0).toLocaleString()+'</td>'
         +'<td>'+dv_(x.원장행)+'</td></tr>').join('')
     : '<tr><td colspan="9" class="empty">✅ 금액 차이가 없습니다</td></tr>';
-
   // ── ④ 환입 상쇄
   const d=R.환입상쇄||[];
   document.getElementById('cbReturnBody').innerHTML = d.length
     ? d.map(x=>'<tr><td>'+dv_(x.원오더번호)+'</td><td>'+dv_(x.매입일)+'</td><td>'+dv_(x.환입오더번호)+'</td><td>'+dv_(x.환입일)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td></tr>').join('')
     : '<tr><td colspan="5" class="empty">환입 건이 없습니다</td></tr>';
-
   // ── ⑤ 오더번호 없는 원장행
   const e=R.오더번호없음||[];
   document.getElementById('cbNoOrderBody').innerHTML = e.length
     ? e.map(x=>'<tr><td>'+dv_(x.행)+'</td><td>'+dv_(x.접수일)+'</td><td>'+dv_(x.설치점)+'</td><td>'+dv_(x.고객명)+'</td><td>'+dv_(x.모델코드)+'</td><td style="text-align:right">'+wfmt(x.금액)+'</td></tr>').join('')
     : '<tr><td colspan="6" class="empty">✅ 모든 발주원장 행에 오더번호가 있습니다</td></tr>';
-
   const L=document.getElementById('cbReconLoading'), B=document.getElementById('cbReconBody');
   if(L) L.style.display='none';
   if(B) B.style.display='block';
 }
-
 function downloadCbDiffCsv(){
   const rows=(cbRecon&&cbRecon.금액다름)||[];
   if(!rows.length){ alert('다운로드할 금액 차이 건이 없습니다.'); return; }
@@ -2179,7 +2064,93 @@ function downloadCbDiffCsv(){
     rows.map(x=>[x.오더번호,x.매입일,x.설치점,x.고객명,x.모델코드,x.캐리어금액,x.원장금액,x.차이,x.원장행])
   );
 }
-
+// ══════════════════════════════════════════════════════════════
+// 입고 ↔ 마감 대사  [2026-08-03 신규]
+//   서버 액션 getCloseReconcile(15_ERP마감대사.gs v1.1) 결과를 그대로 표시.
+//   위 ERP 입고 대사가 "원장 ↔ ERP 입고"라면 여기는 "ERP 입고 ↔ ERP 마감"이다.
+//   · 조인 키는 입고번호+입고순번 — 정확 1:1이라 퍼지 매칭이 없다.
+//   · 마감은 실장님 확정본(세금계산서 기준). ③의 '단수보정 추정'과
+//     의도적으로 흡수한 보정(예: 2026-07 캐리어 585원)은 오류가 아니라
+//     기록이다 — 지우거나 허용오차로 덮지 않는다.
+//   · 월 파라미터가 없다. 두 자료(97_ERP입고·96_ERP마감)는 올린 파일
+//     그대로라 "지금 올라와 있는 달"을 대사한다. 마감월이 위 기준월과
+//     다르면 라벨에 ⚠️를 띄운다.
+//   · 화면에서 다시 집계하지 않는다(집계는 서버 한 곳에서만 — v53 원칙).
+// ══════════════════════════════════════════════════════════════
+let clsRecon = null;
+let clsReconLoading = false;
+let clsReconSeq = 0;
+async function loadClsRecon(force){
+  if(clsRecon && !force){ renderClsRecon(); return; }
+  if(!force && clsReconLoading) return;
+  const seq = ++clsReconSeq;
+  clsReconLoading=true;
+  const L=document.getElementById('clsReconLoading'), B=document.getElementById('clsReconBody');
+  if(L){ L.style.display='block'; L.textContent='대사 결과를 불러오는 중…'; }
+  if(B) B.style.display='none';
+  try{
+    const res=await apiCall({action:'getCloseReconcile'});
+    if(seq !== clsReconSeq) return;   // 더 최신 요청이 있다 — 이 응답은 버린다
+    clsRecon=res;
+    renderClsRecon();
+  }catch(e){
+    if(seq !== clsReconSeq) return;
+    clsRecon=null;
+    if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">[96_ERP마감] 탭이 비어 있으면 매입처 관리시트에서 [매입 마감 &gt; 5. ERP 마감현황 가져오기]를 먼저 실행하세요. 서버가 옛 버전이면 15_ERP마감대사.gs(v1.1) 설치 후 웹앱을 다시 배포해야 합니다.</span>'; }
+  }finally{ if(seq === clsReconSeq) clsReconLoading=false; }
+}
+function renderClsRecon(){
+  if(!clsRecon) return;
+  const R=clsRecon;
+  const label=closeYmLabel_(R.마감월);
+  const w=monthWarn_(R.마감월);
+  document.getElementById('clsTabMonthLabel').innerHTML='— '+esc_(label)+' 마감 기준'+w;
+  setText('clsReconStamp',
+    (R.생성일시?('마지막 대사 '+R.생성일시):'')
+    +((R.마감번호&&R.마감번호.length)?(' · 마감번호 '+R.마감번호.join(', ')):''));
+  // ── 거래처별 요약 (매입처 칩으로 거른다)
+  const sum=(R.요약||[]).filter(x=>reconVendorMatch_(x.거래처));
+  const diffCell_=(v)=>{
+    const n=Math.round(Number(v)||0);
+    return '<td style="text-align:right;font-weight:700;color:'+(n===0?'var(--green)':'var(--red)')+'">'
+      +(n>0?'+':'')+n.toLocaleString()+(n===0?' ✅':'')+'</td>';
+  };
+  document.getElementById('clsSummaryBody').innerHTML = sum.length
+    ? sum.map(s=>'<tr><td><b>'+dv_(s.거래처)+'</b></td>'
+        +'<td>'+(s.입고행수||0)+'</td><td style="text-align:right">'+wfmt(s.입고합계)+'</td>'
+        +'<td>'+(s.마감행수||0)+'</td><td style="text-align:right">'+wfmt(s.마감합계)+'</td>'
+        + diffCell_(s.차이)+'</tr>').join('')
+    : '<tr><td colspan="6" class="empty">대상 데이터가 없습니다</td></tr>';
+  // ── ① 입고에만 (마감 누락)
+  const inv=(R.입고에만||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('clsInvOnlyBody').innerHTML = inv.length
+    ? inv.map(x=>'<tr><td>'+dv_(x.입고번호)+'</td><td>'+dv_(x.순번)+'</td><td>'+dv_(x.거래처)+'</td>'
+        +'<td>'+dv_(x.품번)+'</td><td>'+dv_(x.품명)+'</td><td>'+dv_(x.입고일자)+'</td>'
+        +'<td style="text-align:right;font-weight:700">'+wfmt(x.금액)+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">✅ 입고가 전부 마감에 들어갔습니다</td></tr>';
+  // ── ② 마감에만
+  const co=(R.마감에만||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('clsCloseOnlyBody').innerHTML = co.length
+    ? co.map(x=>'<tr><td>'+dv_(x.마감번호)+'</td><td>'+dv_(x.입고번호)+'</td><td>'+dv_(x.입고순번)+'</td><td>'+dv_(x.거래처)+'</td>'
+        +'<td>'+dv_(x.품번)+'</td><td>'+dv_(x.품명)+'</td>'
+        +'<td style="text-align:right;font-weight:700">'+wfmt(x.금액)+'</td><td>'+dv_(x.사유)+'</td></tr>').join('')
+    : '<tr><td colspan="8" class="empty">✅ 마감이 전부 입고 조회와 연결됐습니다</td></tr>';
+  // ── ③ 금액·품번 다름
+  const df=(R.다름||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('clsDiffBody').innerHTML = df.length
+    ? df.map(x=>{
+        const ok=(x.판정==='단수보정 추정');
+        return '<tr><td>'+dv_(x.입고번호)+'</td><td>'+dv_(x.순번)+'</td><td>'+dv_(x.거래처)+'</td>'
+          +'<td>'+dv_(x.품번입고)+'</td><td'+(x.품번입고!==x.품번마감?' style="color:var(--red)"':'')+'>'+dv_(x.품번마감)+'</td>'
+          +'<td style="text-align:right">'+wfmt(x.금액입고)+'</td><td style="text-align:right">'+wfmt(x.금액마감)+'</td>'
+          +'<td style="text-align:right;font-weight:700;color:'+(ok?'var(--gray)':'var(--red)')+'">'+(Number(x.차이)>0?'+':'')+Math.round(Number(x.차이)||0).toLocaleString()+'</td>'
+          +'<td>'+(ok?'<span style="color:var(--gray)">단수보정 추정</span>':'<span style="color:var(--red);font-weight:700">확인 필요</span>')+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="9" class="empty">✅ 짝 맞은 행의 금액·품번이 전부 일치합니다</td></tr>';
+  const L=document.getElementById('clsReconLoading'), B=document.getElementById('clsReconBody');
+  if(L) L.style.display='none';
+  if(B) B.style.display='block';
+}
 // [2026-08-03 신규] 헤더 [🔄 새로고침] 전용 래퍼.
 // ★ 이걸 만든 이유: loadAll()의 로딩 표시(dash-loading)는 캐리어 메인(#mainView)
 //   안에 있다. 윈세이·스타리온·매입마감 화면에서 새로고침을 누르면 그 표시가
@@ -2201,7 +2172,6 @@ async function refreshAll(){
     setTimeout(() => { if (el) { el.disabled = false; el.textContent = orig; } }, 1600);
   }
 }
-
 async function loadAll(){
   updateHeaderDate();
   document.getElementById('dash-loading').style.display='block';
@@ -2215,7 +2185,6 @@ async function loadAll(){
       apiCall({action:'getWinseiOrders'}),
       apiCall({action:'getStarionOrders'}),
     ]);
-
     setText('s-happycall', summary.happyCallWait??0);
     // 오늘의 주문 접수 현황
     setText('s-today-total',     summary.todayTotal??0);
@@ -2235,15 +2204,12 @@ async function loadAll(){
     setText('s-cs',       summary.csCount??0);
     setText('s-total',    summary.thisMonthTotal??0);
     setText('s-monthcnt', summary.thisMonthCount??0);
-
     allOrders  = Array.isArray(orders)  ? orders  : [];
     allStock   = Array.isArray(stock)   ? stock   : [];
     allPrices  = Array.isArray(prices)  ? prices  : [];
     allWinsei  = Array.isArray(winsei)  ? winsei  : [];
     allStarion = Array.isArray(starion) ? starion : [];
-
     renderCarrierCloseAmt();
-
     // 윈세이/스타리온 기본 날짜: 최근 3개월
     const to=new Date(),from3=new Date();from3.setMonth(from3.getMonth()-3);
     setDR('wf-from','wf-to',from3,to);
@@ -2251,17 +2217,14 @@ async function loadAll(){
     // 발주현황: 기본 전체 기간
     document.getElementById('o-from').value='';
     document.getElementById('o-to').value='';
-
     renderStock();
     renderOrders();
     renderPriceChips();
     renderWinsei();
     renderStarion();
-
     document.getElementById('dash-loading').style.display='none';
     document.getElementById('dash-content').style.display='block';
-
-    // 매입 대사 2종은 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
+    // 매입 대사 3종은 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
     // 실패해도 위 화면은 이미 다 그려진 상태다. 서로도 독립적이다.
     // [2026-08-03 수정] force=true. 예전에는 false여서 loadErpRecon 맨 앞의
     //   if(erpRecon && !force){ renderErpRecon(); return; }
@@ -2270,12 +2233,11 @@ async function loadAll(){
     // 느낀 실제 원인. 헤더 새로고침은 사용자가 명시적으로 누른 것이므로
     // 무거워도 다시 대사하는 게 맞다(탭 전환 showTab은 false 그대로 둔다).
     // 진행 상태를 버튼에 보여주려고 promise를 남겨둔다(refreshAll이 기다린다).
-    lastReconPromise_ = Promise.allSettled([loadErpRecon(true), loadCbRecon(true)]);
+    lastReconPromise_ = Promise.allSettled([loadErpRecon(true), loadCbRecon(true), loadClsRecon(true)]);
   }catch(e){
     document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
   }
 }
-
 // ── 탭 전환 + 탭별 재로딩 ──
 function showTab(tab){
   // ⚠️ 아래 두 배열은 성격이 다르다.
@@ -2296,9 +2258,8 @@ function showTab(tab){
   if(tab==='happycall') renderHappyCallList();
   if(tab==='csInput') renderCSList();
   if(tab==='price')   setTimeout(drawChart,50);
-  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); }
+  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); loadClsRecon(false); }
 }
-
 async function refreshStock(){
   try{const d=await apiCall({action:'getCarrierStock'});allStock=Array.isArray(d)?d:[];selectedStockModel=null;renderStock();}catch(e){}
 }
@@ -2324,7 +2285,6 @@ async function refreshOrders(){
     renderOrders();
   }catch(e){}
 }
-
 // ── 오늘의 주문 접수 현황 카드 이동 ──
 function goToOrdersToday(filter){
   const today = new Date();
@@ -2343,7 +2303,6 @@ function goToOrdersToday(filter){
   });
   renderOrders();
 }
-
 // ── 현황판 카드 이동 ──
 function goToOrders(filter){
   currentOrderFilter=filter;
@@ -2372,13 +2331,11 @@ function goToOrdersThisMonth(filter='발주완료'){
   renderOrders();
 }
 function goToStock(){showTab('stock');}
-
 // ── 가용재고: 상단 모델 카드 ──
 function renderStock(){
   const grid=document.getElementById('model-card-grid');
   document.getElementById('stock-detail-panel').style.display='none';
   if(!allStock.length){grid.innerHTML='<div class="empty">가용 재고 없음</div>';return;}
-
   const map={};
   allStock.forEach(r=>{
     const m=r['모델코드']||'?';
@@ -2387,7 +2344,6 @@ function renderStock(){
     if(r['설치점코드'])map[m].points.add(r['설치점코드']);
     map[m].rows.push(r);
   });
-
   grid.innerHTML=Object.values(map).sort((a,b)=>b.qty-a.qty).map(it=>`
     <div class="model-card ${selectedStockModel===it.model?'selected':''}" onclick="selectStockModel('${it.model}')">
       <div class="model-card-name">${it.model}</div>
@@ -2395,10 +2351,8 @@ function renderStock(){
       <div class="model-card-unit">대 대기중</div>
       <div class="model-card-pts">설치점 ${it.points.size}곳</div>
     </div>`).join('');
-
   if(selectedStockModel) renderStockDetail(selectedStockModel);
 }
-
 // ── 가용재고: 하단 세부 테이블 ──
 function selectStockModel(model){
   selectedStockModel=model;
@@ -2408,27 +2362,23 @@ function selectStockModel(model){
   });
   renderStockDetail(model);
 }
-
 function renderStockDetail(model){
   const rows = allStock.filter(r=>(r['모델코드']||'?')===model);
   const panel = document.getElementById('stock-detail-panel');
   const tbody = document.getElementById('stock-detail-body');
   setText('stock-detail-title', `📋 ${model} — 세부 내역 (${rows.length}건)`);
   stockDetailFlat = []; // [v22신규 2026-07-16] 이송 버튼이 참조할 행 배열 초기화
-
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="8" class="empty">데이터 없음</td></tr>';
     panel.style.display='block';
     return;
   }
-
   // 설치점코드 기준 정렬
   const sorted = [...rows].sort((a,b)=>{
     const ca = String(a['설치점코드']||'');
     const cb = String(b['설치점코드']||'');
     return ca > cb ? 1 : ca < cb ? -1 : 0;
   });
-
   // 설치점별 그룹 집계
   const groups = {};
   sorted.forEach(r=>{
@@ -2437,7 +2387,6 @@ function renderStockDetail(model){
     groups[code].rows.push(r);
     groups[code].total += parseInt(r['수량'])||1;
   });
-
   let html = '';
   Object.values(groups).forEach(g=>{
     const nameLabel = g.name ? `${g.name} (${g.code})` : g.code;
@@ -2472,12 +2421,10 @@ function renderStockDetail(model){
       </tr>`;
     });
   });
-
   tbody.innerHTML = html;
   panel.style.display='block';
   setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
 }
-
 // ── [v22신규 2026-07-16] 재고 이송 모달 ──
 // 원칙: 버튼은 재고 위치만 옮기고, 판단(기존재고 분류·오더번호 연결·사용중 전환)은
 // 전부 업로드(매입처발주.py v1.11)가 한다. 서버는 orderNo+대기중+모델코드+출발지코드로
@@ -2530,7 +2477,6 @@ async function doStockTransfer(){
     btn.disabled=false;btn.textContent='이송 처리';
   }
 }
-
 function filterOrders(f,btn){
   currentOrderFilter=f;
   document.querySelectorAll('#tab-orders .filter-tab').forEach(t=>t.classList.remove('active'));
@@ -2546,12 +2492,10 @@ function clearOrderFilter(){
   document.getElementById('o-to').value='';
   renderOrders();
 }
-
 function renderOrders(){
   const from=document.getElementById('o-from').value;
   const to=document.getElementById('o-to').value;
   const f=currentOrderFilter;
-
   let rows=allOrders.filter(r=>{
     const d=fmtD(r['접수일']);
     if(from&&d<from)return false;
@@ -2560,11 +2504,9 @@ function renderOrders(){
     if(f==='전체')return true;
     return r['완료여부']===f;
   });
-
   currentCarrierRowsForExport=rows;
   const wrap=document.getElementById('order-list');
   if(!rows.length){wrap.innerHTML='<div class="empty">조회 결과 없음</div>';return;}
-
   // [2026-06-30 4차 수정] 헤더 행 + 하단 합계 행 추가.
   // 합계는 마감금액(매입정산 기준)이 있는 행만 집계한다 — 마감금액이 없는 행(백필 전/
   // 단가매칭 실패 구형모델)은 발주서기준 금액이라 성격이 달라 합계에 섞으면 안 됨.
@@ -2572,7 +2514,6 @@ function renderOrders(){
   const 합계VAT제외 = 마감있는행.reduce((sum,r)=>sum+money_(r['마감금액_VAT제외']),0);
   const 합계VAT포함 = 마감있는행.reduce((sum,r)=>sum+money_(r['마감금액_VAT포함']),0);
   const 마감누락건수 = rows.length - 마감있는행.length;
-
   wrap.innerHTML=`<div style="padding:10px 16px;font-size:12px;color:var(--gray);display:flex;justify-content:space-between">
     <span>총 ${rows.length}건</span>
     <span style="color:var(--blue);font-size:11px">행 클릭 → CS 입력</span>
@@ -2629,7 +2570,6 @@ function renderOrders(){
     <span>VAT+ ${wfmt(합계VAT포함)}</span>
   </div>`;
 }
-
 // [2026-07-30신규] 발주현황 행 상세 — 캐리어_발주원장(CARRIER_COLS) 항목을 구역별로 전부 보여준다.
 // 배경: 구글시트에는 값이 잘 들어갔는데 화면에서 확인할 방법이 없어(주소/전화번호 등이
 // 안 나옴) 업로드가 제대로 됐는지 대조가 안 된다는 Dr. Corcan 요청(2026-07-30).
@@ -2647,7 +2587,6 @@ function orderDetailHtml_(r){
   const sno = String(r['사방넷주문번호']||'').trim();
   const snoHtml = sno ? esc_(sno) : '<span style="color:var(--gray)">없음 (사방넷 미경유 건)</span>';
   const G = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px">';
-
   let h = '';
   h += odSection_('📋 주문 정보');
   h += G;
@@ -2674,7 +2613,6 @@ function orderDetailHtml_(r){
   h += odCell_('처리키',     dv_(r['처리키']));
   h += closeMonthEditorHtml_(r);   // [2026-08-02추가] 월말 이월을 화면에서 지정
   h += '</div>';
-
   h += odSection_('👤 고객 · 배송 정보');
   h += G;
   h += odCell_('주문자명',   dv_(r['주문자명']));
@@ -2685,7 +2623,6 @@ function orderDetailHtml_(r){
   h += odCell_('주소',       dv_(r['실구매자주소']), 3);
   h += odCell_('설치점주소', dv_(r['설치점주소']), 4);
   h += '</div>';
-
   h += odSection_('💰 금액 정보');
   h += G;
   h += odCell_('캐리어공급가(VAT-)', dmoney_(r['캐리어공급가_VAT제외']));
@@ -2695,7 +2632,6 @@ function orderDetailHtml_(r){
   h += odCell_('<strong>마감금액(VAT-)</strong>', '<strong>'+dmoney_(r['마감금액_VAT제외'])+'</strong>');
   h += odCell_('<strong>마감금액(VAT+)</strong>', '<strong>'+dmoney_(r['마감금액_VAT포함'])+'</strong>');
   h += '</div>';
-
   const 물류 = String(r['물류메시지']||'').trim();
   if(물류){
     h += '<div style="margin-top:10px;padding:7px 10px;background:#EBF5FB;border-radius:4px">'
@@ -2720,13 +2656,11 @@ function openCSByIndex(i){
   openCS(sno, r['CS여부']||'', r['CS내용']||'');
 }
 function toggleOD(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-
 // ── 해피콜대기 전용 뷰 ──
 function goToHappyCall(){
   showTab('happycall');
   renderHappyCallList();
 }
-
 function renderHappyCallList(){
   const targets = allOrders.filter(r=>(r['완료여부']||'').trim()==='해피콜대기');
   const wrap = document.getElementById('happycall-list');
@@ -2759,7 +2693,6 @@ function renderHappyCallList(){
     </div>`;
   }).join('');
 }
-
 async function cancelHappyCall(sno, msgId){
   if(!confirm('해피콜대기 건을 주문취소 처리하시겠습니까?\n사방넷주문번호: '+sno)) return;
   const msg = document.getElementById(msgId);
@@ -2780,7 +2713,6 @@ async function cancelHappyCall(sno, msgId){
     msg.textContent='❌ 오류: '+e.message;
   }
 }
-
 // ── 오더번호 미입력 전용 뷰 ──
 // [v21신규 2026-07-08] v1.10 부분재고 분할로 같은 사방넷주문번호(sno)가
 // "기존재고" 행과 "발주중" 행 두 개로 동시에 오더번호 미입력 상태일 수
@@ -2794,7 +2726,6 @@ function noOrderKey_(r){
   const 처리키=String(r['처리키']||'').trim();
   return 처리키 || String(r['사방넷주문번호']||'');
 }
-
 function renderNoOrder(){
   const targets=allOrders.filter(r=>{
     const 완=(r['완료여부']||'').trim();
@@ -2828,7 +2759,6 @@ function renderNoOrder(){
     </div>`;
   }).join('');
 }
-
 async function saveOrderNo(sno,key,처리구분){
   const orderNo=document.getElementById('ni-'+key).value.trim();
   const msg=document.getElementById('nm-'+key);
@@ -2853,7 +2783,6 @@ async function saveOrderNo(sno,key,처리구분){
     },1500);
   }catch(e){btn.disabled=false;btn.textContent='저장';msg.style.display='block';msg.style.color='var(--red)';msg.textContent='❌ 오류: '+e.message;}
 }
-
 // ── 취소처리 ──
 // [v21신규 2026-07-08] v1.10 부분재고 분할로 같은 사방넷주문번호에
 // "기존재고"/"신규발주" 두 행이 있을 수 있다. 예전에는 allOrders.find()로
@@ -2874,7 +2803,6 @@ function fillCancelPreview_(found){
   document.getElementById('cancelPreview').style.display='block';
   document.getElementById('cancelConfirmRow').style.display='block';
 }
-
 function pickCancelCandidate_(no, 처리구분){
   const found=allOrders.find(r=>String(r['사방넷주문번호'])===no && String(r['처리구분']||'')===처리구분);
   const multiWrap=document.getElementById('cancelMultiWrap');
@@ -2883,7 +2811,6 @@ function pickCancelCandidate_(no, 처리구분){
   if(found['완료여부']==='취소재고'){showMsgBox('cancel-error','이미 취소 처리된 건입니다.');return;}
   fillCancelPreview_(found);
 }
-
 function searchCancel(){
   const no=document.getElementById('cancelNo').value.trim();
   if(!no)return;
@@ -2894,10 +2821,8 @@ function searchCancel(){
   document.getElementById('cancelChk').checked=false;
   const multiWrapExisting=document.getElementById('cancelMultiWrap');
   if(multiWrapExisting) multiWrapExisting.remove();
-
   const matches=allOrders.filter(r=>String(r['사방넷주문번호'])===no);
   if(!matches.length){showMsgBox('cancel-error','주문번호를 찾을 수 없습니다.');return;}
-
   if(matches.length>1){
     // 부분재고 분할로 처리행이 2개 이상 — 임의로 첫 번째를 고르지 않고
     // 사용자가 직접 선택하게 한다.
@@ -2917,7 +2842,6 @@ function searchCancel(){
     preview.parentNode.insertBefore(wrap, preview);
     return;
   }
-
   const found=matches[0];
   if(found['완료여부']==='취소재고'){
     showMsgBox('cancel-error','이미 취소 처리된 건입니다.');
@@ -2927,7 +2851,6 @@ function searchCancel(){
 }
 async function doCancel(){
   if(!cancelTarget)return;
-
   // [v5] 발주중 + 오더번호 없음 → 안내 모달 먼저 표시
   const 완료 = (cancelTarget['완료여부']||'').trim();
   const 오더 = String(cancelTarget['오더번호']||'').trim();
@@ -2937,17 +2860,14 @@ async function doCancel(){
   }
   await _execCancel();
 }
-
 function closePreOrderCancelModal(){
   document.getElementById('preOrderCancelModal').style.display='none';
   document.getElementById('cancelBtn').disabled=false;
 }
-
 async function confirmPreOrderCancel(){
   document.getElementById('preOrderCancelModal').style.display='none';
   await _execCancel();
 }
-
 async function _execCancel(){
   if(!cancelTarget)return;
   const no=String(cancelTarget['사방넷주문번호']);
@@ -2962,16 +2882,13 @@ async function _execCancel(){
     // 로컬 데이터 즉시 업데이트 (화면 깜빡임 없이) — sno만이 아니라 처리구분까지 일치하는 행을 찾는다
     const idx = allOrders.findIndex(r=>String(r['사방넷주문번호'])===no && String(r['처리구분']||'')===처리구분);
     if(idx>=0) allOrders[idx]['완료여부'] = result.result==='주문취소' ? '주문취소' : '취소재고';
-
     cancelTarget=null;
     document.getElementById('cancelNo').value='';
     document.getElementById('cancelPreview').style.display='none';
     document.getElementById('cancelConfirmRow').style.display='none';
     document.getElementById('cancelChk').checked=false;
-
     // 성공 메시지 표시 후 현황판만 갱신
     showMsgBox('cancel-success', msg, true);
-
     // 2초 후 전체 갱신 (메시지 보이는 동안 유지)
     setTimeout(()=>loadAll(), 2000);
   }catch(e){
@@ -2979,7 +2896,6 @@ async function _execCancel(){
     document.getElementById('cancelBtn').disabled=false;
   }
 }
-
 // ── CS 모달 ──
 function openCS(sno,yn,content){
   document.getElementById('cs-no').value=sno;setText('cs-no-label',sno);
@@ -2987,14 +2903,12 @@ function openCS(sno,yn,content){
   document.getElementById('csModal').style.display='flex';
 }
 function closeCS(){document.getElementById('csModal').style.display='none';}
-
 // ── CS 입력 탭 ──
 function searchCSInput(){
   const no = document.getElementById('csInputNo').value.trim();
   if(!no) return;
   document.getElementById('csInputPreview').style.display='none';
   document.getElementById('csInputFormRow').style.display='none';
-
   const found = allOrders.find(r=>String(r['사방넷주문번호'])===no);
   if(!found){
     showMsgBox('csInput-error','주문번호를 찾을 수 없습니다.');
@@ -3011,7 +2925,6 @@ function searchCSInput(){
   document.getElementById('csInputPreview').style.display='block';
   document.getElementById('csInputFormRow').style.display='block';
 }
-
 async function saveCSInput(){
   const no      = document.getElementById('csInputNo').value.trim();
   const csYn    = document.getElementById('csInput-yn').value;
@@ -3031,7 +2944,6 @@ async function saveCSInput(){
     setText('cip-csyn', csYn==='Y'?'Y (CS 진행중)':'없음');
   }catch(e){showMsgBox('csInput-error','저장 오류: '+e.message);}
 }
-
 function renderCSList(){
   const csRows = allOrders.filter(r=>r['CS여부']==='Y');
   const panel  = document.getElementById('csListPanel');
@@ -3051,7 +2963,6 @@ function renderCSList(){
       ${r['CS내용']?`<div style="margin-top:4px;padding:4px 8px;background:#FEF9E7;border-radius:4px;color:var(--orange)">${r['CS내용']}</div>`:''}
     </div>`).join('');
 }
-
 async function saveCS(){
   const no=document.getElementById('cs-no').value;
   const csYn=document.getElementById('cs-yn').value;
@@ -3062,7 +2973,6 @@ async function saveCS(){
     setTimeout(()=>{closeCS();loadAll();},1200);
   }catch(e){showMsgBox('cs-error','저장 오류: '+e.message);}
 }
-
 // ── 단가추이 ──
 function filterChips(){
   const q=document.getElementById('modelSearch').value.toLowerCase();
@@ -3100,7 +3010,6 @@ function drawChart(){
   ctx.strokeStyle='#2980B9';ctx.lineWidth=2.5;ctx.beginPath();rows.forEach((_,i)=>i===0?ctx.moveTo(xs(i),ys(vals[i])):ctx.lineTo(xs(i),ys(vals[i])));ctx.stroke();
   rows.forEach((_,i)=>{ctx.fillStyle='#2980B9';ctx.beginPath();ctx.arc(xs(i),ys(vals[i]),4,0,Math.PI*2);ctx.fill();ctx.fillStyle='#2C3E50';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText('₩'+Math.round(vals[i]).toLocaleString(),xs(i),ys(vals[i])-10);});
 }
-
 // ── 윈세이/스타리온 ──
 function winseiValue_(r, key){ return r && r[key] !== undefined && r[key] !== null ? r[key] : ''; }
 // [2026-08-03 신규] 매입마감에 세지 않는 완료여부.
@@ -3115,18 +3024,15 @@ const WINSEI_NO_CLOSE = ['반품회수', '주문취소'];
 function winseiCountsForClose_(r){
   return WINSEI_NO_CLOSE.indexOf(String(winseiValue_(r,'완료여부')).trim()) < 0;
 }
-
 function isWinseiNoTracking_(r){
   return (winseiValue_(r,'완료여부')||'').trim()==='발주완료' && !String(winseiValue_(r,'송장번호')).trim();
 }
-
 function renderWinsei(){
   const status=document.getElementById('wf-status').value;
   const from=document.getElementById('wf-from').value;
   const to=document.getElementById('wf-to').value;
   const closeYm=selectedCloseYm_('winseiCloseMonth');
   updateCloseMonthUi_('winsei',closeYm);
-
   const noTrackRows=allWinsei.filter(isWinseiNoTracking_);
   const returnRows=allWinsei.filter(r=>String(winseiValue_(r,'반품여부')).trim()==='반품됨');
   const returnReqRows=allWinsei.filter(r=>String(winseiValue_(r,'윈세이환입상태')).trim()==='신청');
@@ -3141,7 +3047,6 @@ function renderWinsei(){
   });
   const closeAmt=closeRows.reduce((sum,r)=>sum+money_(winseiValue_(r,'합계_VAT포함')),0);
   const returnDeduct=completedReturnRows.reduce((sum,r)=>sum+money_(winseiValue_(r,'환입차감금액_VAT포함')),0);
-
   setText('w-wait',allWinsei.filter(r=>String(winseiValue_(r,'완료여부')).trim()==='발주대기').length);
   setText('w-done',allWinsei.filter(r=>String(winseiValue_(r,'완료여부')).trim()==='발주완료').length);
   setText('w-notrack',noTrackRows.length);
@@ -3152,7 +3057,6 @@ function renderWinsei(){
   setText('w-closeamt',closeAmt?wfmt(closeAmt):'—');
   setText('w-returndeduct',returnDeduct?'-'+wfmt(returnDeduct):'—');
   setText('w-netamt',(closeAmt-returnDeduct)?wfmt(closeAmt-returnDeduct):'—');
-
   let rows=allWinsei.filter(r=>{
     const complete=String(winseiValue_(r,'완료여부')).trim();
     const returnFlag=String(winseiValue_(r,'반품여부')).trim();
@@ -3167,10 +3071,8 @@ function renderWinsei(){
     if(to&&d>to)return false;
     return true;
   });
-
   currentWinseiRowsForExport=rows;
   updateQuerySummary_('winseiResultSummary',rows,r=>qty_(winseiValue_(r,'수량')),r=>money_(winseiValue_(r,'합계_VAT포함')));
-
   const tbody=document.getElementById('winseiBody');
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="12" class="empty">조회 결과 없음</td></tr>';
@@ -3209,7 +3111,6 @@ function renderWinsei(){
   }
   renderWinseiCloseDetails(closeYm);
 }
-
 function winseiCloseLines_(closeYm){
   const ym=closeYm||selectedCloseYm_('winseiCloseMonth');
   const lines=[];
@@ -3229,7 +3130,6 @@ function winseiCloseLines_(closeYm){
   lines.sort((a,b)=>a.date===b.date ? a.type.localeCompare(b.type) : a.date.localeCompare(b.date));
   return lines;
 }
-
 function renderWinseiCloseDetails(closeYm){
   const ym=closeYm||selectedCloseYm_('winseiCloseMonth');
   const label=closeYmLabel_(ym);
@@ -3243,7 +3143,6 @@ function renderWinseiCloseDetails(closeYm){
     <td style="font-weight:700;${line.amount<0?'color:var(--red)':'color:var(--dark)'}">${line.amount<0?'-':''}${wfmt(Math.abs(line.amount))}</td>
   </tr>`).join('');
 }
-
 function filterWinseiNoTracking(){
   document.getElementById('wf-status').value='송장미입력';
   renderWinsei();
@@ -3281,13 +3180,11 @@ function resetWinseiFilter(){
   setDR('wf-from','wf-to',from,to);
   renderWinsei();
 }
-
 // ── 윈세이 서브뷰: 탭 / 마감내역 / 취소·반품 ──
 let winseiActionMode='cancel';
 let winseiActionTarget=null;
 let winseiReturnListFilter='';
 let winseiCloseDetailsOpen=false;
-
 function showWinseiTab(tab,btn){
   document.querySelectorAll('[data-winsei-tab]').forEach(function(el){
     el.classList.toggle('active',el.dataset.winseiTab===tab);
@@ -3296,7 +3193,6 @@ function showWinseiTab(tab,btn){
   document.getElementById('winseiTab-actions').classList.toggle('active',tab==='actions');
   if(tab==='actions') renderWinseiActionList();
 }
-
 function toggleWinseiCloseDetails(){
   winseiCloseDetailsOpen=!winseiCloseDetailsOpen;
   const panel=document.getElementById('winseiCloseDetailsPanel');
@@ -3305,7 +3201,6 @@ function toggleWinseiCloseDetails(){
   setText('w-closecnt-desc',guide);
   setText('w-closeamt-desc',guide);
 }
-
 function openWinseiReturnAction(filter){
   // 카드 클릭은 특정 주문을 임의로 선택하지 않는다.
   // 해당 상태의 전체 목록을 보여주고, 사용자가 목록에서 처리 대상을 선택한다.
@@ -3316,7 +3211,6 @@ function openWinseiReturnAction(filter){
   setWinseiActionMode('return',modeBtn);
   renderWinseiActionList();
 }
-
 function setWinseiActionMode(mode,btn){
   winseiActionMode=mode;
   winseiActionTarget=null;
@@ -3333,18 +3227,15 @@ function setWinseiActionMode(mode,btn){
   const error=document.getElementById('winseiAction-error');
   if(success) success.style.display='none';
   if(error) error.style.display='none';
-
   const isReturn=mode==='return';
   setText('winseiActionTitle',isReturn?'↩️ 윈세이 반품 / 환입 처리':'❌ 윈세이 주문 취소');
   setText('winseiActionGuideTitle',isReturn?'📌 윈세이 반품·환입 규칙':'📌 윈세이 취소 규칙');
   document.getElementById('winseiActionGuide').innerHTML=isReturn
     ? '<div class="note-box"><strong>1. 반품됨 표시</strong><br>누구의 반품인지 확인하는 정보성 표시입니다. 금액 영향은 없습니다.</div><div class="note-box"><strong>2. 윈세이 환입 신청</strong><br>신청 상태만 기록합니다. 금액 영향은 없습니다.</div><div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>3. 윈세이 환입 완료</strong><br>환입 확정일과 실제 차감금액을 입력하면 해당 월 매입에서 차감합니다.</div>'
     : '<div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>송장번호 입력 전 취소</strong><br>송장번호가 공란인 건만 주문취소로 처리합니다.<br>매입마감에는 영향을 주지 않습니다.</div>';
-
   if(!isReturn) clearWinseiActionList();
   else renderWinseiActionList();
 }
-
 function winseiReturnStateLabel_(r){
   const returned=String(winseiValue_(r,'반품여부')).trim()==='반품됨';
   const inbound=String(winseiValue_(r,'윈세이환입상태')).trim();
@@ -3353,7 +3244,6 @@ function winseiReturnStateLabel_(r){
   if(returned) return '반품됨';
   return '—';
 }
-
 function renderWinseiActionList(){
   const wrap=document.getElementById('winseiActionListWrap');
   const body=document.getElementById('winseiActionListBody');
@@ -3364,7 +3254,6 @@ function renderWinseiActionList(){
     body.innerHTML='';
     return;
   }
-
   let rows=[];
   if(winseiReturnListFilter==='returned'){
     // 반품됨 카드는 반품 표시가 된 전체 주문을 보여준다.
@@ -3379,7 +3268,6 @@ function renderWinseiActionList(){
     });
     title.textContent='📤 환입신청 처리 대상 목록';
   }
-
   wrap.style.display='block';
   if(!rows.length){
     body.innerHTML='<tr><td colspan="7" class="empty">처리할 대상이 없습니다</td></tr>';
@@ -3394,11 +3282,10 @@ function renderWinseiActionList(){
       + '<td>'+String(winseiValue_(r,'모델코드')||'')+'</td>'
       + '<td>'+String(winseiValue_(r,'송장번호')||'—')+'</td>'
       + '<td>'+winseiReturnStateLabel_(r)+'</td>'
-      + '<td><button class="winsei-action-pick" onclick="pickWinseiActionOrder(&quot;'+no.replace(/&/g,'&amp;').replace(/&quot;/g,'&amp;quot;')+'&quot;)">처리</button></td>' 
+      + '<td><button class="winsei-action-pick" onclick="pickWinseiActionOrder(&quot;'+no.replace(/&/g,'&amp;').replace(/&quot;/g,'&amp;quot;')+'&quot;)">처리</button></td>'
       + '</tr>';
   }).join('');
 }
-
 function clearWinseiActionList(){
   winseiReturnListFilter='';
   const wrap=document.getElementById('winseiActionListWrap');
@@ -3406,12 +3293,10 @@ function clearWinseiActionList(){
   if(wrap) wrap.style.display='none';
   if(body) body.innerHTML='';
 }
-
 function pickWinseiActionOrder(saBangNo){
   document.getElementById('winseiActionNo').value=saBangNo;
   searchWinseiAction();
 }
-
 async function searchWinseiAction(){
   const no=document.getElementById('winseiActionNo').value.trim();
   if(!no){showMsgBox('winseiAction-error','사방넷 주문번호를 입력하세요.');return;}
@@ -3433,7 +3318,6 @@ async function searchWinseiAction(){
     renderWinseiActionList();
   }catch(e){showMsgBox('winseiAction-error','조회 오류: '+e.message);}
 }
-
 function renderWinseiActionBody(){
   const box=document.getElementById('winseiActionBody');
   if(!winseiActionTarget){box.style.display='none';return;}
@@ -3466,7 +3350,6 @@ function renderWinseiActionBody(){
   }
   box.innerHTML='<div class="note-box" style="background:#E9F7EF;border-color:#27AE60"><strong>환입 완료 처리된 건입니다.</strong><br>환입완료일: '+(fmtD(winseiValue_(r,'윈세이환입완료일'))||'—')+'<br>차감금액: '+wfmt(money_(winseiValue_(r,'환입차감금액_VAT포함')))+ '</div>';
 }
-
 async function executeWinseiAction(action){
   if(!winseiActionTarget)return;
   const no=String(winseiValue_(winseiActionTarget,'사방넷주문번호'));
@@ -3502,42 +3385,33 @@ async function executeWinseiAction(action){
     if(btn){btn.disabled=false;btn.textContent='다시 시도';}
   }
 }
-
 // ── 스타리온 서브뷰: 설치완료 / 취소 / 1차 매입마감 ──
 let starionActionTarget=null;
 let starionCloseDetailsOpen=false;
-
 function starionValue_(r,key){ return r && r[key] !== undefined && r[key] !== null ? r[key] : ''; }
-
 function starionCancelStatus_(r){ return String(starionValue_(r,'취소상태')).trim(); }
-
 // 취소는 설치전취소·설치후취소와, 과거 데이터의 완료여부=주문취소를 모두 포함한다.
 function isStarionCancelled_(r){
   const complete=String(starionValue_(r,'완료여부')).trim();
   const cancel=starionCancelStatus_(r);
   return complete==='주문취소' || cancel==='설치전취소' || cancel==='설치후취소';
 }
-
 // 설치 이력: 실제 설치완료가 한 번이라도 기록된 건
 // 월 매입마감의 양수 행은 설치 이력을 보존해야 하므로 이 기준을 사용한다.
 function starionInstalledHistory_(r){
   return String(starionValue_(r,'설치완료여부')).trim()==='Y';
 }
-
 // 현재 유효 설치완료: 설치후취소는 시트 이력에는 남지만 현황 카드에서는 제외한다.
 function starionActiveInstalled_(r){
   return starionInstalledHistory_(r) && !isStarionCancelled_(r);
 }
-
 // 현재 진행 중인 발주완료: 설치 전·후 취소는 모두 제외한다.
 function starionActiveOrderDone_(r){
   return String(starionValue_(r,'완료여부')).trim()==='발주완료' && !isStarionCancelled_(r);
 }
-
 function isStarionInstallPending_(r){
   return starionActiveOrderDone_(r) && !starionInstalledHistory_(r);
 }
-
 function showStarionTab(tab,btn){
   document.querySelectorAll('[data-starion-tab]').forEach(function(el){
     el.classList.toggle('active',el.getAttribute('data-starion-tab')===tab);
@@ -3545,7 +3419,6 @@ function showStarionTab(tab,btn){
   document.getElementById('starionTab-orders').classList.toggle('active',tab==='orders');
   document.getElementById('starionTab-actions').classList.toggle('active',tab==='actions');
 }
-
 function toggleStarionCloseDetails(){
   starionCloseDetailsOpen=!starionCloseDetailsOpen;
   const panel=document.getElementById('starionCloseDetailsPanel');
@@ -3554,13 +3427,11 @@ function toggleStarionCloseDetails(){
   setText('st-closecnt-desc',guide);
   setText('st-closeamt-desc',guide);
 }
-
 function filterStarionInstall(mode){
   document.getElementById('sf-status').value=mode==='완료'?'설치완료':'설치미완료';
   renderStarion();
   scrollToStarionOrders_();
 }
-
 function filterStarionCancelled(){
   // 상단 취소 카드는 전체 누적 기준이므로 날짜 조건을 비워 전체 취소건을 표시한다.
   document.getElementById('sf-status').value='취소';
@@ -3569,7 +3440,6 @@ function filterStarionCancelled(){
   renderStarion();
   scrollToStarionOrders_();
 }
-
 function filterStarionThisMonthOrders(){
   // 접수일 기준 이번달 주문: 지난달 주문의 이번달 설치와 다음달 이월 주문을 함께 구분하기 위한 기준이다.
   const now=new Date();
@@ -3580,12 +3450,10 @@ function filterStarionThisMonthOrders(){
   renderStarion();
   scrollToStarionOrders_();
 }
-
 function scrollToStarionOrders_(){
   const target=document.getElementById('starionOrdersFilterBar');
   if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
 }
-
 function starionRowMatchesStatus_(r,status){
   const complete=String(starionValue_(r,'완료여부')).trim();
   const cancel=starionCancelStatus_(r);
@@ -3598,7 +3466,6 @@ function starionRowMatchesStatus_(r,status){
   if(status==='발주완료') return starionActiveOrderDone_(r);
   return complete===status;
 }
-
 function renderStarion(){
   const status=document.getElementById('sf-status').value;
   const from=document.getElementById('sf-from').value;
@@ -3606,7 +3473,6 @@ function renderStarion(){
   const currentYm=currentYm_();
   const closeYm=selectedCloseYm_('starionCloseMonth');
   updateCloseMonthUi_('starion',closeYm);
-
   const rows=allStarion.filter(function(r){
     if(!starionRowMatchesStatus_(r,status)) return false;
     const d=fmtD(starionValue_(r,'접수일'));
@@ -3614,7 +3480,6 @@ function renderStarion(){
     if(to&&d>to) return false;
     return true;
   });
-
   // 주문건수는 기존처럼 현재월 접수일 기준을 유지하고,
   // 마감 관련 4개 카드는 사용자가 고른 마감 기준월로 집계한다.
   const monthOrderRows=allStarion.filter(function(r){
@@ -3628,7 +3493,6 @@ function renderStarion(){
   });
   const closeAmt=closeRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'합계_VAT포함'));},0);
   const cancelDeduct=cancelRows.reduce(function(sum,r){return sum+money_(starionValue_(r,'취소차감금액_VAT포함'));},0);
-
   setText('st-happy',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='해피콜대기';}).length);
   setText('st-wait',allStarion.filter(function(r){return String(starionValue_(r,'완료여부')).trim()==='발주대기';}).length);
   setText('st-done',allStarion.filter(starionActiveOrderDone_).length);
@@ -3641,10 +3505,8 @@ function renderStarion(){
   setText('st-closeamt',closeAmt?wfmt(closeAmt):'—');
   setText('st-canceldeduct',cancelDeduct?'-'+wfmt(cancelDeduct):'—');
   setText('st-netamt',(closeAmt-cancelDeduct)?wfmt(closeAmt-cancelDeduct):'—');
-
   currentStarionRowsForExport=rows;
   updateQuerySummary_('starionResultSummary',rows,r=>qty_(starionValue_(r,'수량')),r=>money_(starionValue_(r,'합계_VAT포함')));
-
   const tbody=document.getElementById('starionBody');
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="11" class="empty">조회 결과 없음</td></tr>';
@@ -3676,7 +3538,6 @@ function renderStarion(){
   }
   renderStarionCloseDetails(closeYm);
 }
-
 function starionCloseLines_(closeYm){
   const ym=closeYm||selectedCloseYm_('starionCloseMonth');
   const lines=[];
@@ -3684,7 +3545,6 @@ function starionCloseLines_(closeYm){
     const orderDate=fmtD(starionValue_(r,'접수일'));
     const installDate=fmtD(starionValue_(r,'설치완료일'));
     const cancelDate=fmtD(starionValue_(r,'취소확정일'));
-
     // 양수 매입은 설치완료일이 선택한 마감월인 건을 표시한다.
     if(starionInstalledHistory_(r) && installDate && monthOf_(installDate)===ym){
       lines.push({
@@ -3699,7 +3559,6 @@ function starionCloseLines_(closeYm){
         amount:money_(starionValue_(r,'합계_VAT포함'))
       });
     }
-
     // 설치후취소 차감은 취소확정일이 선택한 마감월인 건을 표시한다.
     if(starionCancelStatus_(r)==='설치후취소' && cancelDate && monthOf_(cancelDate)===ym){
       lines.push({
@@ -3715,27 +3574,22 @@ function starionCloseLines_(closeYm){
       });
     }
   });
-
   // 마감 대상은 주문일 오래된 순으로 먼저 보여준다.
   // 같은 주문일이면 설치완료일 순으로 배치해 전월 주문의 당월 설치 이월 건을 쉽게 확인한다.
   lines.sort(function(a,b){
     const aOrder=a.orderDate || '9999-12-31';
     const bOrder=b.orderDate || '9999-12-31';
     if(aOrder!==bOrder) return aOrder.localeCompare(bOrder);
-
     const aInstall=a.installDate || '9999-12-31';
     const bInstall=b.installDate || '9999-12-31';
     if(aInstall!==bInstall) return aInstall.localeCompare(bInstall);
-
     const aCancel=a.cancelDate || '9999-12-31';
     const bCancel=b.cancelDate || '9999-12-31';
     if(aCancel!==bCancel) return aCancel.localeCompare(bCancel);
-
     return a.no.localeCompare(b.no);
   });
   return lines;
 }
-
 function renderStarionCloseDetails(closeYm){
   const ym=closeYm||selectedCloseYm_('starionCloseMonth');
   const label=closeYmLabel_(ym);
@@ -3745,7 +3599,6 @@ function renderStarionCloseDetails(closeYm){
     tbody.innerHTML='<tr><td colspan="8" class="empty">'+label+' 마감 내역이 없습니다</td></tr>';
     return;
   }
-
   tbody.innerHTML=lines.map(function(line){
     const isCancel=line.amount<0;
     return '<tr>'
@@ -3760,7 +3613,6 @@ function renderStarionCloseDetails(closeYm){
       + '</tr>';
   }).join('');
 }
-
 async function saveStarionInstallation(saBangNo){
   const input=document.getElementById('stinstall-'+saBangNo);
   const installDate=(input?.value||'').trim();
@@ -3776,14 +3628,12 @@ async function saveStarionInstallation(saBangNo){
     alert('설치완료 저장 오류: '+e.message);
   }
 }
-
 function resetStarionFilter(){
   document.getElementById('sf-status').value='';
   const to=new Date(),from=new Date();from.setMonth(from.getMonth()-3);
   setDR('sf-from','sf-to',from,to);
   renderStarion();
 }
-
 async function searchStarionAction(){
   const no=document.getElementById('starionActionNo').value.trim();
   if(!no){showMsgBox('starionAction-error','사방넷 주문번호를 입력하세요.');return;}
@@ -3804,7 +3654,6 @@ async function searchStarionAction(){
     renderStarionActionBody();
   }catch(e){showMsgBox('starionAction-error','조회 오류: '+e.message);}
 }
-
 function renderStarionActionBody(){
   const box=document.getElementById('starionActionBody');
   if(!starionActionTarget){box.style.display='none';return;}
@@ -3829,7 +3678,6 @@ function renderStarionActionBody(){
     + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin:12px 0"><input type="checkbox" id="starionActionChk" onchange="document.getElementById(\'starionActionBtn\').disabled=!this.checked"> 스타리온 취소와 차감금액을 확인했습니다</label>'
     + '<button class="submit-btn" id="starionActionBtn" onclick="executeStarionCancel()" disabled style="background:var(--red)">스타리온 취소 차감 처리</button>';
 }
-
 async function executeStarionCancel(){
   if(!starionActionTarget)return;
   const no=String(starionValue_(starionActionTarget,'사방넷주문번호'));
@@ -3861,14 +3709,12 @@ async function executeStarionCancel(){
     if(btn){btn.disabled=false;btn.textContent='다시 시도';}
   }
 }
-
 // ── 뷰 전환 ──
 // 스타리온은 윈세이와 동일하게, 서브뷰에 다시 들어올 때마다
 // 발주현황 탭 / 마감내역 접힘 / 취소조회 초기화 상태로 시작한다.
 function resetStarionSubview_(){
   const orderBtn=document.querySelector('[data-starion-tab="orders"]');
   showStarionTab('orders',orderBtn);
-
   // 이번달 1차 마감 내역은 항상 접힌 상태로 초기화
   starionCloseDetailsOpen=false;
   const closePanel=document.getElementById('starionCloseDetailsPanel');
@@ -3876,7 +3722,6 @@ function resetStarionSubview_(){
   setText('st-closecnt-desc','클릭하여 내역 보기');
   setText('st-closeamt-desc','클릭하여 내역 보기');
   setText('st-monthordercnt-desc','접수일 기준 · 클릭하여 주문 보기');
-
   // 취소처리 탭의 이전 조회·처리 화면은 다음 진입 시 남기지 않는다.
   starionActionTarget=null;
   const actionNo=document.getElementById('starionActionNo');
@@ -3884,7 +3729,6 @@ function resetStarionSubview_(){
   const actionBody=document.getElementById('starionActionBody');
   const successMsg=document.getElementById('starionAction-success');
   const errorMsg=document.getElementById('starionAction-error');
-
   if(actionNo) actionNo.value='';
   if(actionPreview) actionPreview.style.display='none';
   if(actionBody){
@@ -3900,7 +3744,6 @@ function resetStarionSubview_(){
     errorMsg.textContent='';
   }
 }
-
 function showVendor(v){
   document.getElementById('mainView').style.display='none';
   document.getElementById('winseiView').classList.remove('active');
@@ -3927,7 +3770,6 @@ function showMain(){
   document.getElementById('winseiView').classList.remove('active');
   document.getElementById('starionView').classList.remove('active');
 }
-
 loadAll();
 </script>
 </body>
