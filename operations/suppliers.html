@@ -84,6 +84,9 @@
   .badge-cancel { background: #FDEDEC; color: #C0392B; }
   .badge-happy  { background: #F5EEF8; color: #8E44AD; }
   .badge-wait   { background: #FEF9E7; color: #E67E22; }
+  /* [2026-08-03 신규] 반품회수 — 원 주문의 회수 송장 레그. 발주 실체가 없어
+     매입에도 환입에도 참여하지 않는다. 취소(빨강)와 구분되도록 회색으로 둔다. */
+  .badge-return { background: #EEF1F4; color: #5D6D7E; }
 
   /* 폼 */
   .form-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
@@ -909,6 +912,8 @@
         <option value="반품됨">반품됨</option>
         <option value="환입신청">환입신청</option>
         <option value="환입완료">환입완료</option>
+        <option value="주문취소">주문취소</option>
+        <option value="반품회수">반품회수</option>
       </select>
       <button onclick="downloadWinseiOrdersCsv()" style="background:var(--green);color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
       <span style="font-size:11px;color:var(--gray);line-height:1.4">※ 접수일 기준입니다. 마감 대조용 파일은 마감카드의 다운로드를 이용하세요.</span>
@@ -1054,6 +1059,7 @@
         <option value="취소">취소 전체</option>
         <option value="설치전취소">설치전취소</option>
         <option value="설치후취소">설치후취소</option>
+        <option value="반품회수">반품회수</option>
       </select>
       <button onclick="downloadStarionOrdersCsv()" style="background:var(--green);color:white;border:none;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
       <span style="font-size:11px;color:var(--gray);line-height:1.4">※ 접수일 기준입니다. 마감 대조용 파일은 마감카드의 다운로드를 이용하세요.</span>
@@ -1230,7 +1236,7 @@ function fmtD(v){
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function setDR(fId,tId,from,to){document.getElementById(fId).value=fmt(from);document.getElementById(tId).value=fmt(to);}
 function showMsgBox(id,msg,isSuccess){const el=document.getElementById(id);if(!el)return;el.textContent=(isSuccess?'✅ ':'❌ ')+msg;el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
-function bdg(s){const m={'신규':'badge-new','발주중':'badge-jungoo','발주완료':'badge-done','기존재고':'badge-stock','주문취소':'badge-cancel','취소재고':'badge-cancel','해피콜대기':'badge-happy','발주대기':'badge-wait'};return'badge '+(m[s]||'');}
+function bdg(s){const m={'신규':'badge-new','발주중':'badge-jungoo','발주완료':'badge-done','기존재고':'badge-stock','주문취소':'badge-cancel','취소재고':'badge-cancel','해피콜대기':'badge-happy','발주대기':'badge-wait','반품회수':'badge-return'};return'badge '+(m[s]||'');}
 function wfmt(v){if(!v&&v!==0)return'—';return'₩'+Math.round(v).toLocaleString();}
 // [2026-07-30신규] HTML 이스케이프 — 값 안의 따옴표·꺾쇠가 마크업을 깨뜨리지 않게 한다.
 // 배경: 발주현황 목록의 CS 버튼이 onclick 속성 안에 JSON.stringify(CS내용)을 그대로
@@ -2980,6 +2986,19 @@ function drawChart(){
 
 // ── 윈세이/스타리온 ──
 function winseiValue_(r, key){ return r && r[key] !== undefined && r[key] !== null ? r[key] : ''; }
+// [2026-08-03 신규] 매입마감에 세지 않는 완료여부.
+//   '반품회수' — 원 주문의 회수 송장 레그. 우리가 발주·매입한 실체가 없다.
+//   '주문취소' — 발주 전에 취소된 건.
+// ★ 반드시 필요한 이유: 윈세이 마감은 '송장번호 + 송장입력일'만 보고 완료여부를
+//   보지 않았다. 그런데 회수 송장(844…)이 송장번호 칸에 그대로 들어가고
+//   송장입력일까지 찍히는 일이 실제로 있었다(성한결 666행, 2026-07-30 →
+//   7월 마감에 205,620원 과대 계상). 완료여부만 고쳐서는 이 화면에서
+//   빠지지 않는다 — 여기서 함께 막아야 한다.
+const WINSEI_NO_CLOSE = ['반품회수', '주문취소'];
+function winseiCountsForClose_(r){
+  return WINSEI_NO_CLOSE.indexOf(String(winseiValue_(r,'완료여부')).trim()) < 0;
+}
+
 function isWinseiNoTracking_(r){
   return (winseiValue_(r,'완료여부')||'').trim()==='발주완료' && !String(winseiValue_(r,'송장번호')).trim();
 }
@@ -2995,6 +3014,7 @@ function renderWinsei(){
   const returnRows=allWinsei.filter(r=>String(winseiValue_(r,'반품여부')).trim()==='반품됨');
   const returnReqRows=allWinsei.filter(r=>String(winseiValue_(r,'윈세이환입상태')).trim()==='신청');
   const closeRows=allWinsei.filter(r=>{
+    if(!winseiCountsForClose_(r)) return false;   // [2026-08-03] 반품회수·주문취소 제외
     const tracking=String(winseiValue_(r,'송장번호')).trim();
     const closeDate=fmtD(winseiValue_(r,'송장입력일'));
     return !!tracking && closeDate && monthOf_(closeDate)===closeYm;
@@ -3079,7 +3099,8 @@ function winseiCloseLines_(closeYm){
   allWinsei.forEach(r=>{
     const tracking=String(winseiValue_(r,'송장번호')).trim();
     const closeDate=fmtD(winseiValue_(r,'송장입력일'));
-    if(tracking && closeDate && monthOf_(closeDate)===ym){
+    // [2026-08-03] 반품회수·주문취소는 마감 명세에도 넣지 않는다(카드와 동일 기준).
+    if(winseiCountsForClose_(r) && tracking && closeDate && monthOf_(closeDate)===ym){
       lines.push({date:closeDate,type:'송장마감',no:String(winseiValue_(r,'사방넷주문번호')),buyer:winseiValue_(r,'고객명'),model:winseiValue_(r,'모델코드'),amount:money_(winseiValue_(r,'합계_VAT포함'))});
     }
     const inbound=String(winseiValue_(r,'윈세이환입상태')).trim();
