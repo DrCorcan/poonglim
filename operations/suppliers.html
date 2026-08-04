@@ -772,6 +772,58 @@
       </div>
       <div class="card-hint" style="margin-top:14px">→ 이 대사는 <b>ERP 안에서</b> 입고와 마감이 맞는지를 봅니다. 자료는 매입처 관리시트의 <b>[매입 마감 &gt; 1. ERP 입고 가져오기]</b>와 <b>[5. ERP 마감현황 가져오기]</b>로 올린 것을 씁니다. 마감은 실장님이 세금계산서와 맞춘 확정본이므로, ③의 <b>단수보정 추정</b>(±2원)과 의도적으로 흡수한 보정은 지우지 말고 기록으로 남깁니다. <b>①에 남은 건이 곧 "마감 재실행 필요" 신호</b>이고, ②는 입고 조회 스냅샷이 마감보다 오래된 경우가 대부분입니다.</div>
     </div>
+    <!-- ══════ 매입 조정 (3사 공통) ══════
+         [2026-08-04 신규] 서버 액션 getPurchaseAdjustments(16_매입조정.gs v1.0).
+         상품이 아닌 매입 조정을 [94_매입조정원장]에 적고 ERP 입고와 짝을 맞춘다.
+         대표 사례: 캐리어 선입금 이자 할인(품번 910008) — 매월 발생한다.
+         ★ 발주원장에 넣지 않는 이유: 이자 할인엔 오더번호도 사방넷주문번호도
+           설치점도 없다. 발주원장에 억지로 넣으면 발주현황 목록과 마감금액
+           카드가 오염되고 캐리어 청구 대사의 "우리에만 있음"에 영원히 걸린다. -->
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
+      <span class="carrier-close-title-text">🧮 매입 조정 <span style="font-weight:400;font-size:12px">— 상품이 아닌 매입 조정(선입금 이자 할인 등)</span> <span id="adjTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+      <div class="carrier-close-month-inline" aria-label="매입 조정">
+        <button class="carrier-close-month-btn" onclick="loadAdjRecon(true)">🔄 다시 조회</button>
+      </div>
+    </div>
+    <div style="margin:8px 0 2px"><span id="adjReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
+    <div id="adjReconLoading" style="padding:18px;color:var(--gray)">조정 내역을 불러오는 중…</div>
+    <div id="adjReconBody" style="display:none">
+      <div class="table-wrap" style="margin-top:4px">
+        <div class="table-header">
+          <span>거래처별 조정 합계</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">부호는 ERP와 같습니다 — 할인은 음수, 추가청구는 양수</span>
+        </div>
+        <table><thead><tr>
+          <th>거래처</th><th>건수</th><th>공급가</th><th>부가세</th><th>합계</th><th>원장 순액에 반영되면</th>
+        </tr></thead>
+        <tbody id="adjSummaryBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>① ERP에 있는데 조정원장에 없음 — 여기서 바로 등록</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">계정구분이 '상품'이 아닌 행 · 금액을 손으로 옮겨적지 마세요</span>
+        </div>
+        <table><thead><tr><th>거래처</th><th>ERP품번</th><th>품명</th><th>계정구분</th><th>입고일자</th><th>수량</th><th>공급가</th><th>부가세</th><th>합계</th><th>등록</th></tr></thead>
+        <tbody id="adjErpOnlyBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>② 짝 맞음 — 조정원장 ↔ ERP</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">여기 있으면 대사에서 조정으로 정상 처리됩니다</span>
+        </div>
+        <table><thead><tr><th>귀속월</th><th>거래처</th><th>ERP품번</th><th>항목명</th><th>공급가</th><th>부가세</th><th>합계</th><th>ERP입고일</th><th>근거</th><th>삭제</th></tr></thead>
+        <tbody id="adjMatchedBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>③ 조정원장에만 있음 — ERP에 아직 없거나 금액이 다름</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">우리가 먼저 등록했거나, 금액을 잘못 적었을 수 있습니다</span>
+        </div>
+        <table><thead><tr><th>귀속월</th><th>거래처</th><th>ERP품번</th><th>항목명</th><th>합계</th><th>사유</th><th>삭제</th></tr></thead>
+        <tbody id="adjLedgerOnlyBody"></tbody></table>
+      </div>
+      <div class="card-hint" style="margin-top:14px">→ <b>선입금 이자 할인</b>은 우리가 캐리어에 선입금을 하면 이자율만큼 깎아 주는 것으로, <b>매월 발생</b>합니다. 금액은 캐리어 전산에서 나오고, ERP에는 품번 <b>910008</b>로 음수 한 줄이 들어옵니다.<br>→ ①에 뜬 행의 <b>[조정원장에 등록]</b>을 누르면 금액이 그대로 옮겨집니다 — <b>숫자를 다시 타이핑하지 마세요.</b> 옮겨적다 틀리면 매월 어긋납니다.<br>→ 등록하면 매입 조정이 <b>원장 순액에 반영</b>되어 ERP 입고 대사의 차이가 실제 어긋난 금액만 남습니다. <b>2026-07 캐리어 기준: 1,125,343원 → 115,087원</b>(홈쇼핑 단가 3건, 미결 154)으로 줄어듭니다.<br>→ ①은 <b>계정구분이 '상품'이 아닌 행</b>을 잡습니다. 판촉비·운반비 같은 새 항목이 생겨도 코드를 고칠 필요 없이 여기에 뜹니다.</div>
+    </div>
     <!-- ══════ 캐리어 청구 대사 (캐리어 전용) ══════ -->
     <div id="cbReconSection">
     <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
@@ -1718,7 +1770,8 @@ function setMonthAll_(ym, opts){
   // [2026-08-03] 입고↔마감 대사는 월 파라미터가 없다(올라온 파일 그대로 대사).
   // 기준월이 바뀌면 라벨의 ⚠️ 불일치 표시만 다시 계산한다.
   if(clsRecon) renderClsRecon();
-  if(!opts || opts.reloadRecon!==false){ loadErpRecon(true); loadCbRecon(true); }
+  // [2026-08-04] 매입 조정은 기준월을 쓰므로 월이 바뀌면 다시 받아야 한다.
+  if(!opts || opts.reloadRecon!==false){ loadErpRecon(true); loadCbRecon(true); loadAdjRecon(true); }
 }
 function shiftMonthAll_(delta){
   const base=document.getElementById('carrierCloseMonth')?.value
@@ -1746,6 +1799,7 @@ function adoptReconMonth_(ym){
   if(erpRecon) renderErpRecon();
   if(cbRecon) renderCbRecon();
   if(clsRecon) renderClsRecon();
+  if(adjRecon) renderAdjRecon();
 }
 function shiftErpReconMonth_(delta){ shiftMonthAll_(delta); }
 // 현황판 카드를 누르면 [매입 대사] 탭의 "그 섹션"으로 데려간다.
@@ -1771,6 +1825,7 @@ function setReconVendor(v){
   if(msg) msg.style.display=showCb?'none':'block';
   if(erpRecon) renderErpRecon();
   if(clsRecon) renderClsRecon();
+  if(adjRecon) renderAdjRecon();
   if(cbRecon && showCb) renderCbRecon();
 }
 /** 매입처 이름이 섞여 있는 문자열(거래처 원문 포함)에서 칩과 맞는지 본다 */
@@ -2151,6 +2206,154 @@ function renderClsRecon(){
   if(L) L.style.display='none';
   if(B) B.style.display='block';
 }
+// ══════════════════════════════════════════════════════════════
+// 매입 조정  [2026-08-04 신규]
+//   서버 액션 getPurchaseAdjustments / addPurchaseAdjustment /
+//   deletePurchaseAdjustment (16_매입조정.gs v1.0) 결과를 그대로 표시.
+//   · 상품이 아닌 매입 조정을 [94_매입조정원장]에 적고 ERP 입고와 짝을 맞춘다.
+//   · 대표 사례: 캐리어 선입금 이자 할인(품번 910008) — 매월 발생.
+//   · ★ ①의 [등록] 버튼은 ERP 행 값을 **그대로** 서버로 넘긴다.
+//     사람이 금액을 다시 타이핑하지 않는다 — 옮겨적다 틀리면 매월 어긋난다.
+//   · 화면에서 다시 집계하지 않는다(집계는 서버 한 곳에서만 — v53 원칙).
+// ══════════════════════════════════════════════════════════════
+let adjRecon = null;
+let adjReconLoading = false;
+let adjReconSeq = 0;
+// ①의 [등록] 버튼이 참조할 행 배열 — onclick 속성에는 인덱스(숫자)만 넘긴다.
+// 값을 속성 안에 끼워 넣으면 따옴표가 속성을 조기에 닫는다(v52 CS 사고).
+let adjErpOnlyFlat = [];
+let adjRowsFlat = [];
+async function loadAdjRecon(force){
+  if(adjRecon && !force){ renderAdjRecon(); return; }
+  if(!force && adjReconLoading) return;
+  const seq = ++adjReconSeq;
+  adjReconLoading=true;
+  const L=document.getElementById('adjReconLoading'), B=document.getElementById('adjReconBody');
+  if(L){ L.style.display='block'; L.textContent='조정 내역을 불러오는 중…'; }
+  if(B) B.style.display='none';
+  try{
+    // 기준월은 위 마감금액 카드와 같은 달을 쓴다(세 대사와 한 맥락).
+    const mEl=document.getElementById('carrierCloseMonth');
+    const params={action:'getPurchaseAdjustments'};
+    if(mEl && mEl.value) params.month=mEl.value;
+    const res=await apiCall(params);
+    if(seq !== adjReconSeq) return;   // 더 최신 요청이 있다 — 이 응답은 버린다
+    adjRecon=res;
+    renderAdjRecon();
+  }catch(e){
+    if(seq !== adjReconSeq) return;
+    adjRecon=null;
+    if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 조회 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">서버가 옛 버전이면 16_매입조정.gs(v1.0) 설치 + Code.gs v20으로 교체 후 웹앱을 다시 배포해야 합니다.</span>'; }
+  }finally{ if(seq === adjReconSeq) adjReconLoading=false; }
+}
+function renderAdjRecon(){
+  if(!adjRecon) return;
+  const R=adjRecon;
+  const label=closeYmLabel_(R.대상월);
+  const w=monthWarn_(R.대상월);
+  document.getElementById('adjTabMonthLabel').innerHTML='— '+esc_(label)+' 기준'+w;
+  setText('adjReconStamp',R.생성일시?('마지막 조회 '+R.생성일시):'');
+  // ── 거래처별 요약
+  const sum=(R.요약||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('adjSummaryBody').innerHTML = sum.length
+    ? sum.map(s=>{
+        const amt=Number(s.합계)||0;
+        return '<tr><td><b>'+dv_(s.거래처)+'</b></td><td>'+(s.건수||0)+'</td>'
+          +'<td style="text-align:right">'+wfmt(s.공급가)+'</td>'
+          +'<td style="text-align:right">'+wfmt(s.부가세)+'</td>'
+          +'<td style="text-align:right;font-weight:700;color:'+(amt<0?'#8E44AD':'var(--dark)')+'">'+wfmt(amt)+'</td>'
+          +'<td style="color:var(--gray);font-size:11px">원장 순액이 '+(amt<0?'그만큼 줄어듭니다':'그만큼 늘어납니다')+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">'+esc_(label)+'에 등록된 매입 조정이 없습니다</td></tr>';
+  // ── ① ERP에만 (등록 버튼)
+  const eo=(R.ERP에만||[]).filter(x=>reconVendorMatch_(x.거래처));
+  adjErpOnlyFlat = eo;
+  document.getElementById('adjErpOnlyBody').innerHTML = eo.length
+    ? eo.map((x,i)=>'<tr style="background:#FFF8E7"><td>'+dv_(x.거래처)+'</td><td><b>'+dv_(x.ERP품번)+'</b></td>'
+        +'<td>'+dv_(x.품명)+'</td><td>'+dv_(x.계정구분)+'</td><td>'+dv_(x.입고일자)+'</td>'
+        +'<td style="text-align:right">'+dv_(x.수량)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.공급가)+'</td><td style="text-align:right">'+wfmt(x.부가세)+'</td>'
+        +'<td style="text-align:right;font-weight:700;color:'+((Number(x.합계)||0)<0?'#8E44AD':'var(--dark)')+'">'+wfmt(x.합계)+'</td>'
+        +'<td><button onclick="addAdjFromErp('+i+')" style="padding:4px 10px;background:var(--green);color:white;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">조정원장에 등록</button></td></tr>').join('')
+    : '<tr><td colspan="10" class="empty">✅ ERP의 비상품 항목이 전부 조정원장에 등록돼 있습니다</td></tr>';
+  // ── ②③ 는 삭제 버튼이 원장 행번호를 쓴다. 한 배열에 담아 인덱스로 참조한다.
+  adjRowsFlat = [];
+  const mt=(R.짝맞음||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('adjMatchedBody').innerHTML = mt.length
+    ? mt.map(x=>{
+        const i=adjRowsFlat.length; adjRowsFlat.push(x);
+        return '<tr><td>'+dv_(x.귀속월)+'</td><td>'+dv_(x.거래처)+'</td><td><b>'+dv_(x.ERP품번)+'</b></td>'
+          +'<td>'+dv_(x.항목명)+'</td>'
+          +'<td style="text-align:right">'+wfmt(x.공급가)+'</td><td style="text-align:right">'+wfmt(x.부가세)+'</td>'
+          +'<td style="text-align:right;font-weight:700;color:'+((Number(x.합계)||0)<0?'#8E44AD':'var(--dark)')+'">'+wfmt(x.합계)+'</td>'
+          +'<td>'+dv_(x.ERP입고일자)+'</td><td style="font-size:11px;color:var(--gray)">'+dv_(x.근거)+'</td>'
+          +'<td><button onclick="delAdj('+i+')" style="padding:3px 9px;background:#F0F0F0;color:#555;border:1px solid var(--border);border-radius:5px;font-size:11px;cursor:pointer">삭제</button></td></tr>';
+      }).join('')
+    : '<tr><td colspan="10" class="empty">짝 맞은 조정이 없습니다</td></tr>';
+  const lo=(R.원장에만||[]).filter(x=>reconVendorMatch_(x.거래처));
+  document.getElementById('adjLedgerOnlyBody').innerHTML = lo.length
+    ? lo.map(x=>{
+        const i=adjRowsFlat.length; adjRowsFlat.push(x);
+        return '<tr style="background:#FDEDEC"><td>'+dv_(x.귀속월)+'</td><td>'+dv_(x.거래처)+'</td>'
+          +'<td><b>'+dv_(x.ERP품번)+'</b></td><td>'+dv_(x.항목명)+'</td>'
+          +'<td style="text-align:right;font-weight:700">'+wfmt(x.합계)+'</td>'
+          +'<td style="font-size:11px;color:var(--red)">'+dv_(x.사유)+'</td>'
+          +'<td><button onclick="delAdj('+i+')" style="padding:3px 9px;background:#F0F0F0;color:#555;border:1px solid var(--border);border-radius:5px;font-size:11px;cursor:pointer">삭제</button></td></tr>';
+      }).join('')
+    : '<tr><td colspan="7" class="empty">✅ 조정원장이 전부 ERP와 짝이 맞습니다</td></tr>';
+  const L=document.getElementById('adjReconLoading'), B=document.getElementById('adjReconBody');
+  if(L) L.style.display='none';
+  if(B) B.style.display='block';
+}
+/** ①의 [조정원장에 등록] — ERP 행 값을 그대로 넘긴다(사람이 다시 타이핑하지 않는다) */
+async function addAdjFromErp(i){
+  const x=adjErpOnlyFlat[i];
+  if(!x){ alert('행 정보를 찾을 수 없습니다. [🔄 다시 조회]를 누른 뒤 시도하세요.'); return; }
+  const month=(adjRecon&&adjRecon.대상월)||'';
+  const msg='다음 항목을 매입 조정으로 등록합니다.\n\n'
+    + '귀속월  : '+month+'\n'
+    + '거래처  : '+x.거래처+'\n'
+    + 'ERP품번 : '+x.ERP품번+'  '+(x.품명||'')+'\n'
+    + '공급가  : '+Number(x.공급가||0).toLocaleString()+'\n'
+    + '부가세  : '+Number(x.부가세||0).toLocaleString()+'\n'
+    + '합계    : '+Number(x.합계||0).toLocaleString()+'\n\n'
+    + '진행할까요?';
+  if(!confirm(msg)) return;
+  try{
+    const res=await apiCall({
+      action:'addPurchaseAdjustment',
+      month:month, vendor:x.거래처, itemCode:x.ERP품번, itemName:x.품명||'',
+      supply:x.공급가, vat:x.부가세, amount:x.합계,
+      note:'캐리어 전산 매입내역 · ERP '+(x.입고번호||'')+' '+(x.입고일자||'')
+    });
+    alert(res.added
+      ? ('✅ 등록했습니다 — 94_매입조정원장 '+res.rowNo+'행\n\n이제 ERP 입고 대사에서 반품이 아니라 조정으로 처리됩니다.')
+      : ('ℹ️ '+(res.note||'변경 사항이 없습니다.')));
+    // 조정이 바뀌었으니 ERP 대사도 다음에 볼 때 다시 받는다
+    erpRecon=null;
+    await loadAdjRecon(true);
+  }catch(e){
+    alert('❌ 등록 실패\n\n'+e.message);
+  }
+}
+/** ②③의 [삭제] — 낙관적 잠금(거래처·품번·합계 대조)을 서버가 확인한다 */
+async function delAdj(i){
+  const x=adjRowsFlat[i];
+  if(!x){ alert('행 정보를 찾을 수 없습니다. [🔄 다시 조회]를 누른 뒤 시도하세요.'); return; }
+  if(!confirm('이 조정을 지웁니다.\n\n'+x.거래처+' / '+x.ERP품번+' / '
+      +Number(x.합계||0).toLocaleString()+'원\n\n진행할까요?')) return;
+  try{
+    const res=await apiCall({
+      action:'deletePurchaseAdjustment',
+      rowNo:x.원장행, expectVendor:x.거래처, expectItem:x.ERP품번, expectAmount:x.합계
+    });
+    alert(res.deleted ? '✅ 지웠습니다.' : ('ℹ️ '+(res.note||'변경 사항이 없습니다.')));
+    erpRecon=null;
+    await loadAdjRecon(true);
+  }catch(e){
+    alert('❌ 삭제 실패\n\n'+e.message);
+  }
+}
 // [2026-08-03 신규] 헤더 [🔄 새로고침] 전용 래퍼.
 // ★ 이걸 만든 이유: loadAll()의 로딩 표시(dash-loading)는 캐리어 메인(#mainView)
 //   안에 있다. 윈세이·스타리온·매입마감 화면에서 새로고침을 누르면 그 표시가
@@ -2224,7 +2427,7 @@ async function loadAll(){
     renderStarion();
     document.getElementById('dash-loading').style.display='none';
     document.getElementById('dash-content').style.display='block';
-    // 매입 대사 3종은 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
+    // 매입 대사 4종은 다른 액션보다 느리므로 await하지 않고 뒤따라 채운다.
     // 실패해도 위 화면은 이미 다 그려진 상태다. 서로도 독립적이다.
     // [2026-08-03 수정] force=true. 예전에는 false여서 loadErpRecon 맨 앞의
     //   if(erpRecon && !force){ renderErpRecon(); return; }
@@ -2233,7 +2436,7 @@ async function loadAll(){
     // 느낀 실제 원인. 헤더 새로고침은 사용자가 명시적으로 누른 것이므로
     // 무거워도 다시 대사하는 게 맞다(탭 전환 showTab은 false 그대로 둔다).
     // 진행 상태를 버튼에 보여주려고 promise를 남겨둔다(refreshAll이 기다린다).
-    lastReconPromise_ = Promise.allSettled([loadErpRecon(true), loadCbRecon(true), loadClsRecon(true)]);
+    lastReconPromise_ = Promise.allSettled([loadErpRecon(true), loadCbRecon(true), loadClsRecon(true), loadAdjRecon(true)]);
   }catch(e){
     document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
   }
@@ -2258,7 +2461,7 @@ function showTab(tab){
   if(tab==='happycall') renderHappyCallList();
   if(tab==='csInput') renderCSList();
   if(tab==='price')   setTimeout(drawChart,50);
-  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); loadClsRecon(false); }
+  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); loadClsRecon(false); loadAdjRecon(false); }
 }
 async function refreshStock(){
   try{const d=await apiCall({action:'getCarrierStock'});allStock=Array.isArray(d)?d:[];selectedStockModel=null;renderStock();}catch(e){}
