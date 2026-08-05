@@ -1771,7 +1771,17 @@ function setMonthAll_(ym, opts){
   // 기준월이 바뀌면 라벨의 ⚠️ 불일치 표시만 다시 계산한다.
   if(clsRecon) renderClsRecon();
   // [2026-08-04] 매입 조정은 기준월을 쓰므로 월이 바뀌면 다시 받아야 한다.
-  if(!opts || opts.reloadRecon!==false){ loadErpRecon(true); loadCbRecon(true); loadAdjRecon(true); }
+  // [2026-08-05 수정] 한 번도 대사한 적 없으면 월만 바꾸고 돌리지 않는다.
+  //   ★ 다만 대사해 둔 것이 있으면 **반드시** 다시 받는다. 기준월이 바뀌었는데
+  //     옛 달 숫자가 남아 있으면 두 화면이 서로 다른 달을 말하게 된다
+  //     (v55 스타리온 사고가 정확히 그것이었다 — 기준이 다른 것과 숫자가
+  //      틀린 것은 화면에는 똑같이 "빨간 숫자"로 보인다).
+  if(!opts || opts.reloadRecon!==false){
+    if(erpRecon) loadErpRecon(true);
+    if(cbRecon)  loadCbRecon(true);
+    if(adjRecon) loadAdjRecon(true);
+    if(!erpRecon && !cbRecon && !adjRecon) markReconStale_();
+  }
 }
 function shiftMonthAll_(delta){
   const base=document.getElementById('carrierCloseMonth')?.value
@@ -2389,14 +2399,34 @@ async function refreshAll(){
   if (el) { el.disabled = true; el.textContent = '⏳ 불러오는 중…'; }
   try {
     await loadAll();
-    if (el) el.textContent = '⏳ 대사 중…';
-    if (lastReconPromise_) await lastReconPromise_;   // 대사까지 끝나야 ✅
+    // [2026-08-05 수정] 로드에서 대사를 뺐으므로 lastReconPromise_는 보통 null이다.
+    //   그때 '대사 중…'을 띄우면 하지도 않는 일을 한다고 말하는 셈이다.
+    if (lastReconPromise_) { if (el) el.textContent = '⏳ 대사 중…'; await lastReconPromise_; }
     if (el) el.textContent = '✅ 최신';
   } catch (e) {
     if (el) el.textContent = '❌ 실패';
   } finally {
     setTimeout(() => { if (el) { el.disabled = false; el.textContent = orig; } }, 1600);
   }
+}
+// [2026-08-05 신규] 매입 대사를 화면 로드에서 뺀 뒤, 카드가 "아직 안 한 것"임을 말하게 한다.
+//   ★ 그냥 비워두면 안 된다. **숫자가 없는 것과 0인 것은 완전히 다른데**,
+//     빈 카드는 "문제 없음"으로 읽힌다. ERP 미등록이 0건이라 비어 있는 건지
+//     아직 세어보지도 않은 건지 구분이 안 되면 그게 더 위험하다.
+//   ★ v53 사고④ · v54 사고③ · v55 사고②와 같은 자리다 —
+//     동작은 맞는데 사용자에게 안 보이면 안 한 것과 같다.
+function markReconStale_(){
+  ['s-erp-miss-cnt','s-erp-miss-amt','s-erp-diff','s-cb-amt','s-cb-diff','s-cb-match']
+    .forEach(id=>setText(id,'—'));
+  setText('s-erp-miss-desc','아직 대사하지 않았습니다 — 카드를 누르면 대사합니다');
+  setText('s-erp-diff-desc','클릭하여 대사');
+  setText('s-cb-amt-desc','아직 대사하지 않았습니다 — 카드를 누르면 대사합니다');
+  setText('s-cb-diff-desc','클릭하여 대사');
+  setText('s-cb-match-desc','클릭하여 대사');
+  const a=document.getElementById('erpReconMonthLabel');
+  if(a) a.innerHTML='<span style="color:#FFD27F">— 대사 전</span>';
+  const b=document.getElementById('cbReconMonthLabel');
+  if(b) b.innerHTML='<span style="color:#FFD27F">— 대사 전</span>';
 }
 async function loadAll(){
   updateHeaderDate();
@@ -2459,7 +2489,20 @@ async function loadAll(){
     // 느낀 실제 원인. 헤더 새로고침은 사용자가 명시적으로 누른 것이므로
     // 무거워도 다시 대사하는 게 맞다(탭 전환 showTab은 false 그대로 둔다).
     // 진행 상태를 버튼에 보여주려고 promise를 남겨둔다(refreshAll이 기다린다).
-    lastReconPromise_ = Promise.allSettled([loadErpRecon(true), loadCbRecon(true), loadClsRecon(true), loadAdjRecon(true)]);
+    // [2026-08-05 수정] 대사 4종을 화면 로드에서 뺀다.
+    //   [실측] 18_진단.gs로 서버 액션 9개를 재봤다(2026-08-05, 실물).
+    //     getErpReconcile 5.84초 / getCloseReconcile 0.77초 /
+    //     getCarrierBuyReconcile 0.53초 / getPurchaseAdjustments 0.47초
+    //     — 총 13.7초 중 getErpReconcile 하나가 43%다.
+    //     ★ 응답은 2.9KB밖에 안 된다. 보내는 게 무거운 게 아니라
+    //       서버 안에서 읽는 일이 무겁다(다른 스프레드시트까지 연다).
+    //   [판단] 대표님은 매입 대사를 **주 1~2회**만 하신다. 그걸 화면을 열
+    //     때마다 돌릴 이유가 없다. 이제 [🔍 매입 마감] 탭에 들어갈 때
+    //     showTab('erp')가 부른다(그쪽은 force=false라 캐시가 있으면 재사용).
+    //   ★ 카드를 그냥 비워두지 않는다 — 숫자가 없는 것과 0인 것은 다르다.
+    //     markReconStale_()가 "아직 대사하지 않았다"고 말하게 한다.
+    lastReconPromise_ = null;
+    markReconStale_();
   }catch(e){
     document.getElementById('dash-loading').innerHTML=`<div style="color:var(--red)">❌ 데이터 로드 실패: ${e.message}</div>`;
   }
