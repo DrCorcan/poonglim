@@ -2399,6 +2399,15 @@ async function refreshAll(){
   if (el) { el.disabled = true; el.textContent = '⏳ 불러오는 중…'; }
   try {
     await loadAll();
+    // [2026-08-05 추가] loadAll은 이제 첫 화면 자료만 받는다.
+    //   윈세이·스타리온 화면에서 새로고침을 눌렀는데 그 화면 숫자가 안 바뀌면
+    //   "새로고침이 안 된다"고 느낀다 — 지금 보고 있는 화면은 함께 갱신한다.
+    const onWinsei  = document.getElementById('winseiView').classList.contains('active');
+    const onStarion = document.getElementById('starionView').classList.contains('active');
+    if (onWinsei)  { const d = await apiCall({action:'getWinseiOrders'});  allWinsei  = Array.isArray(d)?d:[]; renderWinsei(); }
+    if (onStarion) { const d = await apiCall({action:'getStarionOrders'}); allStarion = Array.isArray(d)?d:[]; renderStarion(); }
+    // 가용재고 탭을 보고 있으면 그것도 갱신한다.
+    if (document.getElementById('tab-stock').style.display !== 'none') await refreshStock();
     // [2026-08-05 수정] 로드에서 대사를 뺐으므로 lastReconPromise_는 보통 null이다.
     //   그때 '대사 중…'을 띄우면 하지도 않는 일을 한다고 말하는 셈이다.
     if (lastReconPromise_) { if (el) el.textContent = '⏳ 대사 중…'; await lastReconPromise_; }
@@ -2433,14 +2442,27 @@ async function loadAll(){
   document.getElementById('dash-loading').style.display='block';
   document.getElementById('dash-content').style.display='none';
   try{
-    const [summary,stock,orders,prices,winsei,starion]=await Promise.all([
-      apiCall({action:'getCarrierSummary'}),
-      apiCall({action:'getCarrierStock'}),
-      apiCall({action:'getCarrierOrders'}),
-      apiCall({action:'getPriceHistory'}),
-      apiCall({action:'getWinseiOrders'}),
-      apiCall({action:'getStarionOrders'}),
-    ]);
+    // [2026-08-05 수정] 요청 6개 → 1개.
+    //   [실측] perf-test.html로 브라우저에서 직접 쟀다(2026-08-05, 실물).
+    //     ① 같은 액션 3회 : 34.28초 / 2.00초 / 40.87초   ← 편차 20배
+    //     ② 6개 병렬      : 73.42초  (getCarrierOrders 혼자 73.41초)
+    //     ③ 6개 순차      : 50.30초  ← **순차가 병렬보다 빨랐다**
+    //   서버 안에서 잰 시간(18_진단.gs)은 9개 액션 전부 합쳐 13.7초였는데
+    //   브라우저에서는 6개만으로 73초가 걸린다. 차이는 전부 왕복이다.
+    //   ★ 병렬이 순차를 못 이긴다 = 동시 요청이 해롭다.
+    //     요청을 여섯 번 던지면 그중 하나가 대기열에 걸릴 확률도 여섯 배다.
+    //   → 답은 병렬화가 아니라 요청 수 줄이기다.
+    //
+    //   첫 화면에 정말 필요한 것은 summary와 orders 둘뿐이다.
+    //   나머지 넷은 각 탭·서브뷰에 들어갈 때 이미 받고 있었다(두 번 받고 있었다):
+    //     stock   → showTab('stock')의 refreshStock()
+    //     prices  → showTab('price')  ★ 이번에 추가
+    //     winsei  → showVendor('winsei')
+    //     starion → showVendor('starion')
+    //   첫 화면 전송량 468KB → 88KB.
+    const boot = await apiCall({action:'getSuppliersBootstrap'});
+    const summary = boot.summary || {};
+    const orders  = boot.orders  || [];
     setText('s-happycall', summary.happyCallWait??0);
     // 오늘의 주문 접수 현황
     setText('s-today-total',     summary.todayTotal??0);
@@ -2461,10 +2483,9 @@ async function loadAll(){
     setText('s-total',    summary.thisMonthTotal??0);
     setText('s-monthcnt', summary.thisMonthCount??0);
     allOrders  = Array.isArray(orders)  ? orders  : [];
-    allStock   = Array.isArray(stock)   ? stock   : [];
-    allPrices  = Array.isArray(prices)  ? prices  : [];
-    allWinsei  = Array.isArray(winsei)  ? winsei  : [];
-    allStarion = Array.isArray(starion) ? starion : [];
+    // [2026-08-05] allStock·allPrices·allWinsei·allStarion은 여기서 받지 않는다.
+    //   각 탭·서브뷰에 들어갈 때 채워진다. 이미 받아둔 것이 있으면 그대로 둔다
+    //   (새로고침했다고 이미 본 탭의 자료를 지울 이유가 없다).
     renderCarrierCloseAmt();
     // 윈세이/스타리온 기본 날짜: 최근 3개월
     const to=new Date(),from3=new Date();from3.setMonth(from3.getMonth()-3);
@@ -2526,7 +2547,17 @@ function showTab(tab){
   if(tab==='noorder') renderNoOrder();
   if(tab==='happycall') renderHappyCallList();
   if(tab==='csInput') renderCSList();
-  if(tab==='price')   setTimeout(drawChart,50);
+  // [2026-08-05] 단가이력은 이 탭에서만 쓴다 — 첫 화면에서 빼고 여기서 받는다(79KB).
+  //   한 번 받아두면 다시 받지 않는다. 최신값이 필요하면 헤더 [🔄 새로고침]을 누른다.
+  if(tab==='price'){
+    if(!allPrices.length){
+      apiCall({action:'getPriceHistory'})
+        .then(d=>{ allPrices=Array.isArray(d)?d:[]; renderPriceChips(); setTimeout(drawChart,50); })
+        .catch(e=>{ const el=document.getElementById('modelChips'); if(el) el.innerHTML='<span style="color:var(--red);font-size:12px">단가이력을 불러오지 못했습니다: '+esc_(e.message)+'</span>'; });
+    }else{
+      setTimeout(drawChart,50);
+    }
+  }
   if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); loadClsRecon(false); loadAdjRecon(false); }
 }
 async function refreshStock(){
