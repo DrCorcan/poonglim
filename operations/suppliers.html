@@ -182,6 +182,40 @@
   .chip { padding: 4px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--light); color: var(--gray); font-size: 12px; cursor: pointer; }
   .chip:hover { border-color: var(--navy); color: var(--navy); }
   .chip.on { border-color: var(--navy); color: var(--navy); background: #EBF5FB; }
+  /* ── [2026-08-07] 매입 마감 결론 배너 ──────────────────────────
+     이 탭은 섹션이 다섯이고 표가 스무 개가 넘는다. 스크롤을 다 내려야
+     "닫혔나?"를 알 수 있으면 화면이 답을 주는 게 아니다.
+     세금계산서가 최종 기준이므로, 그 한 줄을 맨 위에 못 박는다. */
+  .verdict { display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+             padding:14px 18px; border-radius:10px; margin:2px 0 14px;
+             border:2px solid var(--border); background:white; cursor:pointer;
+             transition:box-shadow .15s, transform .1s; }
+  .verdict:hover { box-shadow:0 2px 10px rgba(0,0,0,.10); }
+  .verdict:active { transform:translateY(1px); }
+  .verdict-icon { font-size:26px; line-height:1; }
+  .verdict-main { flex:1 1 320px; min-width:0; }
+  .verdict-head { font-size:15px; font-weight:800; letter-spacing:-.2px; }
+  .verdict-sub  { font-size:12px; color:var(--gray); margin-top:3px; line-height:1.5; }
+  .verdict-nums { display:flex; gap:18px; flex-wrap:wrap; }
+  .verdict-num  { text-align:right; min-width:96px; }
+  .verdict-num .k { font-size:10px; color:var(--gray); font-weight:600; }
+  .verdict-num .v { font-size:14px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .verdict-go   { font-size:12px; font-weight:700; color:var(--navy); white-space:nowrap; }
+  .verdict.ok    { border-color:var(--green); background:#EAF7F0; }
+  .verdict.ok    .verdict-head { color:#1E8449; }
+  .verdict.bad   { border-color:var(--red);   background:#FDEDEC; }
+  .verdict.bad   .verdict-head { color:var(--red); }
+  .verdict.idle  { border-color:var(--border); background:var(--light); }
+  .verdict.idle  .verdict-head { color:var(--dark); }
+  .verdict.busy  { border-color:var(--blue); background:#EBF5FB; }
+  .verdict.busy  .verdict-head { color:var(--blue); }
+  /* 섹션 바로가기 — 페이지가 길어 스크롤로만 이동하면 길을 잃는다 */
+  .secnav { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px; }
+  .secnav a { padding:5px 11px; border-radius:14px; border:1px solid var(--border);
+              background:white; color:var(--dark); font-size:12px; font-weight:600;
+              text-decoration:none; cursor:pointer; }
+  .secnav a:hover { border-color:var(--navy); color:var(--navy); background:#EBF5FB; }
+  .secnav .num { color:var(--gray); font-weight:700; margin-right:5px; }
   /* 로딩/빈값 */
   .loading { text-align: center; padding: 36px; color: var(--gray); font-size: 14px; }
   .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--navy); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
@@ -636,10 +670,38 @@
       </div>
       <span style="font-size:11px;color:var(--gray)">← 한 매입처만 골라 볼 수 있습니다. 총액을 맞출 때는 [전체]로 보세요.</span>
     </div>
+
+    <!-- ══════ 결론 배너 — 이 달이 닫혔는가 [2026-08-07 신규] ══════
+         ★ 왜 맨 위인가: 이 탭은 섹션이 다섯, 표가 스물이 넘는다. 끝까지
+           스크롤해야 답을 알 수 있으면 화면이 답을 주는 게 아니다.
+           그리고 **최종 기준은 세금계산서**다(v55 원칙). 그러니 세금계산서
+           대사 결과 한 줄이 이 탭의 결론이고, 나머지는 그 결론이 ⛔일 때
+           "어디서 어긋났는지" 찾아 들어가는 도구다.
+         ★ 아직 안 돌렸으면 비워두지 않고 "확인 전"이라고 말한다 —
+           빈칸은 "문제 없음"으로 읽힌다(v55 사고②와 같은 자리). -->
+    <div id="taxVerdict" class="verdict idle" onclick="goToSection_('taxSection')"
+         title="누르면 세금계산서 대사 섹션으로 이동합니다">
+      <div class="verdict-icon" id="taxVerdictIcon">🧾</div>
+      <div class="verdict-main">
+        <div class="verdict-head" id="taxVerdictHead">이 달 매입이 닫혔는지 확인 전입니다</div>
+        <div class="verdict-sub"  id="taxVerdictSub">세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 닫힌 것입니다.</div>
+      </div>
+      <div class="verdict-nums" id="taxVerdictNums"></div>
+      <div class="verdict-go">자세히 ▼</div>
+    </div>
+
+    <!-- 섹션 바로가기 — 사슬 순서 그대로 읽힌다 -->
+    <div class="secnav">
+      <a onclick="goToSection_('erpSection')"><span class="num">①</span>ERP 입고 대사</a>
+      <a onclick="goToSection_('clsSection')"><span class="num">②</span>입고 ↔ 마감</a>
+      <a onclick="goToSection_('adjSection')"><span class="num">③</span>매입 조정</a>
+      <a onclick="goToSection_('cbSection')"><span class="num">④</span>캐리어 청구</a>
+      <a onclick="goToSection_('taxSection')"><span class="num">⑤</span>세금계산서 <b>← 최종</b></a>
+    </div>
     <!-- 월 선택·재대사 버튼은 어두운 제목줄 안에서만 보이는 스타일(.carrier-close-month-btn)이다.
          흰 배경에 두면 흰 글자라 안 보인다 — 반드시 section-title.dark 안에 둘 것. -->
-    <div class="section-title dark carrier-close-title-row">
-      <span class="carrier-close-title-text">🔍 ERP 입고 대사 <span id="erpTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+    <div class="section-title dark carrier-close-title-row" id="erpSection">
+      <span class="carrier-close-title-text">① 🔍 ERP 입고 대사 <span style="font-weight:400;font-size:12px">— 발주원장 ↔ ERP 입고</span> <span id="erpTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="ERP 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftErpReconMonth_(-1)">◀ 이전달</button>
         <input type="month" id="erpReconMonth" onchange="setMonthAll_(this.value)" aria-label="ERP 대사 기준월">
@@ -727,8 +789,8 @@
          조인 키는 입고번호+입고순번 — 정확 1:1이라 퍼지 매칭이 없다.
          월 선택이 없는 이유: 두 자료(97_ERP입고·96_ERP마감)는 올린 파일 그대로라
          "지금 올라와 있는 달"을 대사한다. 라벨의 마감월이 위 기준월과 다르면 ⚠️로 알린다. -->
-    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
-      <span class="carrier-close-title-text">🔗 입고 ↔ 마감 대사 <span id="clsTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px" id="clsSection">
+      <span class="carrier-close-title-text">② 🔗 입고 ↔ 마감 대사 <span style="font-weight:400;font-size:12px">— ERP 입고 ↔ ERP 마감</span> <span id="clsTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="입고 마감 대사">
         <button class="carrier-close-month-btn" onclick="loadClsRecon(true)">🔄 다시 대사</button>
       </div>
@@ -779,8 +841,8 @@
          ★ 발주원장에 넣지 않는 이유: 이자 할인엔 오더번호도 사방넷주문번호도
            설치점도 없다. 발주원장에 억지로 넣으면 발주현황 목록과 마감금액
            카드가 오염되고 캐리어 청구 대사의 "우리에만 있음"에 영원히 걸린다. -->
-    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
-      <span class="carrier-close-title-text">🧮 매입 조정 <span style="font-weight:400;font-size:12px">— 상품이 아닌 매입 조정(선입금 이자 할인 등)</span> <span id="adjTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px" id="adjSection">
+      <span class="carrier-close-title-text">③ 🧮 매입 조정 <span style="font-weight:400;font-size:12px">— 상품이 아닌 매입 조정(선입금 이자 할인 등)</span> <span id="adjTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="매입 조정">
         <button class="carrier-close-month-btn" onclick="loadAdjRecon(true)">🔄 다시 조회</button>
       </div>
@@ -826,8 +888,8 @@
     </div>
     <!-- ══════ 캐리어 청구 대사 (캐리어 전용) ══════ -->
     <div id="cbReconSection">
-    <div class="section-title dark carrier-close-title-row" style="margin-top:22px">
-      <span class="carrier-close-title-text">🧾 캐리어 청구 대사 <span id="cbTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px" id="cbSection">
+      <span class="carrier-close-title-text">④ 📋 캐리어 청구 대사 <span style="font-weight:400;font-size:12px">— 캐리어 청구 ↔ 우리 원장 (캐리어 전용)</span> <span id="cbTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
       <div class="carrier-close-month-inline" aria-label="캐리어 청구 대사 기준월">
         <button class="carrier-close-month-btn" onclick="shiftCbReconMonth_(-1)">◀ 이전달</button>
         <input type="month" id="cbReconMonth" onchange="setMonthAll_(this.value)" aria-label="캐리어 청구 대사 기준월">
@@ -886,6 +948,77 @@
     <div id="cbReconHidden" style="display:none;margin-top:22px" class="card-hint">
       → <b>캐리어 청구 대사</b>는 캐리어 전용입니다. 캐리어 전산에서만 매입내역을 내려받을 수 있어서요.
       보시려면 위 매입처 칩을 <b>[전체]</b> 또는 <b>[캐리어]</b>로 바꾸세요.
+    </div>
+
+    <!-- ══════ ⑤ 세금계산서 대사 (3사 공통 · 최종 기준) ══════
+         [2026-08-07 신규] 서버 액션 getTaxReconcile(19_세금계산서대사.gs v1.1).
+         사슬의 마지막 고리다:
+           발주원장 ─①─▶ ERP 입고 ─②─▶ ERP 마감 ─⑤─▶ 세금계산서
+         ★ 앞의 넷은 전부 우리 손을 거친 자료다. 계산서만 매입처가 발행한
+           것이고 법적 최종본이다. 앞이 아무리 예뻐도 여기서 어긋나면
+           안 닫힌 것이다.
+         ★ 조인 키는 **사업자번호**다. 국세청 '(주) 스타리온성철' vs
+           ERP '주식회사 스타리온성철' — 이름은 표기가 흔들린다.
+         ★ 귀속월은 계산서 **작성일**의 월이다. 발급일·전송일이 아니다
+           (캐리어 실물: 작성 7/31 · 발급 8/3 · 전송 8/5). -->
+    <div class="section-title dark carrier-close-title-row" style="margin-top:22px" id="taxSection">
+      <span class="carrier-close-title-text">⑤ 🧾 세금계산서 대사 <span style="font-weight:400;font-size:12px">— ERP 마감 ↔ 국세청 세금계산서 <b>· 최종 기준</b></span> <span id="taxTabMonthLabel" style="font-weight:400;font-size:12px">—</span></span>
+      <div class="carrier-close-month-inline" aria-label="세금계산서 대사">
+        <button class="carrier-close-month-btn" onclick="loadTaxRecon(true)">🔄 다시 대사</button>
+      </div>
+    </div>
+    <div style="margin:8px 0 2px"><span id="taxReconStamp" style="font-size:11px;color:var(--gray)"></span></div>
+    <div id="taxReconLoading" style="padding:18px;color:var(--gray)">대사 결과를 불러오는 중…</div>
+    <div id="taxReconBody" style="display:none">
+      <div class="table-wrap" style="margin-top:4px">
+        <div class="table-header">
+          <span>상품 3사 대사 — 세금계산서 ↔ ERP 마감</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 차이가 <b>0원</b>이어야 이 달 매입이 닫힌 것입니다 (허용오차 없음)</span>
+        </div>
+        <table><thead><tr>
+          <th>매입처</th><th>사업자번호</th>
+          <th>계산서 건수</th><th>계산서 공급가</th><th>계산서 세액</th><th>계산서 합계</th>
+          <th>ERP 마감 행수</th><th>ERP 마감 합계</th>
+          <th>차이</th><th>판정</th>
+        </tr></thead>
+        <tbody id="taxSummaryBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>총액 — 이 달 매입 세금계산서 전체</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">상품 3사 + 상품 외 = 전체. 국세청 원본 그대로입니다</span>
+        </div>
+        <table><thead><tr><th>구분</th><th>건수</th><th>합계금액</th><th>설명</th></tr></thead>
+        <tbody id="taxTotalBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>① 상품 외 매입 — 버리지 않고 보여줍니다</span>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font-size:11px;color:#D6EAF8;font-weight:400">새 상품 매입처가 생기면 여기서 눈에 띕니다</span>
+            <button onclick="downloadTaxOtherCsv()" style="background:rgba(255,255,255,.18);color:white;border:1px solid rgba(255,255,255,.45);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📥 엑셀 다운로드</button>
+          </div>
+        </div>
+        <table><thead><tr><th>거래처명</th><th>사업자번호</th><th>건수</th><th>공급가액</th><th>세액</th><th>합계</th><th>대표품목</th></tr></thead>
+        <tbody id="taxOtherBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>② ERP 마감에는 있는데 세금계산서가 없음</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">아직 발행 전이거나 다른 달로 잡혔을 수 있습니다</span>
+        </div>
+        <table><thead><tr><th>매입처</th><th>ERP 표기</th><th>ERP 마감 합계</th><th>사유</th></tr></thead>
+        <tbody id="taxNoInvBody"></tbody></table>
+      </div>
+      <div class="table-wrap" style="margin-top:14px">
+        <div class="table-header">
+          <span>③ ERP 마감에 상품 3사가 아닌 거래처</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">있으면 안 되는 일입니다 — 확인이 필요합니다</span>
+        </div>
+        <table><thead><tr><th>거래처</th><th>행수</th><th>합계</th></tr></thead>
+        <tbody id="taxCloseOtherBody"></tbody></table>
+      </div>
+      <div class="card-hint" style="margin-top:14px">→ 이것이 <b>마지막 고리</b>입니다. 발주원장·ERP 입고·ERP 마감은 전부 우리 손을 거친 자료이고, <b>세금계산서만 매입처가 발행한 법적 최종본</b>입니다. 특히 <b>윈세이·스타리온은 청구자료가 없어</b> 여기가 유일한 외부 검증 수단입니다.<br>→ 자료는 <b>더존 → 매입 세금계산서 조회 → 엑셀 다운로드</b> 후 드라이브 <b>[세금계산서_업로드용]</b> 폴더에 올리고, 매입처 관리시트에서 <b>[매입 마감 &gt; 8. 세금계산서 가져오기]</b>를 실행합니다. ERP 입고·마감 폴더와는 <b>별개 폴더</b>입니다.<br>→ 귀속월은 계산서 <b>작성일</b>의 월입니다(발급일·전송일 아님). 2026-07 캐리어는 작성 7/31 · 발급 8/3 · 전송 8/5였습니다 — 발급일로 잡으면 7월 매입이 통째로 8월로 넘어갑니다.<br>→ <b>차이 허용오차는 0원</b>입니다. 다른 대사는 VAT 절사 ±2원을 넘기지만 계산서는 원 단위로 맞아야 합니다. 어긋나면 ②의 <b>입고 ↔ 마감 대사</b>부터 거슬러 올라가세요.</div>
     </div>
   </div>
 </div><!-- /container -->
@@ -1776,11 +1909,17 @@ function setMonthAll_(ym, opts){
   //     옛 달 숫자가 남아 있으면 두 화면이 서로 다른 달을 말하게 된다
   //     (v55 스타리온 사고가 정확히 그것이었다 — 기준이 다른 것과 숫자가
   //      틀린 것은 화면에는 똑같이 "빨간 숫자"로 보인다).
+  // [2026-08-07] 세금계산서 대사도 기준월(작성월)을 쓴다 — 같이 움직인다.
   if(!opts || opts.reloadRecon!==false){
-    if(erpRecon) loadErpRecon(true);
-    if(cbRecon)  loadCbRecon(true);
-    if(adjRecon) loadAdjRecon(true);
-    if(!erpRecon && !cbRecon && !adjRecon) markReconStale_();
+    // ★ 무엇이 이미 대사돼 있었는지 **먼저** 기억한다.
+    //   markReconStale_()가 taxRecon을 null로 지우므로, 그 뒤에 물으면
+    //   "대사한 적 없다"고 답한다 — 그러면 세금계산서만 옛 달로 남는다.
+    const had = { erp:!!erpRecon, cb:!!cbRecon, adj:!!adjRecon, tax:!!taxRecon };
+    if(!had.erp && !had.cb && !had.adj) markReconStale_();
+    if(had.erp) loadErpRecon(true);
+    if(had.cb)  loadCbRecon(true);
+    if(had.adj) loadAdjRecon(true);
+    if(had.tax) loadTaxRecon(true);
   }
 }
 function shiftMonthAll_(delta){
@@ -1810,6 +1949,7 @@ function adoptReconMonth_(ym){
   if(cbRecon) renderCbRecon();
   if(clsRecon) renderClsRecon();
   if(adjRecon) renderAdjRecon();
+  if(taxRecon) renderTaxRecon();
 }
 function shiftErpReconMonth_(delta){ shiftMonthAll_(delta); }
 // 현황판 카드를 누르면 [매입 대사] 탭의 "그 섹션"으로 데려간다.
@@ -1837,6 +1977,9 @@ function setReconVendor(v){
   if(clsRecon) renderClsRecon();
   if(adjRecon) renderAdjRecon();
   if(cbRecon && showCb) renderCbRecon();
+  // [2026-08-07] 세금계산서 표는 칩으로 걸러도, **결론 배너는 3사 전체**로
+  //   판정한다. 캐리어만 보고 있다고 "닫혔다"고 말하면 안 된다.
+  if(taxRecon) renderTaxRecon();
 }
 /** 매입처 이름이 섞여 있는 문자열(거래처 원문 포함)에서 칩과 맞는지 본다 */
 function reconVendorMatch_(name){
@@ -2411,12 +2554,207 @@ async function refreshAll(){
     // [2026-08-05 수정] 로드에서 대사를 뺐으므로 lastReconPromise_는 보통 null이다.
     //   그때 '대사 중…'을 띄우면 하지도 않는 일을 한다고 말하는 셈이다.
     if (lastReconPromise_) { if (el) el.textContent = '⏳ 대사 중…'; await lastReconPromise_; }
+    // [2026-08-07 추가] 매입 마감 탭을 보고 있으면 그 탭의 대사도 다시 돌린다.
+    //   ★ 지금까지는 이 탭에서 새로고침을 눌러도 대사 숫자가 그대로였다.
+    //     "눌렀는데 안 바뀐다"는 v53 사고④·v54 사고③·v55 사고②와 같은 자리다.
+    //   ★ 단, **이미 대사해 둔 것만** 다시 받는다. 안 돌린 것까지 여기서
+    //     시작하면 새로고침 한 번에 다섯 번 왕복해 한참 멈춰 있게 된다.
+    //   ★ 순차로 돈다 — 동시 요청이 해로운 것은 실측으로 확인했다(2026-08-05).
+    if (document.getElementById('tab-erp').style.display !== 'none') {
+      if (el) el.textContent = '⏳ 대사 중…';
+      if (taxRecon) await loadTaxRecon(true);
+      if (erpRecon) await loadErpRecon(true);
+      if (clsRecon) await loadClsRecon(true);
+      if (adjRecon) await loadAdjRecon(true);
+      if (cbRecon)  await loadCbRecon(true);
+    }
     if (el) el.textContent = '✅ 최신';
   } catch (e) {
     if (el) el.textContent = '❌ 실패';
   } finally {
     setTimeout(() => { if (el) { el.disabled = false; el.textContent = orig; } }, 1600);
   }
+}
+// ══════════════════════════════════════════════════════════════
+// ⑤ 세금계산서 대사  [2026-08-07 신규]
+//   서버 액션 getTaxReconcile(19_세금계산서대사.gs v1.1) 결과를 그대로 표시.
+//   · 사슬의 **마지막 고리**다. 앞의 넷은 전부 우리 손을 거친 자료이고
+//     계산서만 매입처가 발행한 법적 최종본이다.
+//   · 조인 키는 **사업자번호**. 이름은 표기가 흔들린다
+//     (국세청 '(주) 스타리온성철' vs ERP '주식회사 스타리온성철').
+//   · 귀속월은 계산서 **작성일**의 월. 발급일·전송일이 아니다.
+//   · 허용오차 0원. 다른 대사는 VAT 절사 ±2원을 넘기지만 계산서는 아니다.
+//   · 화면에서 다시 집계하지 않는다(집계는 서버 한 곳에서만 — v53 원칙).
+// ══════════════════════════════════════════════════════════════
+let taxRecon = null;
+let taxReconLoading = false;
+let taxReconSeq = 0;
+async function loadTaxRecon(force){
+  if(taxRecon && !force){ renderTaxRecon(); return; }
+  if(!force && taxReconLoading) return;
+  const seq = ++taxReconSeq;
+  taxReconLoading=true;
+  const L=document.getElementById('taxReconLoading'), B=document.getElementById('taxReconBody');
+  if(L){ L.style.display='block'; L.textContent='대사 결과를 불러오는 중…'; }
+  if(B) B.style.display='none';
+  setTaxVerdict_('busy','🧾','세금계산서와 대사하는 중입니다…','','');
+  try{
+    const ym=document.getElementById('erpReconMonth')?.value||'';
+    const res=await apiCall({action:'getTaxReconcile', month:ym});
+    if(seq !== taxReconSeq) return;   // 더 최신 요청이 있다 — 이 응답은 버린다
+    if(res && res.error) throw new Error(res.error);
+    taxRecon=res;
+    renderTaxRecon();
+  }catch(e){
+    if(seq !== taxReconSeq) return;
+    taxRecon=null;
+    // ★ 첫 실패는 십중팔구 "재배포를 안 했다"이다. 화면(/exec)은 **배포된
+    //   버전**을 돌리므로, 편집기에 코드가 보여도 배포 전이면 서버는 이
+    //   action을 모른다(v55 사고⑤ — 편집기에 보이는 것과 배포된 것은 다르다).
+    //   그 경우를 알아보고 무엇을 해야 하는지 정확히 말해준다.
+    const notDeployed = /알 수 없는 action|getTaxReconcile is not defined|is not defined/.test(String(e.message||''));
+    const hint = notDeployed
+      ? '서버가 아직 <b>19_세금계산서대사.gs</b>를 모릅니다. Apps Script에 파일을 넣고 <b>[배포 → 배포 관리 → ✏️ 편집 → 새 버전]</b>으로 <b>기존 배포를 다시 올려야</b> 합니다. (새 배포를 누르면 URL이 바뀌어 이 화면이 끊깁니다)'
+      : '[90_세금계산서] 탭이 비어 있으면 매입처 관리시트에서 <b>[매입 마감 &gt; 8. 세금계산서 가져오기]</b>를 먼저 실행하세요.';
+    if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">'+hint+'</span>'; }
+    setTaxVerdict_('idle','⚠️','세금계산서 대사를 하지 못했습니다 — 이 달이 닫혔는지 알 수 없습니다',
+      esc_(e.message)+'<br>'+hint,'');
+  }finally{ if(seq === taxReconSeq) taxReconLoading=false; }
+}
+/** 결론 배너 한 곳에서만 칠한다 — 여러 군데서 손대면 서로 덮어쓴다 */
+function setTaxVerdict_(kind, icon, head, sub, numsHtml){
+  const box=document.getElementById('taxVerdict');
+  if(box) box.className='verdict '+kind;
+  const i=document.getElementById('taxVerdictIcon');   if(i) i.textContent=icon;
+  const h=document.getElementById('taxVerdictHead');   if(h) h.innerHTML=head;
+  const s=document.getElementById('taxVerdictSub');    if(s) s.innerHTML=sub;
+  const n=document.getElementById('taxVerdictNums');   if(n) n.innerHTML=numsHtml||'';
+}
+function renderTaxRecon(){
+  if(!taxRecon) return;
+  const R=taxRecon;
+  const label=closeYmLabel_(R.대상월);
+  const w=monthWarn_(R.대상월);
+  const el=document.getElementById('taxTabMonthLabel');
+  if(el) el.innerHTML='— '+esc_(label)+' 작성 기준'+w;
+  setText('taxReconStamp',
+    (R.생성일시?('마지막 대사 '+R.생성일시):'')
+    +(R.마감월?(' · ERP 마감월 '+R.마감월):'')
+    +(R.구분목록?(' · 구분값 '+R.구분목록):''));
+
+  // ── 상품 3사 (매입처 칩으로 거른다)
+  const sum=(R.요약||[]).filter(x=>reconVendorMatch_(x.매입처));
+  const diffCell_=(v)=>{
+    if(v===null||v===undefined) return '<td style="text-align:right;color:var(--gray)">—</td>';
+    const n=Math.round(Number(v)||0);
+    return '<td style="text-align:right;font-weight:800;font-size:14px;color:'+(n===0?'var(--green)':'var(--red)')+'">'
+      +(n>0?'+':'')+n.toLocaleString()+'</td>';
+  };
+  document.getElementById('taxSummaryBody').innerHTML = sum.length
+    ? sum.map(s=>{
+        const ok=(s.차이!==null&&s.차이!==undefined&&Math.abs(Number(s.차이)||0)===0);
+        return '<tr><td><b>'+dv_(s.매입처)+'</b></td><td style="font-size:11px;color:var(--gray)">'+dv_(s.사업자번호)+'</td>'
+          +'<td>'+(s.계산서건수||0)+'</td>'
+          +'<td style="text-align:right">'+wfmt(s.계산서공급가)+'</td>'
+          +'<td style="text-align:right">'+wfmt(s.계산서세액)+'</td>'
+          +'<td style="text-align:right;font-weight:700">'+wfmt(s.계산서합계)+'</td>'
+          +'<td>'+(s.마감건수||0)+'</td>'
+          +'<td style="text-align:right;font-weight:700">'+(s.마감합계===null?'<span style="color:var(--red)">(마감 없음)</span>':wfmt(s.마감합계))+'</td>'
+          + diffCell_(s.차이)
+          +'<td>'+(s.마감합계===null?'<span style="color:var(--red);font-weight:700">⚠️ ERP 마감에 없음</span>'
+                 :(ok?'<span style="color:var(--green);font-weight:700">✅ 일치</span>'
+                     :'<span style="color:var(--red);font-weight:700">⛔ 차이</span>'))+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="10" class="empty">대상 데이터가 없습니다</td></tr>';
+
+  // ── 총액 (칩과 무관하게 국세청 원본 그대로 — 여기서 거르면 총액이 아니게 된다)
+  document.getElementById('taxTotalBody').innerHTML =
+      '<tr><td><b>전체 매입</b></td><td>'+(R.전체건수||0)+'</td>'
+    + '<td style="text-align:right;font-weight:800">'+wfmt(R.전체합계)+'</td>'
+    + '<td style="font-size:12px;color:var(--gray)">'+esc_(closeYmLabel_(R.대상월))+' 작성분 · 국세청 원본</td></tr>'
+    + '<tr><td>└ 상품 3사</td><td>'+((R.요약||[]).reduce((a,s)=>a+(s.계산서건수||0),0))+'</td>'
+    + '<td style="text-align:right;font-weight:700">'+wfmt(R.상품합계)+'</td>'
+    + '<td style="font-size:12px;color:var(--gray)">위 표에서 대사한 금액</td></tr>'
+    + '<tr><td>└ 상품 외</td><td>'+((R.상품외||[]).reduce((a,s)=>a+(s.건수||0),0))+'</td>'
+    + '<td style="text-align:right;font-weight:700">'+wfmt(R.상품외합계)+'</td>'
+    + '<td style="font-size:12px;color:var(--gray)">'+((R.상품외||[]).length)+'개 거래처 · 판매수수료·물류비·임대료 등</td></tr>';
+
+  // ── ① 상품 외
+  const others=R.상품외||[];
+  document.getElementById('taxOtherBody').innerHTML = others.length
+    ? others.map(x=>'<tr><td>'+dv_(x.거래처명)+'</td><td style="font-size:11px;color:var(--gray)">'+dv_(x.사업자번호)+'</td>'
+        +'<td>'+(x.건수||0)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.공급가액)+'</td>'
+        +'<td style="text-align:right">'+wfmt(x.세액)+'</td>'
+        +'<td style="text-align:right;font-weight:700'+((Number(x.합계)||0)<0?';color:var(--red)':'')+'">'+wfmt(x.합계)+'</td>'
+        +'<td style="font-size:12px;color:var(--gray)">'+dv_((x.품목||[]).join(' / '))+'</td></tr>').join('')
+    : '<tr><td colspan="7" class="empty">상품 외 매입이 없습니다</td></tr>';
+
+  // ── ② 계산서 없음
+  const ni=(R.계산서없음||[]).filter(x=>reconVendorMatch_(x.매입처));
+  document.getElementById('taxNoInvBody').innerHTML = ni.length
+    ? ni.map(x=>'<tr><td><b>'+dv_(x.매입처)+'</b></td><td>'+dv_(x.ERP표기)+'</td>'
+        +'<td style="text-align:right;font-weight:700;color:var(--red)">'+wfmt(x.마감합계)+'</td>'
+        +'<td style="font-size:12px">'+dv_(x.사유)+'</td></tr>').join('')
+    : '<tr><td colspan="4" class="empty">✅ 세 매입처 모두 이 달 세금계산서가 있습니다</td></tr>';
+
+  // ── ③ 마감의 3사 외 거래처
+  const co=R.마감기타||[];
+  document.getElementById('taxCloseOtherBody').innerHTML = co.length
+    ? co.map(x=>'<tr><td style="color:var(--red);font-weight:700">'+dv_(x.거래처)+'</td><td>'+(x.건수||0)+'</td>'
+        +'<td style="text-align:right;font-weight:700">'+wfmt(x.합계)+'</td></tr>').join('')
+    : '<tr><td colspan="3" class="empty">✅ ERP 마감에 상품 3사만 있습니다</td></tr>';
+
+  // ── 결론 배너
+  //   ★ 배너는 **칩과 무관하게 3사 전체**로 판정한다. 캐리어만 보고 있다고
+  //     "닫혔다"고 말하면 안 된다 — 닫힘은 세 매입처가 모두 0일 때만이다.
+  renderTaxVerdict_();
+  const L=document.getElementById('taxReconLoading'), B=document.getElementById('taxReconBody');
+  if(L) L.style.display='none';
+  if(B) B.style.display='block';
+}
+function renderTaxVerdict_(){
+  const R=taxRecon;
+  if(!R){ setTaxVerdict_('idle','🧾','이 달 매입이 닫혔는지 확인 전입니다',
+    '세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 닫힌 것입니다.',''); return; }
+  const all=R.요약||[];
+  const bad=all.filter(s=>s.차이===null||s.차이===undefined||Math.abs(Number(s.차이)||0)!==0);
+  const label=closeYmLabel_(R.대상월);
+  const nums=all.map(s=>{
+    const d=(s.차이===null||s.차이===undefined)?null:Math.round(Number(s.차이)||0);
+    const col=(d===0)?'var(--green)':'var(--red)';
+    return '<div class="verdict-num"><div class="k">'+esc_(s.매입처)+'</div>'
+      +'<div class="v" style="color:'+col+'">'+(d===null?'마감없음':(d===0?'0 ✅':((d>0?'+':'')+d.toLocaleString())))+'</div></div>';
+  }).join('');
+  if(bad.length===0){
+    setTaxVerdict_('ok','✅',
+      esc_(label)+' 매입이 <b>닫혔습니다</b> — 세금계산서 '+wfmt(R.상품합계),
+      '캐리어·윈세이·스타리온 세 곳 모두 세금계산서와 ERP 마감이 <b>원 단위로 일치</b>합니다.'
+      +' 상품 외 매입 '+((R.상품외||[]).length)+'개 거래처 '+wfmt(R.상품외합계)+'은 대사 대상이 아닙니다.',
+      nums);
+  }else{
+    const names=bad.map(s=>s.매입처).join(' · ');
+    const total=bad.reduce((a,s)=>a+((s.차이===null||s.차이===undefined)?0:(Number(s.차이)||0)),0);
+    setTaxVerdict_('bad','⛔',
+      esc_(label)+' 매입이 <b>아직 안 닫혔습니다</b> — '+esc_(names)+' 차이 '+(total>0?'+':'')+Math.round(total).toLocaleString()+'원',
+      '세금계산서가 최종 기준입니다. <b>②&nbsp;입고 ↔ 마감</b>부터 거슬러 올라가며 어디서 어긋났는지 찾으세요.'
+      +(R.월불일치?' <span style="color:var(--red);font-weight:700">⚠️ 계산서 작성월과 ERP 마감월('+esc_(R.마감월||'?')+')이 다릅니다 — 숫자가 아니라 기준 문제일 수 있습니다.</span>':''),
+      nums);
+  }
+}
+function downloadTaxOtherCsv(){
+  const rows=(taxRecon&&taxRecon.상품외)||[];
+  if(!rows.length){ alert('다운로드할 상품 외 매입이 없습니다.'); return; }
+  downloadCsv_(
+    '세금계산서_상품외매입_'+((taxRecon&&taxRecon.대상월)||currentYm_())+'.csv',
+    ['거래처명','사업자번호','건수','공급가액','세액','합계','대표품목'],
+    rows.map(x=>[x.거래처명,x.사업자번호,x.건수,x.공급가액,x.세액,x.합계,(x.품목||[]).join(' / ')])
+  );
+}
+/** 섹션 바로가기 — 페이지가 길어 스크롤만으로는 길을 잃는다 */
+function goToSection_(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 // [2026-08-05 신규] 매입 대사를 화면 로드에서 뺀 뒤, 카드가 "아직 안 한 것"임을 말하게 한다.
 //   ★ 그냥 비워두면 안 된다. **숫자가 없는 것과 0인 것은 완전히 다른데**,
@@ -2436,6 +2774,11 @@ function markReconStale_(){
   if(a) a.innerHTML='<span style="color:#FFD27F">— 대사 전</span>';
   const b=document.getElementById('cbReconMonthLabel');
   if(b) b.innerHTML='<span style="color:#FFD27F">— 대사 전</span>';
+  // [2026-08-07] 결론 배너도 "확인 전"으로 되돌린다.
+  //   ★ 여기서 빼먹으면 옛 달의 ✅가 새 달 화면에 그대로 남는다 —
+  //     v55 스타리온 사고와 같은 모양(다른 달을 같은 달인 척 보여주는 것).
+  taxRecon=null;
+  if(typeof renderTaxVerdict_==='function') renderTaxVerdict_();
 }
 async function loadAll(){
   updateHeaderDate();
@@ -2558,7 +2901,28 @@ function showTab(tab){
       setTimeout(drawChart,50);
     }
   }
-  if(tab==='erp')   { loadErpRecon(false); loadCbRecon(false); loadClsRecon(false); loadAdjRecon(false); }
+  if(tab==='erp')   loadReconAll_();
+}
+// [2026-08-07] 매입 마감 탭의 대사들을 **순차로** 돌린다.
+//   ★ 예전에는 넷을 한꺼번에 던졌다(await 없는 나란한 호출 = 동시 요청).
+//     그런데 2026-08-05 브라우저 실측에서 **병렬 73.42초 < 순차 50.30초**로
+//     순차가 이겼다. Apps Script 웹앱은 동시 요청을 받아내지 못한다.
+//     이제 다섯이 됐으니 한꺼번에 던지면 더 나빠진다.
+//   ★ 순서는 **결론 먼저**다. 세금계산서가 최종 기준이므로 그것부터 돌려
+//     맨 위 배너가 가장 먼저 답을 준다. 나머지는 그 답이 ⛔일 때 파고들
+//     도구이므로 뒤에 와도 된다.
+//   ★ 하나가 실패해도 나머지는 계속 돈다(각 load*가 자기 catch를 갖고 있다).
+let reconAllRunning_ = false;
+async function loadReconAll_(){
+  if(reconAllRunning_) return;
+  reconAllRunning_ = true;
+  try{
+    await loadTaxRecon(false);   // ⑤ 결론 — 이 달이 닫혔는가
+    await loadErpRecon(false);   // ① 발주원장 ↔ ERP 입고
+    await loadClsRecon(false);   // ② ERP 입고 ↔ ERP 마감
+    await loadAdjRecon(false);   // ③ 매입 조정
+    await loadCbRecon(false);    // ④ 캐리어 청구
+  } finally { reconAllRunning_ = false; }
 }
 async function refreshStock(){
   try{const d=await apiCall({action:'getCarrierStock'});allStock=Array.isArray(d)?d:[];selectedStockModel=null;renderStock();}catch(e){}
