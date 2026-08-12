@@ -1343,6 +1343,41 @@
     <div id="ncm-table"></div>
   </div>
   <div class="card-hint">→ 발주는 메일로 보내고, 구글시트 [기타_발주원장]에 한 줄 적습니다. 입고가 오면 <b>입고수량_누계</b>만 고치면 잔량이 따라갑니다.</div>
+
+  <!-- 설치용역 — 한강이앰피·이코시스템
+       엔씨엠과 성격이 다르다. 발주도 재고도 잔량도 없고, 청구가 오면 그게 끝이다.
+       그래서 원장을 만들지 않고 세금계산서를 그대로 보여준다.
+       ★ 두 회사를 코드에 박지 않는다 — [91_거래처분류]에서 분류가 '설치용역'인
+         곳을 읽으므로, 업체가 늘어도 시트에서 분류만 지정하면 여기 뜬다. -->
+  <div class="section-title dark" style="margin-top:22px;display:flex;align-items:center;gap:8px">
+    <span>🔧 설치용역</span>
+    <span style="font-weight:400;font-size:12px">— 이마트 에브리데이 설치·이전. 발주 없이 청구로 끝나므로 세금계산서가 곧 원장이다</span>
+  </div>
+  <div class="cards" style="margin-top:14px;grid-template-columns:repeat(3,1fr)">
+    <div class="card">
+      <div class="card-label">🏢 업체<br>수</div>
+      <div class="card-num blue" id="etc-inst-vendors">—</div>
+      <div class="card-desc">91_거래처분류 = 설치용역</div>
+    </div>
+    <div class="card">
+      <div class="card-label">🧾 계산서<br>건수</div>
+      <div class="card-num green" id="etc-inst-count">—</div>
+      <div class="card-desc">전체 기간</div>
+    </div>
+    <div class="card">
+      <div class="card-label">💰 합계금액<br>VAT 포함</div>
+      <div class="card-num dark" id="etc-inst-amt">—</div>
+      <div class="card-desc">매출원가입니다</div>
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-top:14px">
+    <div class="table-header">
+      <span>설치용역 내역 — 작성월 기준</span>
+      <span id="etc-inst-note" style="font-weight:400;font-size:12px">—</span>
+    </div>
+    <div id="etc-inst-table"></div>
+  </div>
+  <div class="card-hint">→ 임대료·판매수수료 같은 다른 비용은 여기 나오지 않습니다. <b>매출원가에 해당하는 설치용역만</b> 보여줍니다.</div>
 </div>
 </div>
 <!-- 발주전취소 안내 모달 -->
@@ -2942,6 +2977,7 @@ async function loadNcm_(){
   }
 }
 function renderNcm_(d){
+  renderEtcInstall_(d && d.install);   // 원장이 없어도 설치용역은 따로 그린다
   const note = document.getElementById('ncm-note');
   const box  = document.getElementById('ncm-table');
   const S = (d && d.summary) || {};
@@ -2996,6 +3032,53 @@ function renderNcm_(d){
         <td style="color:var(--gray);font-size:11px">${r.비고||''}</td>
       </tr>`;
     }).join('')}</tbody></table>`;
+}
+
+// 설치용역 — 한강이앰피·이코시스템 (세금계산서 기준)
+function renderEtcInstall_(ins){
+  const nf = n => (Number(n)||0).toLocaleString();
+  const note = document.getElementById('etc-inst-note');
+  const box  = document.getElementById('etc-inst-table');
+  if(!note || !box) return;
+
+  const S = (ins && ins.summary) || {};
+  setText('etc-inst-vendors', nf(S.vendors));
+  setText('etc-inst-count',   nf(S.count));
+  setText('etc-inst-amt',     nf(S.amount));
+
+  if(!ins || !ins.ok){
+    note.textContent = '조회 불가';
+    box.innerHTML = `<div style="padding:16px;color:var(--gray);font-size:12px">
+      설치용역을 불러오지 못했습니다 — ${(ins&&ins.reason)||'알 수 없음'}<br>
+      [90_세금계산서]와 [91_거래처분류] 탭이 있는지 확인하세요.</div>`;
+    return;
+  }
+  const rows = Array.isArray(ins.rows) ? ins.rows : [];
+  note.textContent = `${S.count||0}건 · ${S.vendors||0}곳`;
+  if(!rows.length){
+    box.innerHTML = `<div style="padding:16px;color:var(--gray);font-size:12px">
+      설치용역으로 분류된 매입이 없습니다.
+      [91_거래처분류]에서 해당 거래처의 분류를 <b>설치용역</b>으로 지정하면 여기 나타납니다.</div>`;
+    return;
+  }
+  box.innerHTML = `<table>
+    <thead><tr>
+      <th>작성월</th><th>거래처명</th><th>사업자번호</th>
+      <th style="text-align:right">건수</th><th style="text-align:right">합계(VAT+)</th><th>대표품목</th>
+    </tr></thead><tbody>${rows.map(r=>`<tr>
+        <td>${r.월||''}</td>
+        <td><b>${r.거래처명||''}</b></td>
+        <td style="color:var(--gray)">${r.사업자번호||''}</td>
+        <td style="text-align:right">${nf(r.건수)}</td>
+        <td style="text-align:right;font-weight:700">${nf(r.금액)}</td>
+        <td style="color:var(--gray);font-size:11px">${r.품목||''}</td>
+      </tr>`).join('')}
+      <tr style="background:#F0F4F8">
+        <td colspan="3" style="font-weight:700">합계</td>
+        <td style="text-align:right;font-weight:700">${nf(S.count)}</td>
+        <td style="text-align:right;font-weight:700">${nf(S.amount)}</td>
+        <td></td>
+      </tr></tbody></table>`;
 }
 
 // ── 탭 전환 + 탭별 재로딩 ──
