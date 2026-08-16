@@ -687,8 +687,8 @@
          title="누르면 세금계산서 대사 섹션으로 이동합니다">
       <div class="verdict-icon" id="taxVerdictIcon">🧾</div>
       <div class="verdict-main">
-        <div class="verdict-head" id="taxVerdictHead">이 달 매입이 닫혔는지 확인 전입니다</div>
-        <div class="verdict-sub"  id="taxVerdictSub">세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 닫힌 것입니다.</div>
+        <div class="verdict-head" id="taxVerdictHead">이 달 매입이 맞았는지 아직 확인 전입니다</div>
+        <div class="verdict-sub"  id="taxVerdictSub">세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 끝난 것입니다.</div>
       </div>
       <div class="verdict-nums" id="taxVerdictNums"></div>
       <div class="verdict-go">자세히 ▼</div>
@@ -719,7 +719,7 @@
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header">
           <span>매입처별 요약</span>
-          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 맨 오른쪽 <b>순액 차이</b>가 0에 가까워야 마감이 닫힙니다</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 맨 오른쪽 <b>순액 차이</b>가 0에 가까워야 맞는 것입니다</span>
         </div>
         <table><thead><tr>
           <th>매입처</th>
@@ -805,7 +805,7 @@
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header">
           <span>거래처별 요약 — ERP 입고 ↔ ERP 마감</span>
-          <span style="font-size:11px;color:#D6EAF8;font-weight:400">마감 = 실장님 확정본(세금계산서 기준) · 차이 0이면 ERP 안이 닫힌 것</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">마감 = 실장님 확정본(세금계산서 기준) · 차이 0이면 ERP 안은 맞은 것</span>
         </div>
         <table><thead><tr>
           <th>거래처</th><th>입고 행수</th><th>입고 합계</th><th>마감 행수</th><th>마감 합계</th><th>차이(입고-마감)</th>
@@ -977,7 +977,7 @@
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header">
           <span>상품 3사 대사 — 세금계산서 ↔ ERP 마감</span>
-          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 차이가 <b>0원</b>이어야 이 달 매입이 닫힌 것입니다 (허용오차 없음)</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 차이가 <b>0원</b>이어야 이 달 매입이 맞은 것입니다 (허용오차 없음)</span>
         </div>
         <table><thead><tr>
           <th>매입처</th><th>사업자번호</th>
@@ -2714,7 +2714,7 @@ async function loadTaxRecon(force){
       ? '서버가 아직 <b>19_세금계산서대사.gs</b>를 모릅니다. Apps Script에 파일을 넣고 <b>[배포 → 배포 관리 → ✏️ 편집 → 새 버전]</b>으로 <b>기존 배포를 다시 올려야</b> 합니다. (새 배포를 누르면 URL이 바뀌어 이 화면이 끊깁니다)'
       : '[90_세금계산서] 탭이 비어 있으면 매입처 관리시트에서 <b>[매입 마감 &gt; 8. 세금계산서 가져오기]</b>를 먼저 실행하세요.';
     if(L){ L.style.display='block'; L.innerHTML='<span style="color:var(--red)">❌ 대사 실패: '+esc_(e.message)+'</span><br><span style="font-size:12px;color:var(--gray)">'+hint+'</span>'; }
-    setTaxVerdict_('idle','⚠️','세금계산서 대사를 하지 못했습니다 — 이 달이 닫혔는지 알 수 없습니다',
+    setTaxVerdict_('idle','⚠️','세금계산서 대사를 하지 못했습니다 — 이 달이 맞는지 알 수 없습니다',
       esc_(e.message)+'<br>'+hint,'');
   }finally{ if(seq === taxReconSeq) taxReconLoading=false; }
 }
@@ -2812,8 +2812,8 @@ function renderTaxRecon(){
 }
 function renderTaxVerdict_(){
   const R=taxRecon;
-  if(!R){ setTaxVerdict_('idle','🧾','이 달 매입이 닫혔는지 확인 전입니다',
-    '세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 닫힌 것입니다.',''); return; }
+  if(!R){ setTaxVerdict_('idle','🧾','이 달 매입이 맞았는지 아직 확인 전입니다',
+    '세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 끝난 것입니다.',''); return; }
   const all=R.요약||[];
   const bad=all.filter(s=>s.차이===null||s.차이===undefined||Math.abs(Number(s.차이)||0)!==0);
   const label=closeYmLabel_(R.대상월);
@@ -2825,7 +2825,7 @@ function renderTaxVerdict_(){
   }).join('');
   if(bad.length===0){
     setTaxVerdict_('ok','✅',
-      esc_(label)+' 매입이 <b>닫혔습니다</b> — 세금계산서 '+wfmt(R.상품합계),
+      esc_(label)+' 매입이 <b>세금계산서와 전부 맞습니다</b> — '+wfmt(R.상품합계),
       '캐리어·윈세이·스타리온 세 곳 모두 세금계산서와 ERP 마감이 <b>원 단위로 일치</b>합니다.'
       +' 상품 외 매입 '+((R.상품외||[]).length)+'개 거래처 '+wfmt(R.상품외합계)+'은 대사 대상이 아닙니다.',
       nums);
@@ -2833,7 +2833,7 @@ function renderTaxVerdict_(){
     const names=bad.map(s=>s.매입처).join(' · ');
     const total=bad.reduce((a,s)=>a+((s.차이===null||s.차이===undefined)?0:(Number(s.차이)||0)),0);
     setTaxVerdict_('bad','⛔',
-      esc_(label)+' 매입이 <b>아직 안 닫혔습니다</b> — '+esc_(names)+' 차이 '+(total>0?'+':'')+Math.round(total).toLocaleString()+'원',
+      esc_(label)+' 매입이 <b>아직 안 맞습니다</b> — '+esc_(names)+' 차이 '+(total>0?'+':'')+Math.round(total).toLocaleString()+'원',
       '세금계산서가 최종 기준입니다. <b>②&nbsp;입고 ↔ 마감</b>부터 거슬러 올라가며 어디서 어긋났는지 찾으세요.'
       +(R.월불일치?' <span style="color:var(--red);font-weight:700">⚠️ 계산서 작성월과 ERP 마감월('+esc_(R.마감월||'?')+')이 다릅니다 — 숫자가 아니라 기준 문제일 수 있습니다.</span>':''),
       nums);
