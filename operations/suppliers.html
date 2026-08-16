@@ -216,6 +216,37 @@
               text-decoration:none; cursor:pointer; }
   .secnav a:hover { border-color:var(--navy); color:var(--navy); background:#EBF5FB; }
   .secnav .num { color:var(--gray); font-weight:700; margin-right:5px; }
+
+  /* ══ 마감 체크리스트 [2026-08-16 신규 · 미결 241] ══════════════════
+     배너는 "맞았나"를 답한다. 이 칸은 "그럼 지금 내가 뭘 해야 하나"를 답한다.
+     사람이 누르는 체크박스가 아니다 — 서버가 탭의 생성시각을 읽어 판정한다. */
+  .chk { border:1px solid var(--border); border-radius:10px; background:white; padding:12px 14px; margin:0 0 14px; }
+  .chk-top { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .chk-title { font-size:13px; font-weight:800; color:var(--dark); }
+  .chk-prog { font-size:12px; font-weight:700; color:var(--gray); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .chk-bar { flex:1 1 120px; min-width:80px; height:6px; border-radius:3px; background:var(--light); overflow:hidden; }
+  .chk-bar i { display:block; height:100%; width:0; background:var(--green); transition:width .3s; }
+  .chk-btn { padding:4px 10px; border-radius:6px; border:1px solid var(--border); background:var(--light);
+             color:var(--gray); font-size:11px; font-weight:600; cursor:pointer; }
+  .chk-btn:hover { border-color:var(--navy); color:var(--navy); }
+  .chk-next { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;
+              padding:8px 11px; border-radius:8px; font-size:13px; font-weight:700;
+              background:#FDF3E7; border:1px solid var(--orange); color:#A5651B; }
+  .chk-next.ok { background:#EAF7F0; border-color:var(--green); color:#1E8449; }
+  .chk-row { display:flex; gap:9px; align-items:flex-start; padding:6px 2px; border-top:1px solid var(--light); }
+  .chk-row:first-child { border-top:none; }
+  .chk-ic { flex:0 0 18px; width:18px; text-align:center; font-size:14px; line-height:1.5; }
+  .chk-body { flex:1 1 auto; min-width:0; }
+  .chk-name { font-size:12.5px; font-weight:700; color:var(--dark); }
+  .chk-row.done .chk-name { color:var(--gray); font-weight:600; }
+  .chk-row.todo .chk-name { color:var(--orange); }
+  .chk-why { font-size:11px; color:var(--gray); margin-top:2px; line-height:1.5; overflow-wrap:anywhere; }
+  .chk-do  { font-size:11px; color:var(--orange); font-weight:700; margin-top:2px; overflow-wrap:anywhere; }
+  .chk-where { flex:0 0 auto; align-self:flex-start; margin-top:1px; white-space:nowrap;
+               font-size:10px; font-weight:700; color:var(--gray);
+               background:var(--light); border:1px solid var(--border); border-radius:10px; padding:2px 8px; }
+  .chk-msg { font-size:12px; color:var(--gray); padding:6px 2px; line-height:1.6; overflow-wrap:anywhere; }
+  @media (max-width:640px){ .chk-where { display:none; } }
   /* 로딩/빈값 */
   .loading { text-align: center; padding: 36px; color: var(--gray); font-size: 14px; }
   .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ddd; border-top-color: var(--navy); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
@@ -692,6 +723,30 @@
       </div>
       <div class="verdict-nums" id="taxVerdictNums"></div>
       <div class="verdict-go">자세히 ▼</div>
+    </div>
+
+    <!-- ══════ 마감 체크리스트 [2026-08-16 신규 · 미결 241] ══════
+         ★ 왜 배너 바로 아래인가: 배너는 "이 달 매입이 맞았나"를 답한다.
+           그런데 안 맞았을 때 **다음에 무엇을 어디서 해야 하는지**는
+           배너가 말해주지 않았다. 실제로 하루에 다섯 군데를 오가야 한다 —
+           더존 · 드라이브 폴더 · 구글시트 메뉴 · Apps Script 편집기 · ERP.
+           순서를 사람이 외우고 있어야 했고, 그건 우리가 만든 구조 탓이다.
+         ★ 사람이 누르는 체크박스가 아니다. 각 탭에 이미 적혀 있는
+           생성시각·건수를 서버가 읽어 ✅/⬜를 스스로 판정한다.
+           새로 기록할 것도, 대표님이 체크하실 것도 없다.
+         ★ 핵심 판정은 "뒤 단계의 시각이 앞 단계보다 최신인가"다.
+           돌리긴 돌렸는데 자료가 바뀐 뒤라 다시 돌려야 하는 상태(🔄)가
+           이것으로 잡힌다 — 93탭이 나흘 전 것인 줄 아무도 몰랐던 그 문제다.
+         ★ 서버: 22_마감체크리스트.gs  →  action=getCloseChecklist -->
+    <div class="chk" id="chkBox">
+      <div class="chk-top">
+        <span class="chk-title">🧭 이번 달 마감 절차</span>
+        <span class="chk-prog" id="chkProg">—</span>
+        <span class="chk-bar"><i id="chkBar"></i></span>
+        <button class="chk-btn" onclick="loadChecklist(true)">🔄 다시 확인</button>
+      </div>
+      <div class="chk-next" id="chkNext" style="display:none"></div>
+      <div id="chkList"><div class="chk-msg">확인 중…</div></div>
     </div>
 
     <!-- 섹션 바로가기 — 사슬 순서 그대로 읽힌다 -->
@@ -2017,6 +2072,8 @@ function setMonthAll_(ym, opts){
     if(had.cb)  loadCbRecon(true);
     if(had.adj) loadAdjRecon(true);
     if(had.tax) loadTaxRecon(true);
+    // [2026-08-16] 체크리스트도 기준월을 쓴다. 이미 받아 둔 적이 있으면 같이 움직인다.
+    if(chkData) loadChecklist(true);
   }
 }
 function shiftMonthAll_(delta){
@@ -3243,12 +3300,95 @@ function showTab(tab){
 //     맨 위 배너가 가장 먼저 답을 준다. 나머지는 그 답이 ⛔일 때 파고들
 //     도구이므로 뒤에 와도 된다.
 //   ★ 하나가 실패해도 나머지는 계속 돈다(각 load*가 자기 catch를 갖고 있다).
+// ══════ 마감 체크리스트 [2026-08-16 신규 · 미결 241] ══════════════════
+// 서버(22_마감체크리스트.gs)가 90·89·91·93·96탭과 [세금계산서_업로드용]
+// 폴더를 읽어 ①~⑦ 중 어디까지 왔는지 판정해 준다. 화면은 그리기만 한다.
+// ★ 집계도 판정도 서버 한 곳에서만 한다 (v53 원칙).
+// ★ 서버에 case가 아직 없으면(재배포 전) 조용히 실패하지 않고
+//   무엇을 해야 하는지 화면에 적어 준다 — 빈칸은 "문제 없음"으로 읽힌다.
+let chkData = null;
+let chkBusy_ = false;
+const CHK_ICON_ = { done:'✅', todo:'⬜', stale:'🔄', warn:'⚠️', wait:'🟡', unknown:'❔' };
+
+async function loadChecklist(force){
+  if(chkBusy_) return;
+  if(chkData && !force) return;
+  chkBusy_ = true;
+  const list = document.getElementById('chkList');
+  if(list) list.innerHTML = '<div class="chk-msg">확인 중…</div>';
+  try{
+    const month = document.getElementById('erpReconMonth')?.value || '';
+    const p = {action:'getCloseChecklist'};
+    if(month) p.month = month;
+    chkData = await apiCall(p);
+    renderChecklist();
+  }catch(e){
+    chkData = null;
+    const prog=document.getElementById('chkProg'); if(prog) prog.textContent='—';
+    const bar =document.getElementById('chkBar');  if(bar)  bar.style.width='0%';
+    const nx  =document.getElementById('chkNext'); if(nx)   nx.style.display='none';
+    if(list) list.innerHTML =
+      '<div class="chk-msg">체크리스트를 받지 못했습니다 — '+esc_(String((e&&e.message)||e))+'<br>'
+    + 'Apps Script에 <b>22_마감체크리스트.gs</b>가 있고, <code>doGet</code>의 switch에 '
+    + '<code>case "getCloseChecklist"</code> 한 줄이 들어간 뒤 <b>새 버전으로 재배포</b>됐는지 확인해 주세요.</div>';
+  }finally{ chkBusy_ = false; }
+}
+
+function renderChecklist(){
+  const R = chkData;
+  const list = document.getElementById('chkList');
+  if(!list) return;
+  if(!R || !R.ok || !Array.isArray(R.단계)){
+    list.innerHTML = '<div class="chk-msg">'+esc_((R&&R.error)||'대상월을 정할 수 없습니다.')+'</div>';
+    return;
+  }
+
+  const prog = document.getElementById('chkProg');
+  const bar  = document.getElementById('chkBar');
+  if(prog) prog.textContent = R.완료수+' / '+R.전체수+'  ·  '+R.대상월;
+  if(bar)  bar.style.width  = (R.전체수 ? Math.round(R.완료수/R.전체수*100) : 0)+'%';
+
+  // 다음 한 걸음 — 이 줄 하나가 이 칸의 존재 이유다
+  const nx = document.getElementById('chkNext');
+  if(nx){
+    const step = R.단계.filter(function(s){ return s.번호===R.다음번호; })[0];
+    nx.style.display = 'flex';
+    if(!step){
+      nx.className = 'chk-next ok';
+      nx.innerHTML = '✅ <span>'+esc_(R.대상월)+' 매입 마감 절차가 ①~⑦ 전부 끝났습니다</span>';
+    }else{
+      nx.className = 'chk-next';
+      nx.innerHTML = '👉 <span>다음 한 걸음 — '+esc_(R.다음번호+'. '+step.제목)+'</span>'
+                   + '<span class="chk-where">'+esc_(step.곳)+'</span>';
+    }
+  }
+
+  list.innerHTML =
+    R.단계.map(function(s){
+      return '<div class="chk-row '+(s.상태==='done'?'done':'todo')+'">'
+           +   '<div class="chk-ic">'+(CHK_ICON_[s.상태]||'⬜')+'</div>'
+           +   '<div class="chk-body">'
+           +     '<div class="chk-name">'+esc_(s.번호+'. '+s.제목)+'</div>'
+           +     '<div class="chk-why">'+esc_(s.근거)+'</div>'
+           +     (s.할일 ? '<div class="chk-do">→ '+esc_(s.할일)+'</div>' : '')
+           +   '</div>'
+           +   '<div class="chk-where">'+esc_(s.곳)+'</div>'
+           + '</div>';
+    }).join('')
+  + ((R.경고&&R.경고.length)
+      ? R.경고.map(function(w){
+          return '<div class="chk-msg" style="color:var(--red);font-weight:700">⚠️ '+esc_(w)+'</div>';
+        }).join('')
+      : '');
+}
+
 let reconAllRunning_ = false;
 async function loadReconAll_(){
   if(reconAllRunning_) return;
   reconAllRunning_ = true;
   try{
     await loadTaxRecon(false);   // ⑤ 결론 — 이 달이 닫혔는가
+    await loadChecklist(false);  // 🧭 그래서 지금 뭘 해야 하나 [2026-08-16 추가]
     await loadErpRecon(false);   // ① 발주원장 ↔ ERP 입고
     await loadClsRecon(false);   // ② ERP 입고 ↔ ERP 마감
     await loadAdjRecon(false);   // ③ 매입 조정
