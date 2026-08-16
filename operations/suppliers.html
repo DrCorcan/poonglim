@@ -718,7 +718,7 @@
          title="누르면 세금계산서 대사 섹션으로 이동합니다">
       <div class="verdict-icon" id="taxVerdictIcon">🧾</div>
       <div class="verdict-main">
-        <div class="verdict-head" id="taxVerdictHead">이 달 매입이 맞았는지 아직 확인 전입니다</div>
+        <div class="verdict-head" id="taxVerdictHead">매입이 맞았는지 아직 확인 전입니다</div>
         <div class="verdict-sub"  id="taxVerdictSub">세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 끝난 것입니다.</div>
       </div>
       <div class="verdict-nums" id="taxVerdictNums"></div>
@@ -740,7 +740,7 @@
          ★ 서버: 22_마감체크리스트.gs  →  action=getCloseChecklist -->
     <div class="chk" id="chkBox">
       <div class="chk-top">
-        <span class="chk-title">🧭 이번 달 마감 절차</span>
+        <span class="chk-title" id="chkTitle">🧭 마감 절차</span>
         <span class="chk-prog" id="chkProg">—</span>
         <span class="chk-bar"><i id="chkBar"></i></span>
         <button class="chk-btn" onclick="loadChecklist(true)">🔄 다시 확인</button>
@@ -1032,7 +1032,7 @@
       <div class="table-wrap" style="margin-top:4px">
         <div class="table-header">
           <span>상품 3사 대사 — 세금계산서 ↔ ERP 마감</span>
-          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 차이가 <b>0원</b>이어야 이 달 매입이 맞은 것입니다 (허용오차 없음)</span>
+          <span style="font-size:11px;color:#D6EAF8;font-weight:400">★ 차이가 <b>0원</b>이어야 그 달 매입이 맞은 것입니다 (허용오차 없음)</span>
         </div>
         <table><thead><tr>
           <th>매입처</th><th>사업자번호</th>
@@ -1044,7 +1044,7 @@
       </div>
       <div class="table-wrap" style="margin-top:14px">
         <div class="table-header">
-          <span>총액 — 이 달 매입 세금계산서 전체</span>
+          <span>총액 — 그 달 매입 세금계산서 전체</span>
           <span style="font-size:11px;color:#D6EAF8;font-weight:400">상품 3사 + 상품 외 = 전체. 국세청 원본 그대로입니다</span>
         </div>
         <table><thead><tr><th>구분</th><th>건수</th><th>합계금액</th><th>설명</th></tr></thead>
@@ -1595,6 +1595,22 @@ function selectedCloseYm_(inputId){
   const fallback=currentYm_();
   if(el) el.value=fallback;
   return fallback;
+}
+// [2026-08-16] 「이 달」·「이번 달」이 실제로 이번 달이 아닌 경우가 대부분이다.
+//   8월 16일에 화면을 열면 대개 **7월을 닫는 중**이다. 그걸 「이 달」이라
+//   부르면 틀린 말이고, 지금 어느 달을 보고 있는지도 안 읽힌다.
+//   → **정말 이번 달일 때만 「이번 달」**이라 쓰고, 나머지는 월을 가리킨다.
+//      이번 달  → 「이번 달(2026년 8월)」
+//      지난달   → 「지난달(2026년 7월)」
+//      그 밖    → 「2026년 5월」            (수식어 없이 월만)
+function ymRel_(ym){
+  const s = String(ym||'');
+  if(!/^\d{4}-\d{2}$/.test(s)) return '이 달';
+  const label = closeYmLabel_(s);
+  const now = currentYm_();
+  if(s === now)               return '이번 달('+label+')';
+  if(s === addMonth_(now,-1)) return '지난달('+label+')';
+  return label;
 }
 function closeYmLabel_(ym){
   const parts=String(ym||'').split('-');
@@ -2751,9 +2767,13 @@ async function loadTaxRecon(force){
   const L=document.getElementById('taxReconLoading'), B=document.getElementById('taxReconBody');
   if(L){ L.style.display='block'; L.textContent='대사 결과를 불러오는 중…'; }
   if(B) B.style.display='none';
-  setTaxVerdict_('busy','🧾','세금계산서와 대사하는 중입니다…','','');
+  // [2026-08-16] 어느 달을 대사하는지 여기서부터 말한다. 대사는 수십 초 걸린다 —
+  //   그동안 달을 모르면 대표님이 「무엇을 기다리는지」 알 수 없다.
+  const ym0=document.getElementById('erpReconMonth')?.value||'';
+  setTaxVerdict_('busy','🧾', esc_(ymRel_(ym0))+' 매입을 세금계산서와 대사하는 중입니다…',
+    '세금계산서가 최종 기준입니다. 3사 계산서와 ERP 마감을 원 단위로 맞춰 봅니다.','');
   try{
-    const ym=document.getElementById('erpReconMonth')?.value||'';
+    const ym=ym0;
     const res=await apiCall({action:'getTaxReconcile', month:ym});
     if(seq !== taxReconSeq) return;   // 더 최신 요청이 있다 — 이 응답은 버린다
     if(res && res.error) throw new Error(res.error);
@@ -2869,11 +2889,14 @@ function renderTaxRecon(){
 }
 function renderTaxVerdict_(){
   const R=taxRecon;
-  if(!R){ setTaxVerdict_('idle','🧾','이 달 매입이 맞았는지 아직 확인 전입니다',
+  if(!R){
+    // 아직 안 돌렸어도 어느 달을 말하는지는 알 수 있다(체크리스트·월 입력칸).
+    const ym = (chkData&&chkData.ok&&chkData.대상월) || document.getElementById('erpReconMonth')?.value || '';
+    setTaxVerdict_('idle','🧾', esc_(ymRel_(ym))+' 매입이 맞았는지 아직 확인 전입니다',
     '세금계산서 대사를 아직 돌리지 않았습니다. 매입은 세금계산서와 맞아야 끝난 것입니다.',''); return; }
   const all=R.요약||[];
   const bad=all.filter(s=>s.차이===null||s.차이===undefined||Math.abs(Number(s.차이)||0)!==0);
-  const label=closeYmLabel_(R.대상월);
+  const label=ymRel_(R.대상월);
   const nums=all.map(s=>{
     const d=(s.차이===null||s.차이===undefined)?null:Math.round(Number(s.차이)||0);
     const col=(d===0)?'var(--green)':'var(--red)';
@@ -3343,9 +3366,12 @@ function renderChecklist(){
     return;
   }
 
+  // 제목이 어느 달인지 말한다 — 월은 여기 한 곳에만 둔다(오른쪽 진행도와 중복 금지)
+  const ttl  = document.getElementById('chkTitle');
   const prog = document.getElementById('chkProg');
   const bar  = document.getElementById('chkBar');
-  if(prog) prog.textContent = R.완료수+' / '+R.전체수+'  ·  '+R.대상월;
+  if(ttl)  ttl.textContent  = '🧭 '+ymRel_(R.대상월)+' 마감 절차';
+  if(prog) prog.textContent = R.완료수+' / '+R.전체수;
   if(bar)  bar.style.width  = (R.전체수 ? Math.round(R.완료수/R.전체수*100) : 0)+'%';
 
   // 다음 한 걸음 — 이 줄 하나가 이 칸의 존재 이유다
@@ -3355,7 +3381,7 @@ function renderChecklist(){
     nx.style.display = 'flex';
     if(!step){
       nx.className = 'chk-next ok';
-      nx.innerHTML = '✅ <span>'+esc_(R.대상월)+' 매입 마감 절차가 ①~⑦ 전부 끝났습니다</span>';
+      nx.innerHTML = '✅ <span>'+esc_(ymRel_(R.대상월))+' 매입 마감 절차가 ①~⑦ 전부 끝났습니다</span>';
     }else{
       nx.className = 'chk-next';
       nx.innerHTML = '👉 <span>다음 한 걸음 — '+esc_(R.다음번호+'. '+step.제목)+'</span>'
@@ -3419,6 +3445,9 @@ async function loadReconAll_(){
     //   아직 비어 있어서, 배너가 계산서 최신월(8월)을 기준으로 잡고 멀쩡한
     //   7월을 ⛔로 찍었다. **결론이 먼저 나오는 것보다 옳은 결론이 낫다.**
     //   체크리스트는 기준월을 ERP 마감월로 잡으므로 이 순서가 맞다.
+    // 체크리스트가 도는 동안 배너가 「안 돌렸음」으로 보이지 않게 먼저 표시한다
+    if(!taxRecon) setTaxVerdict_('busy','🧾','세금계산서와 대사할 달을 확인하는 중입니다…',
+      '기준월은 계산서 최신월이 아니라 ERP 마감월입니다. 그 달부터 정합니다.','');
     await loadChecklist(false);  // 🧭 기준월을 정하고, 지금 뭘 해야 하는지 답한다
     chkAdoptMonth_();            //    그 기준월을 월 입력칸에 채운다
     await loadTaxRecon(false);   // ⑤ 결론 — 이 달 매입이 맞았는가
