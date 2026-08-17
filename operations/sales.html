@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>매출 현황 — 풍림전자</title>
 <!--
-  sales.html v1.2 (2026-07-25) — 풍림전자 매출 현황판 (읽기 전용)
+  sales.html v1.3 (2026-08-17) — 풍림전자 매출 현황판 (읽기 전용)
   - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1.1) doGet API
   - 시트에 어떤 값도 쓰지 않는다. 표시 전용.
   - 탭: 업무 흐름 / 주문 목록 / 마감·회신 / 월 요약
@@ -19,6 +19,20 @@
     보여줌. sales-dashboard.gs v1.1의 erpComparison 필드 + ERP업로드처리자
     컬럼에 의존(둘 다 없으면 카드가 0/경고로만 표시되고 나머지 탭은
     그대로 동작 — 백엔드가 방어적으로 설계되어 있음).
+  - v1.3: 화면 맨 위(모든 탭 공통)에 "오늘 하실 일 하나" 배너 추가.
+    2026-08-17(v65)로 매출 ERP 업로드가 15:50/16:30/17:03 전부 자동이 되고
+    사람이 남는 자리가 "파일을 ERP에 올리고 9번" 하나뿐이 되었다. 그 하나를
+    화면이 먼저 말한다. 평일 08:30 예약 업무 "매출 ERP 아침 점검"과 같은
+    문구·같은 기준(STALE_HOURS=30)을 쓴다.
+    ★ 순서를 지킨다 — 96탭 상태를 다 읽고 나서 그린다. 그 전에는 회색
+      "확인하는 중입니다…". (결론이 먼저 나오는 것보다 옳은 결론이 낫다)
+    ★ 올릴 파일 이름·건수는 백엔드가 DATA.todayTask 로 줄 때만 표시한다.
+      아직 안 주는 버전이면 원장의 ERP업로드상태='파일생성완료' 건수로
+      대신 말하고, 이름은 표시할 수 없다고 밝힌다. 값을 추측하지 않는다.
+    ※ 백엔드 계약(sales-dashboard.gs 에 추가 예정):
+        DATA.todayTask = { 존재여부:true,
+                           대기파일:[{이름:'ERP_...xlsx', 건수:7, 생성일시:''}] }
+        DATA.erpComparison.주문일자범위 = '2026-07-01 ~ 2026-08-14' (선택)
 -->
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,6 +61,27 @@
   .nav-tabs { display: flex; gap: 8px; margin-bottom: 18px; margin-top: 6px; flex-wrap: wrap; }
   .nav-tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: white; color: var(--gray); transition: all .2s; font-family: inherit; }
   .nav-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+  /* ── 오늘 하실 일 하나 배너 (v1.3) ── */
+  .tbn { background: white; border: 1px solid var(--border); border-left: 6px solid var(--gray); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; }
+  .tbn-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .tbn-date { font-size: 13px; font-weight: 700; color: var(--gray); }
+  .tbn-status { font-size: 16px; font-weight: 800; line-height: 1.4; }
+  .tbn-sub { font-size: 12px; color: var(--gray); margin-top: 5px; line-height: 1.6; }
+  .tbn-todo:empty { display: none; }
+  .tbn-todo { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .tbn-todo-label { font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 5px; }
+  .tbn-todo-main { font-size: 15px; font-weight: 700; color: var(--dark); line-height: 1.6; word-break: break-all; }
+  .tbn-todo-none { font-size: 15px; font-weight: 700; color: var(--green); }
+  .tbn-file { color: var(--navy); }
+  .tbn-cnt { color: var(--blue); }
+  .tbn-why { font-size: 13px; font-weight: 700; color: var(--red); margin-top: 6px; line-height: 1.6; }
+  .tbn-foot { font-size: 12px; color: var(--gray); margin-top: 7px; line-height: 1.6; font-style: italic; }
+  .tbn-wait { border-left-color: var(--gray); }
+  .tbn-wait .tbn-status { color: var(--gray); }
+  .tbn-ok   { border-left-color: var(--green); }
+  .tbn-ok   .tbn-status { color: var(--green); }
+  .tbn-bad  { border-left-color: var(--red); background: #FDF3F2; }
+  .tbn-bad  .tbn-status { color: var(--red); }
   /* 섹션 타이틀 */
   .section-title { font-size: 14px; font-weight: 700; color: white; padding: 10px 16px; border-radius: 8px 8px 0 0; margin-top: 20px; }
   .section-title.navy   { background: var(--navy); }
@@ -148,6 +183,15 @@
   </div>
 </header>
 <div class="container">
+  <!-- ══════════ 오늘 하실 일 하나 (v1.3) — 탭과 무관하게 항상 맨 위 ══════════ -->
+  <div id="today-banner" class="tbn tbn-wait">
+    <div class="tbn-head">
+      <span class="tbn-date" id="tbn-date"></span>
+      <span class="tbn-status" id="tbn-status">확인하는 중입니다…</span>
+    </div>
+    <div class="tbn-sub" id="tbn-sub"></div>
+    <div class="tbn-todo" id="tbn-todo"></div>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" id="navtab-flow"    onclick="showTab('flow')">📊 업무 흐름</button>
     <button class="nav-tab" id="navtab-orders"  onclick="showTab('orders')">📋 주문 목록</button>
@@ -317,6 +361,11 @@ const PIPE_STAGES = [
   { key:'ERP업로드상태',        name:'⑤ ERP 업로드',       done:['업로드완료'], mid:['파일생성완료'], bad:['오류','재생성필요'] },
   { key:'마감대조상태',         name:'⑥ 마감 대조',        done:['정상'],       mid:[],               bad:['불일치','확인필요'], waitLabel:'대기' }
 ];
+// 96_ERP대사용비교 자료가 "오래됐다"고 볼 기준 (시간). 배너와 ERP 대조 카드가
+// 같은 값을 쓴다 — 화면·보고가 다른 말을 하지 않게. 아마란스 다운로드(15:50)와
+// 대기→96탭 반영(16:30)은 주말에도 매일 돌기 때문에 30시간이면 충분하다.
+const STALE_HOURS = 30;
+const WEEKDAY_KO = ['일','월','화','수','목','금','토'];
 let DATA = null;        // API 응답 전체
 let allOrders = [];     // 원장 행
 let ordersFilter = 'all';
@@ -396,10 +445,131 @@ function flowMini(r){
   });
   return '<div class="flow">'+cells.join('')+'</div>';
 }
+// ═══ 오늘 하실 일 하나 배너 (v1.3) ═══════════════════════════════
+// 순서가 중요하다: DATA(96탭 상태)를 다 읽고 나서 그린다. 읽기 전에는 회색
+// "확인하는 중입니다…" 로 둔다. 결론이 먼저 나오는 것보다 옳은 결론이 낫다.
+// "어제"·"오늘" 같은 말은 실제로 그럴 때만 쓴다(relDayKo_).
+function relDayKo_(v){
+  const d = toDate(v);
+  if(!d) return '';
+  const a = new Date(); a.setHours(0,0,0,0);
+  const b = new Date(d.getTime()); b.setHours(0,0,0,0);
+  const diff = Math.round((a.getTime()-b.getTime())/86400000);
+  if(diff < 0)  return String(diff*-1)+'일 뒤';
+  if(diff === 0) return '오늘';
+  if(diff === 1) return '어제';
+  if(diff === 2) return '그저께';
+  return diff+'일 전';
+}
+function bannerDateLabel_(){
+  const d = new Date();
+  return `🧾 ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} (${WEEKDAY_KO[d.getDay()]})`;
+}
+function setBanner_(cls, status, subHtml, todoHtml){
+  const el = document.getElementById('today-banner');
+  if(!el) return;
+  el.className = 'tbn ' + cls;
+  document.getElementById('tbn-date').textContent   = bannerDateLabel_();
+  document.getElementById('tbn-status').textContent = status;
+  document.getElementById('tbn-sub').innerHTML      = subHtml  || '';
+  document.getElementById('tbn-todo').innerHTML     = todoHtml || '';
+}
+function bannerLoading(){
+  setBanner_('tbn-wait', '확인하는 중입니다…', '', '');
+}
+function todoBlock_(label, mainHtml, whyHtml, footHtml){
+  return `<div class="tbn-todo-label">${label}</div>`
+       + `<div class="tbn-todo-main">${mainHtml}</div>`
+       + (whyHtml  ? `<div class="tbn-why">${whyHtml}</div>`   : '')
+       + (footHtml ? `<div class="tbn-foot">${footHtml}</div>` : '');
+}
+function renderBanner(){
+  // ① 자료를 못 받았으면 아무 판정도 하지 않는다.
+  if(!DATA){
+    setBanner_('tbn-wait', '확인하지 못했습니다',
+      '자료를 불러오지 못해 오늘 하실 일을 판정할 수 없습니다. 오른쪽 위 🔄 새로고침을 눌러 보세요.', '');
+    return;
+  }
+  const ec = DATA.erpComparison || { 존재여부:false, 행수:0, 마지막갱신일시:null };
+  const lastDt = toDate(ec.마지막갱신일시);
+  const staleHrs = lastDt ? (Date.now() - lastDt.getTime())/3600000 : null;
+  // 96탭 한 줄 요약 — 범위는 백엔드가 줄 때만 표시한다(값 추측 금지).
+  // 탭이 없으면 "0건"이 아니라 "탭 없음"이라고 말한다. 0건과 없음은 다른 말이다.
+  const bits = [ec.존재여부 ? '96탭 ' + num(ec.행수).toLocaleString('ko-KR') + '건'
+                           : '96_ERP대사용비교 탭 없음'];
+  if(str(ec.주문일자범위)) bits.push(esc(str(ec.주문일자범위)));
+  bits.push(lastDt ? `${relDayKo_(lastDt)}(${fmtDT(lastDt)}) 갱신` : '갱신 기록 없음');
+  const sub96 = bits.join(' · ');
+  // ② 96탭(아마란스 자료)부터 판정한다. 여기가 막혔으면 그 앞은 볼 필요가 없다.
+  if(!ec.존재여부){
+    setBanner_('tbn-bad', '⛔ 96_ERP대사용비교 탭을 찾지 못했습니다', sub96,
+      todoBlock_('▶ 오늘 하실 일 하나',
+        '매출관리원장에서 <b>96_ERP대사용비교</b> 탭이 있는지 먼저 확인하세요.',
+        '이 탭이 없으면 8번이 만든 파일을 믿을 수 없습니다.', ''));
+    return;
+  }
+  if(lastDt === null){
+    setBanner_('tbn-bad', '⛔ 아마란스 자료를 아직 한 번도 가져오지 않았습니다', sub96,
+      todoBlock_('▶ 오늘 하실 일 하나',
+        '공유PC 작업 스케줄러 <b>「아마란스_주문현황_다운로드」(매일 15:50)</b> 부터 확인하세요.',
+        '96탭이 비어 있으면 8번이 이미 등록된 건을 다시 담을 수 있습니다.', ''));
+    return;
+  }
+  if(staleHrs > STALE_HOURS){
+    // "며칠 지났나"는 시간÷24 가 아니라 날짜로 센다. 31시간이 "그저께"이면서
+    // "1일 지남"이 되는 어긋남을 막는다(같은 배너 안에서 두 말이 달라진다).
+    setBanner_('tbn-bad', '⛔ 아마란스 자료가 안 들어왔습니다', sub96,
+      todoBlock_('▶ 오늘 하실 일 하나',
+        `96탭이 <b>${fmtD(lastDt)}</b>(${relDayKo_(lastDt)}) 것 그대로입니다. `
+        + '공유PC 작업 스케줄러부터 확인하세요.',
+        '8번이 중복을 못 걸러낼 수 있습니다.', ''));
+    return;
+  }
+  if(num(ec.행수) === 0){
+    setBanner_('tbn-bad', '⛔ 96탭이 비어 있습니다', sub96,
+      todoBlock_('▶ 오늘 하실 일 하나',
+        '갱신은 됐는데 자료가 0건입니다. 아마란스 조회 결과부터 확인하세요.',
+        '빈 96탭으로 8번을 돌리면 이미 등록된 건을 다시 담습니다.', ''));
+    return;
+  }
+  // ③ 자료는 정상. 이제 "올릴 파일"을 본다.
+  // ★ "어젯밤까지"라고 쓰지 않는다 — 16:30 이후에 화면을 열면 오늘 갱신분이라
+  //   거짓말이 된다. 시각은 바로 아래 요약줄이 정확히 말한다.
+  const OK = '✅ 자동 처리 정상';
+  const NOTHING = '<div class="tbn-todo-none">▶ 오늘 올리실 것 없습니다</div>';
+  const tt = DATA.todayTask;   // 백엔드가 [ERP업로드] ↔ [완료] 폴더를 비교해 준 값
+  if(tt && tt.존재여부){
+    const files = (tt.대기파일 || []).filter(f=>f && str(f.이름));
+    if(!files.length){ setBanner_('tbn-ok', OK, sub96, NOTHING); return; }
+    const lines = files.map(f=>{
+      const c = (f.건수===null || f.건수===undefined || f.건수==='')
+        ? '' : ` <span class="tbn-cnt">(${num(f.건수).toLocaleString('ko-KR')}건)</span>`;
+      return `<div><span class="tbn-file">${esc(str(f.이름))}</span>${c}</div>`;
+    }).join('');
+    const many = files.length > 1;
+    setBanner_('tbn-ok', OK, sub96,
+      todoBlock_(many ? '▶ 오늘 하실 일' : '▶ 오늘 하실 일 하나',
+        lines + `<div style="margin-top:6px">${many?'위 파일들을':'이 파일을'} ERP에 올리고 <b>[9. 완료 처리]</b></div>`,
+        '', ''));
+    return;
+  }
+  // ④ 백엔드가 아직 폴더를 안 봐주는 버전이다 — 원장의 "파일생성완료"로 대신 말한다.
+  //    파일 이름은 모른다. 모르는 것을 아는 척하지 않는다.
+  const fileReady = allOrders.filter(isActive)
+    .filter(r=>str(r['ERP업로드상태'])==='파일생성완료').length;
+  if(fileReady === 0){ setBanner_('tbn-ok', OK, sub96, NOTHING); return; }
+  setBanner_('tbn-ok', OK, sub96,
+    todoBlock_('▶ 오늘 하실 일 하나',
+      `ERP 업로드 대기 <span class="tbn-cnt">${fileReady.toLocaleString('ko-KR')}건</span> 을 ERP에 올리고 <b>[9. 완료 처리]</b>`,
+      '',
+      '※ 올릴 파일 이름은 아직 표시할 수 없습니다 — 구글드라이브 [ERP업로드] 폴더에서 확인하세요.'));
+}
 // ── 데이터 로드 ──
 async function loadAll(){
   document.getElementById('setup-note').style.display = API ? 'none' : 'block';
-  if(!API){ updateHeaderDate(); return; }
+  DATA = null;                 // 이전 판정을 남겨두지 않는다
+  bannerLoading();             // 읽기 전에는 결론을 내지 않는다
+  if(!API){ updateHeaderDate(); renderBanner(); return; }
   document.getElementById('load-error').style.display='none';
   document.getElementById('loading').style.display='block';
   setTabsVisible(false);
@@ -419,6 +589,7 @@ async function loadAll(){
   }finally{
     document.getElementById('loading').style.display='none';
     updateHeaderDate();
+    renderBanner();   // ★ 성공이든 실패든 여기서 딱 한 번 그린다 — 다른 곳에서 덮지 않는다
   }
 }
 function updateHeaderDate(){
@@ -556,7 +727,7 @@ function renderErpComparison(){
   if(lastDt){
     staleHrs = (Date.now() - lastDt.getTime()) / 3600000;
     freshLabel = fmtDT(lastDt);
-    freshCls = staleHrs > 30 ? 'orange' : 'green';
+    freshCls = staleHrs > STALE_HOURS ? 'orange' : 'green';
   }
   document.getElementById('erp-cards').innerHTML = [
     card('비교자료 마지막 갱신', freshLabel, freshCls, ec.존재여부 ? '96_ERP대사용비교' : '<span class="d-red">탭 없음</span>'),
@@ -565,8 +736,10 @@ function renderErpComparison(){
     card('ERP 실제 업로드 완료', manualDone, manualDone>0?'green':'gray', '파일 생성→아마란스 업로드까지 완료', false, manualDone>0?'erpManualDone':null),
     card('점포명매핑 확인필요', mapMissing, mapMissing>0?'red':'gray', '94_ERP거래처코드마스터 등록 필요', false, mapMissing>0?'erpMapMissing':null)
   ].join('');
-  const staleWarn = (staleHrs!==null && staleHrs>30)
-    ? ' · <span class="d-red">⚠️ 비교자료가 30시간 넘게 갱신되지 않았습니다 — 구글드라이브 ERP비교자료_업로드용 폴더에 최신 대사자료를 올려주세요.</span>'
+  // 문구는 맨 위 배너와 같은 말을 쓴다(v65: 대사자료는 사람이 올리지 않는다.
+  // 공유PC 작업 스케줄러 15:50 → 대기 폴더 → 16:30 Apps Script 로 자동이다).
+  const staleWarn = (staleHrs!==null && staleHrs>STALE_HOURS)
+    ? ` · <span class="d-red">⚠️ 비교자료가 ${STALE_HOURS}시간 넘게 갱신되지 않았습니다 — 공유PC 작업 스케줄러 「아마란스_주문현황_다운로드」(매일 15:50) 부터 확인하세요.</span>`
     : (lastDt===null ? ' · <span class="d-red">⚠️ 아직 한 번도 자동 가져오기가 실행되지 않았습니다.</span>' : '');
   document.getElementById('erp-hint').innerHTML =
     `ERP 파일생성 대기(아직 업로드 전) <b>${fileReady}건</b>` + staleWarn;
