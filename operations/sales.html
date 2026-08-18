@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>매출 현황 — 풍림전자</title>
 <!--
-  sales.html v1.3 (2026-08-17) — 풍림전자 매출 현황판 (읽기 전용)
+  sales.html v1.4 (2026-08-18) — 풍림전자 매출 현황판 (읽기 전용)
   - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1.1) doGet API
   - 시트에 어떤 값도 쓰지 않는다. 표시 전용.
   - 탭: 업무 흐름 / 주문 목록 / 마감·회신 / 월 요약
@@ -76,6 +76,19 @@
   .tbn-cnt { color: var(--blue); }
   .tbn-why { font-size: 13px; font-weight: 700; color: var(--red); margin-top: 6px; line-height: 1.6; }
   .tbn-foot { font-size: 12px; color: var(--gray); margin-top: 7px; line-height: 1.6; font-style: italic; }
+  /* ── 막힌 곳 전부 (v1.4) ── */
+  .tbn-list:empty { display: none; }
+  .tbn-list { margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .tbn-list-label { font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+  .tbn-row { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; font-size: 13px; line-height: 1.6; flex-wrap: wrap; }
+  .tbn-row + .tbn-row { border-top: 1px solid #F1F3F5; }
+  .tbn-row-n { font-weight: 800; min-width: 52px; text-align: right; color: var(--blue); }
+  .tbn-row-name { font-weight: 700; color: var(--dark); min-width: 168px; }
+  .tbn-row-do { color: var(--gray); }
+  .tbn-row.is-bad .tbn-row-n, .tbn-row.is-bad .tbn-row-name { color: var(--red); }
+  .tbn-row.is-none .tbn-row-n, .tbn-row.is-none .tbn-row-name, .tbn-row.is-none .tbn-row-do { color: var(--gray); }
+  .tbn-row.is-now { background: #FFF8E6; border-radius: 6px; }
+  .tbn-nobtn { font-size: 12px; color: var(--orange); font-weight: 700; }
   .tbn-wait { border-left-color: var(--gray); }
   .tbn-wait .tbn-status { color: var(--gray); }
   .tbn-ok   { border-left-color: var(--green); }
@@ -191,6 +204,7 @@
     </div>
     <div class="tbn-sub" id="tbn-sub"></div>
     <div class="tbn-todo" id="tbn-todo"></div>
+    <div class="tbn-list" id="tbn-list"></div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" id="navtab-flow"    onclick="showTab('flow')">📊 업무 흐름</button>
@@ -473,6 +487,65 @@ function setBanner_(cls, status, subHtml, todoHtml){
   document.getElementById('tbn-status').textContent = status;
   document.getElementById('tbn-sub').innerHTML      = subHtml  || '';
   document.getElementById('tbn-todo').innerHTML     = todoHtml || '';
+  const lst = document.getElementById('tbn-list');
+  if(lst) lst.innerHTML = '';   // ★ 목록은 setBannerList_ 가 따로 채운다. 여기선 항상 비운다.
+}
+// ═══ v1.4: 막힌 곳 전부 ═════════════════════════════════════════
+// 파이프라인 단계별로 "지금 몇 건이 걸려 있나"를 센다.
+// ★ 숫자는 전부 원장 상태값에서만 나온다. 추측하지 않는다.
+// ★ 버튼이 아직 없는 단계(③④)는 「아직 버튼 없음」이라고 솔직히 적는다.
+const INVOICE_STALE_DAYS = 2;   // 송장이 이 날수 넘게 안 오면 볼 것
+function pipeBlocks_(){
+  const act = allOrders.filter(isActive);
+  const cnt = (key, val) => act.filter(r => str(r[key]) === val).length;
+  // 송장 대기 중 오래된 것 — 창고업로드완료일시 기준
+  const now = Date.now();
+  const invOld = act.filter(r => {
+    if(str(r['송장수신상태']) !== '대기') return false;
+    const d = toDate(r['창고업로드완료일시']);
+    if(!d) return true;   // 언제 나갔는지 모르면 일단 보여준다
+    return (now - d.getTime()) / 86400000 >= INVOICE_STALE_DAYS;
+  }).length;
+  const 제동 = act.filter(r => str(r['제동여부']) === 'Y').length;
+  const 오류 = act.filter(r => { const s = str(r['오류상태']); return s === '확인필요' || s === '오류'; }).length;
+  return [
+    { id:'err',   n: 제동 + 오류, name:'⛔ 오류·제동',
+      do:'주문 목록 탭에서 확인하세요. 대부분 품목 관련입니다.', bad:true, act:false },
+    { id:'wh1',   n: cnt('창고업로드상태','대기'), name:'① NY 발주서 만들기',
+      do:'<b>[2. 오성 업로드 파일 생성]</b> — 평일 13:40 자동으로도 돕니다.', act:true },
+    { id:'wh2',   n: cnt('창고업로드상태','파일생성완료'), name:'① NY 발주 확정본 되읽기',
+      do:'실장님이 이지어드민에 올린 확정본을 <b>NY발주확정본_업로드용</b> 폴더에 넣고 <b>[6-1]</b>', act:true },
+    { id:'whErr', n: cnt('창고업로드상태','오류'), name:'① NY 발주 오류',
+      do:'주소누락·상품번호 미매핑입니다. 고친 뒤 다시 [2]를 누르세요.', bad:true, act:false },
+    { id:'inv',   n: invOld, name:'② 송장 가져오기',
+      do:`이지어드민 확장주문검색을 <b>송장자료_업로드용</b> 폴더에 넣고 <b>[4] → [5]</b> (${INVOICE_STALE_DAYS}일 넘게 안 온 건)`, act:true },
+    { id:'sbn',   n: cnt('사방넷송장업로드상태','대기'), name:'③ 사방넷 송장 업로드',
+      do:'아직 버튼이 없습니다 — 실장님이 사방넷에 직접 올리십니다.', act:false, nobtn:true },
+    { id:'cust',  n: cnt('거래처회신상태','대기'), name:'④ 거래처 회신',
+      do:'아직 버튼이 없습니다 — 실장님이 직접 보내십니다.', act:false, nobtn:true },
+    { id:'erp',   n: cnt('ERP업로드상태','파일생성완료'), name:'⑤ ERP 업로드',
+      do:'ERP업로드 폴더의 파일을 아마란스에 올리고 <b>[9. ERP 업로드 완료 처리]</b>', act:true }
+  ];
+}
+function setBannerList_(blocks, nowId){
+  const el = document.getElementById('tbn-list');
+  if(!el) return;
+  const shown = blocks.filter(b => b.n > 0);
+  if(!shown.length){
+    el.innerHTML = '<div class="tbn-list-label">▶ 막힌 곳</div>'
+                 + '<div class="tbn-row is-none"><span class="tbn-row-n">0건</span>'
+                 + '<span class="tbn-row-name">막힌 곳이 없습니다</span></div>';
+    return;
+  }
+  const rows = shown.map(b => {
+    const cls = 'tbn-row' + (b.bad ? ' is-bad' : '') + (b.id === nowId ? ' is-now' : '');
+    const tag = b.nobtn ? ' <span class="tbn-nobtn">손으로</span>' : '';
+    return `<div class="${cls}">`
+         + `<span class="tbn-row-n">${b.n.toLocaleString('ko-KR')}건</span>`
+         + `<span class="tbn-row-name">${b.name}${tag}</span>`
+         + `<span class="tbn-row-do">${b.do}</span></div>`;
+  }).join('');
+  el.innerHTML = '<div class="tbn-list-label">▶ 막힌 곳 전부</div>' + rows;
 }
 function bannerLoading(){
   setBanner_('tbn-wait', '확인하는 중입니다…', '', '');
@@ -532,37 +605,44 @@ function renderBanner(){
         '빈 96탭으로 8번을 돌리면 이미 등록된 건을 다시 담습니다.', ''));
     return;
   }
-  // ③ 자료는 정상. 이제 "올릴 파일"을 본다.
-  // ★ "어젯밤까지"라고 쓰지 않는다 — 16:30 이후에 화면을 열면 오늘 갱신분이라
-  //   거짓말이 된다. 시각은 바로 아래 요약줄이 정확히 말한다.
-  const OK = '✅ 자동 처리 정상';
-  const NOTHING = '<div class="tbn-todo-none">▶ 오늘 올리실 것 없습니다</div>';
-  const tt = DATA.todayTask;   // 백엔드가 [ERP업로드] ↔ [완료] 폴더를 비교해 준 값
-  if(tt && tt.존재여부){
-    const files = (tt.대기파일 || []).filter(f=>f && str(f.이름));
-    if(!files.length){ setBanner_('tbn-ok', OK, sub96, NOTHING); return; }
-    const lines = files.map(f=>{
-      const c = (f.건수===null || f.건수===undefined || f.건수==='')
-        ? '' : ` <span class="tbn-cnt">(${num(f.건수).toLocaleString('ko-KR')}건)</span>`;
-      return `<div><span class="tbn-file">${esc(str(f.이름))}</span>${c}</div>`;
-    }).join('');
-    const many = files.length > 1;
-    setBanner_('tbn-ok', OK, sub96,
-      todoBlock_(many ? '▶ 오늘 하실 일' : '▶ 오늘 하실 일 하나',
-        lines + `<div style="margin-top:6px">${many?'위 파일들을':'이 파일을'} ERP에 올리고 <b>[9. 완료 처리]</b></div>`,
-        '', ''));
+  // ③ 자료는 정상. 이제 파이프라인 전체를 본다 (v1.4).
+  //    「지금 하실 일 하나」 = 흐름 순서에서 처음 걸린 곳(버튼이 있는 것만).
+  //    「막힌 곳 전부」 = 걸린 곳 전량. 오류·제동은 목록에만 넣는다 —
+  //    매일 떠 있어서 「하실 일 하나」로 삼으면 진짜 할 일이 가려진다.
+  const OK = '\u2705 \uc790\ub3d9 \ucc98\ub9ac \uc815\uc0c1';
+  const blocks = pipeBlocks_();
+  const nowBlock = blocks.filter(b => b.act && b.n > 0)[0] || null;
+  const tt = DATA.todayTask;   // 백엔드가 [ERP업로드] 폴더를 읽어 준 값(파일 이름)
+  if(!nowBlock){
+    const anyStuck = blocks.some(b => b.n > 0);
+    setBanner_(anyStuck ? 'tbn-ok' : 'tbn-ok', OK, sub96,
+      '<div class="tbn-todo-none">▶ 지금 누르실 버튼은 없습니다</div>');
+    setBannerList_(blocks, null);
     return;
   }
-  // ④ 백엔드가 아직 폴더를 안 봐주는 버전이다 — 원장의 "파일생성완료"로 대신 말한다.
-  //    파일 이름은 모른다. 모르는 것을 아는 척하지 않는다.
-  const fileReady = allOrders.filter(isActive)
-    .filter(r=>str(r['ERP업로드상태'])==='파일생성완료').length;
-  if(fileReady === 0){ setBanner_('tbn-ok', OK, sub96, NOTHING); return; }
+  // ⑤ ERP 차례이고 백엔드가 파일 이름을 줬으면 이름까지 보여준다.
+  let mainHtml = `<span class="tbn-cnt">${nowBlock.n.toLocaleString('ko-KR')}건</span> · ${nowBlock.do}`;
+  let footHtml = '';
+  if(nowBlock.id === 'erp'){
+    if(tt && tt.존재여부){
+      const files = (tt.대기파일 || []).filter(f => f && str(f.이름));
+      if(files.length){
+        const lines = files.map(f => {
+          const c = (f.건수 === null || f.건수 === undefined || f.건수 === '')
+            ? '' : ` <span class="tbn-cnt">(${num(f.건수).toLocaleString('ko-KR')}건)</span>`;
+          return `<div><span class="tbn-file">${esc(str(f.이름))}</span>${c}</div>`;
+        }).join('');
+        mainHtml = lines + '<div style="margin-top:6px">'
+                 + (files.length > 1 ? '위 파일들을' : '이 파일을')
+                 + ' ERP에 올리고 <b>[9. ERP 업로드 완료 처리]</b></div>';
+      }
+    }else{
+      footHtml = '※ 올릴 파일 이름은 아직 표시할 수 없습니다 — 구글드라이브 [ERP업로드] 폴더에서 확인하세요.';
+    }
+  }
   setBanner_('tbn-ok', OK, sub96,
-    todoBlock_('▶ 오늘 하실 일 하나',
-      `ERP 업로드 대기 <span class="tbn-cnt">${fileReady.toLocaleString('ko-KR')}건</span> 을 ERP에 올리고 <b>[9. 완료 처리]</b>`,
-      '',
-      '※ 올릴 파일 이름은 아직 표시할 수 없습니다 — 구글드라이브 [ERP업로드] 폴더에서 확인하세요.'));
+    todoBlock_('▶ 지금 하실 일 하나', mainHtml, '', footHtml));
+  setBannerList_(blocks, nowBlock.id);
 }
 // ── 데이터 로드 ──
 async function loadAll(){
