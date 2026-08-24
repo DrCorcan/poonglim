@@ -669,11 +669,22 @@ async function loadAll(){
   DATA = null;                 // 이전 판정을 남겨두지 않는다
   bannerLoading();             // 읽기 전에는 결론을 내지 않는다
   if(!API){ updateHeaderDate(); renderBanner(); return; }
+  // ★v1.5 — 접속코드가 없으면 ★아무것도 읽지 않는다 (풍림전자 직원 전용)
+  if(!ACT_getCode()){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('load-error').style.display='none';
+    document.getElementById('today-banner').style.display='none';
+    setTabsVisible(false);
+    ACT_gate('이 화면은 풍림전자 직원 전용입니다. 접속코드를 넣어 주세요.');
+    updateHeaderDate();
+    return;
+  }
+  document.getElementById('today-banner').style.display='';
   document.getElementById('load-error').style.display='none';
   document.getElementById('loading').style.display='block';
   setTabsVisible(false);
   try{
-    const r = await fetch(API+'?'+new URLSearchParams({action:'dashboard'}));
+    const r = await fetch(API+'?'+new URLSearchParams({action:'dashboard', code: ACT_getCode()}));
     const d = await r.json();
     if(d && d.error) throw new Error(d.error);
     DATA = d;
@@ -682,9 +693,17 @@ async function loadAll(){
     renderAll();
     setTabsVisible(true);
   }catch(err){
-    const el = document.getElementById('load-error');
-    el.textContent = '데이터를 불러오지 못했습니다: ' + err.message;
-    el.style.display = 'block';
+    // ★v1.5 — 접속코드 문제면 저장된 코드를 버리고 다시 묻는다
+    if(String(err.message).indexOf('접속코드') >= 0){
+      ACT_clearCode();
+      setTabsVisible(false);
+      document.getElementById('today-banner').style.display='none';
+      ACT_gate('접속코드가 맞지 않습니다. 다시 넣어 주세요.', true);
+    }else{
+      const el = document.getElementById('load-error');
+      el.textContent = '데이터를 불러오지 못했습니다: ' + err.message;
+      el.style.display = 'block';
+    }
   }finally{
     document.getElementById('loading').style.display='none';
     updateHeaderDate();
@@ -1093,7 +1112,18 @@ function ACT_saveCode(){
   if(!v){ ACT_msg('접속코드를 넣어 주세요.', true); return; }
   try{ localStorage.setItem(ACT_CODE_KEY, v); }catch(e){}
   el.value = '';
-  ACT_refreshPending();
+  loadAll();                 // ★v1.5 — 코드가 들어오면 화면 전체를 다시 읽는다
+}
+/** ★v1.5 — 코드 입력칸만 남기고 잠근다 */
+function ACT_gate(msg, bad){
+  const box = document.getElementById('act-code-box');
+  if(box) box.style.display = 'block';
+  const panel = document.getElementById('act-panel');
+  if(panel) panel.style.display = '';
+  ACT_paint(null);
+  ACT_msg(msg || '', !!bad);
+  const inp = document.getElementById('act-code-input');
+  if(inp) try{ inp.focus(); }catch(e){}
 }
 function ACT_msg(t, bad){
   const el = document.getElementById('act-msg');
