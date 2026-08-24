@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>매출 현황 — 풍림전자</title>
 <!--
-  sales.html v1.4 (2026-08-18) — 풍림전자 매출 현황판 (읽기 전용)
+  sales.html v1.5 (2026-08-24) — 풍림전자 매출 현황판  ★직원 전용 + 완료 처리
   - 데이터: 풍림전자_매출관리원장 Apps Script(sales-dashboard.gs v1.1) doGet API
   - 시트에 어떤 값도 쓰지 않는다. 표시 전용.
   - 탭: 업무 흐름 / 주문 목록 / 마감·회신 / 월 요약
@@ -33,6 +33,22 @@
         DATA.todayTask = { 존재여부:true,
                            대기파일:[{이름:'ERP_...xlsx', 건수:7, 생성일시:''}] }
         DATA.erpComparison.주문일자범위 = '2026-07-01 ~ 2026-08-14' (선택)
+
+  - ★v1.5 (2026-08-24) — 이 화면이 «읽기 전용»을 벗어난다
+    ① 완료 처리 버튼 둘 (창고 업로드 · 거래처 회신)
+       왜 — 실장님은 구글시트에 못 들어가신다. bat 이 깃발 파일을 놓는
+       방식이었는데 2026-08-24 에 ★조용히 실패했다(회신 34건이 안 닫혔다).
+       「완료」가 떴는데 원장은 열려 있었다. ⇒ 화면에서 누르고 결과를 본다.
+       ★닫을 게 0건이면 버튼이 회색으로 죽는다 — 누를 게 없으면 못 누른다.
+       ★밖(창고·메일)에 실제로 보냈는지는 기계가 모른다. 자동으로 안 닫는다.
+    ② ★조회도 직원 전용 — 접속코드가 없으면 데이터를 아예 안 부른다.
+       ⚠️ 접속코드를 이 파일에 «적지 않는다». 이 저장소는 GitHub Public 이다.
+          사람이 넣은 값을 localStorage 에 두고, 맞는지는 ★서버가 판단한다
+          (sales-dashboard.gs 의 스크립트 속성 SALES_DASH_CODE).
+    ③ 서버 짝 — sales-dashboard.gs v1.3 의 action: pending ·
+       markWarehouseDone · markVendorReplySent
+       ⚠️ 올리는 순서 — ★화면(이 파일) 먼저, 서버 나중.
+          서버를 먼저 잠그면 그 사이에 화면이 죽는다.
 -->
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
