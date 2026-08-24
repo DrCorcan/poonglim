@@ -206,6 +206,25 @@
     <div class="tbn-todo" id="tbn-todo"></div>
     <div class="tbn-list" id="tbn-list"></div>
   </div>
+  <!-- ══════════ ★완료 처리 (v1.4 · 2026-08-24) ══════════
+       실장님은 구글시트에 못 들어가신다. bat 깃발 방식이 2026-08-24 에
+       ★조용히 실패했다(거래처회신 34건이 안 닫혔다).
+       ⇒ 여기서 누르고 ★그 자리에서 결과를 본다.
+       ⚠️ 접속코드는 이 파일에 «적지 않는다». 사람이 넣고 브라우저에만 남는다 -->
+  <div id="act-panel" style="border:1px solid #d6dde6;border-radius:10px;padding:14px 16px;margin:14px 0;background:#fbfcfe">
+    <div style="font-weight:700;color:#1F4E79;margin-bottom:4px">✅ 완료 처리</div>
+    <div style="color:#777;font-size:13px;margin-bottom:10px">창고에 올리신 뒤 · 거래처에 메일 보내신 뒤에 누르십시오.</div>
+    <div id="act-code-box" style="display:none;margin-bottom:10px">
+      <span style="color:#666;font-size:13px">접속코드를 한 번만 넣어 주세요 (이 브라우저에 저장됩니다)</span><br>
+      <input id="act-code-input" type="password" placeholder="접속코드"
+             style="padding:7px 9px;border:1px solid #ccc;border-radius:6px;width:180px;margin-top:6px"
+             onkeydown="if(event.key==='Enter')ACT_saveCode()">
+      <button onclick="ACT_saveCode()"
+              style="padding:7px 14px;border:1px solid #1F4E79;background:#1F4E79;color:#fff;border-radius:6px;cursor:pointer">저장</button>
+    </div>
+    <div id="act-buttons" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+    <div id="act-msg" style="margin-top:10px;font-size:13px;color:#555"></div>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" id="navtab-flow"    onclick="showTab('flow')">📊 업무 흐름</button>
     <button class="nav-tab" id="navtab-orders"  onclick="showTab('orders')">📋 주문 목록</button>
@@ -670,6 +689,7 @@ async function loadAll(){
     document.getElementById('loading').style.display='none';
     updateHeaderDate();
     renderBanner();   // ★ 성공이든 실패든 여기서 딱 한 번 그린다 — 다른 곳에서 덮지 않는다
+    try{ ACT_refreshPending(); }catch(e){}   // ★v1.4 완료 처리 패널도 같이 갱신
   }
 }
 function updateHeaderDate(){
@@ -1053,6 +1073,98 @@ function renderMonth(){
   document.getElementById('month-store-body').innerHTML = byStore.length ? byStore.map(trow).join('') : emptyRow;
   document.getElementById('month-model-body').innerHTML = byModel.length ? byModel.map(trow).join('') : emptyRow;
 }
+/* ══════════ ★v1.4 (2026-08-24) 완료 처리 버튼 ══════════
+ *  이 화면은 v1.3까지 «읽기 전용»이었다. 여기서만 원장을 바꾼다.
+ *  ⚠️ 접속코드를 이 파일에 «적지 않는다» — GitHub Public 이다.
+ *     사람이 넣은 값을 localStorage 에 두고, 맞는지는 ★서버가 판단한다.
+ *  ⚠️ 「밖에 실제로 보냈는지」는 기계가 모른다. 그래서 자동으로 안 닫는다.
+ * ═════════════════════════════════════════════════════════ */
+const ACT_CODE_KEY = 'poonglim_sales_code';
+const ACT_ITEMS = [
+  { id:'act-btn-wh', action:'markWarehouseDone',   key:'창고업로드', name:'창고 업로드' },
+  { id:'act-btn-vr', action:'markVendorReplySent', key:'거래처회신', name:'거래처 회신' }
+];
+
+function ACT_getCode(){ try{ return localStorage.getItem(ACT_CODE_KEY) || ''; }catch(e){ return ''; } }
+function ACT_clearCode(){ try{ localStorage.removeItem(ACT_CODE_KEY); }catch(e){} }
+function ACT_saveCode(){
+  const el = document.getElementById('act-code-input');
+  const v = (el.value || '').trim();
+  if(!v){ ACT_msg('접속코드를 넣어 주세요.', true); return; }
+  try{ localStorage.setItem(ACT_CODE_KEY, v); }catch(e){}
+  el.value = '';
+  ACT_refreshPending();
+}
+function ACT_msg(t, bad){
+  const el = document.getElementById('act-msg');
+  if(!el) return;
+  el.textContent = t || '';
+  el.style.color = bad ? '#C0392B' : '#555';
+}
+/** 버튼을 다시 그린다. ★0건이면 «누를 수 없게» 만든다 — 누를 게 없으면 못 누른다. */
+function ACT_paint(counts){
+  const box = document.getElementById('act-buttons');
+  if(!box) return;
+  box.innerHTML = ACT_ITEMS.map(function(it){
+    const n = (counts && counts[it.key]) || 0;
+    const on = n > 0;
+    const style = 'padding:9px 15px;border-radius:8px;font-size:14px;font-weight:600;border:1px solid ' +
+      (on ? '#1F4E79;background:#1F4E79;color:#fff;cursor:pointer'
+          : '#ddd;background:#f4f4f4;color:#aaa;cursor:default');
+    const label = on ? (it.name + ' ' + n + '건 닫기') : (it.name + ' — 닫을 것 없음');
+    return '<button id="' + it.id + '" style="' + style + '"' + (on ? '' : ' disabled') +
+           ' onclick="ACT_run(\'' + it.action + '\',\'' + it.key + '\',\'' + it.name + '\')">' + label + '</button>';
+  }).join('');
+}
+async function ACT_call(action){
+  const code = ACT_getCode();
+  if(!code) throw new Error('NOCODE');
+  const r = await fetch(API + '?' + new URLSearchParams({ action: action, code: code }));
+  const d = await r.json();
+  if(d && d.error) throw new Error(d.error);
+  return d;
+}
+async function ACT_refreshPending(){
+  const box = document.getElementById('act-code-box');
+  if(!box) return;
+  if(!API){ ACT_paint(null); return; }
+  if(!ACT_getCode()){ box.style.display = 'block'; ACT_paint(null); ACT_msg(''); return; }
+  box.style.display = 'none';
+  try{
+    const d = await ACT_call('pending');
+    ACT_paint(d);
+    const erp = d.ERP업로드 || 0;
+    const rest = (d.창고업로드 || 0) + (d.거래처회신 || 0);
+    ACT_msg(rest === 0 && erp === 0 ? '지금 닫을 것이 없습니다.'
+      : (erp > 0 ? 'ERP 업로드 대기 ' + erp + '건 — ERP는 시트에서 [9. ERP 업로드 완료 처리] 로 닫습니다.' : ''));
+  }catch(e){
+    ACT_paint(null);
+    if(String(e.message).indexOf('접속코드') >= 0){
+      ACT_clearCode();
+      box.style.display = 'block';
+      ACT_msg('접속코드가 맞지 않습니다. 다시 넣어 주세요.', true);
+    }else if(e.message === 'NOCODE'){
+      box.style.display = 'block';
+    }else{
+      ACT_msg('상태를 읽지 못했습니다: ' + e.message, true);
+    }
+  }
+}
+async function ACT_run(action, key, name){
+  if(!confirm(name + ' 완료 처리를 하시겠습니까?\n\n★밖(창고·메일)에 실제로 보내신 뒤에 누르는 것입니다.')) return;
+  ACT_msg('처리 중입니다…');
+  ACT_paint(null);                       // 두 번 눌리지 않게 먼저 죽인다
+  try{
+    const d = await ACT_call(action);
+    const n = (d && d.처리건수 && d.처리건수[key]) || 0;
+    ACT_msg('✅ ' + name + ' ' + n + '건 처리했습니다.');
+    await loadAll();                     // 화면 전체를 다시 읽는다(그 안에서 pending 도 갱신된다)
+  }catch(e){
+    ACT_msg('❌ ' + e.message, true);
+    await ACT_refreshPending();
+  }
+}
+
 // ── 시작 ──
 loadAll();
 </script>
