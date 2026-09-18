@@ -264,6 +264,25 @@
 </style>
 </head>
 <body>
+
+<!-- ══════════ ★접속코드 잠금 (v1.0 · 2026-09-18 추가) ══════════
+     ⚠️접속코드를 이 파일에 «적지 않는다» — 이 저장소는 GitHub Public 이다.
+        사람이 넣은 값을 localStorage 에 두고, 맞는지는 ★서버가 판단한다.
+     ★sales.html 의 ACT_ 장치(2026-08-24)를 그대로 옮긴 것이다.
+     ★되돌리기 = 이 블록 + SUP_ 블록 + 표시한 세 줄을 지운다
+     ═══════════════════════════════════════════════════════ -->
+<div id="sup-gate" style="position:fixed;inset:0;z-index:99999;background:#F4F6F8;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border:1px solid #DDE1E7;border-radius:12px;padding:28px 30px;max-width:380px;width:100%;box-shadow:0 4px 18px rgba(0,0,0,.08)">
+    <div style="font-size:17px;font-weight:700;color:#1F4E79;margin-bottom:6px">🔐 매입처 발주 관리</div>
+    <div style="color:#777;font-size:13px;line-height:1.6;margin-bottom:16px">풍림전자 직원 전용 화면입니다.<br>접속코드를 한 번만 넣어 주세요 (이 브라우저에 저장됩니다).</div>
+    <input id="sup-code-input" type="password" placeholder="접속코드" autocomplete="current-password"
+           style="padding:9px 11px;border:1px solid #ccc;border-radius:6px;width:100%;font-size:14px"
+           onkeydown="if(event.key==='Enter')SUP_saveCode()">
+    <button onclick="SUP_saveCode()"
+            style="margin-top:12px;padding:10px 0;width:100%;border:1px solid #1F4E79;background:#1F4E79;color:#fff;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600">들어가기</button>
+    <div id="sup-gate-msg" style="margin-top:12px;font-size:13px;color:#C0392B;min-height:18px"></div>
+  </div>
+</div>
 <header>
   <div>
     <h1>📦 매입처 발주 관리</h1>
@@ -1529,6 +1548,41 @@
 </div>
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx9ibo2XK7OF4F-eqpXqBCoVpRE8Tq3dqXEKwziIuO0VWh1sGUi1UYNtEf6qEQYD5J7Bw/exec";
+
+/* ══════════ ★접속코드 (v1.0 · 2026-09-18 추가) ══════════
+ *  ★키를 sales.html 과 «같은 것»으로 둔다 — 같은 ops.corcan.co.kr 이라
+ *    한 번만 넣으면 두 화면이 다 열린다.
+ *    ⚠️그러려면 ★매입처 웹앱의 접속코드도 매출과 «같은 값»이어야 한다.
+ *    따로 두려면 아래 KEY 한 줄만 'poonglim_supp_code' 로 바꾼다.
+ * ═══════════════════════════════════════════════════════ */
+const SUP_CODE_KEY = 'poonglim_sales_code';
+function SUP_getCode(){ try{ return localStorage.getItem(SUP_CODE_KEY) || ''; }catch(e){ return ''; } }
+function SUP_clearCode(){ try{ localStorage.removeItem(SUP_CODE_KEY); }catch(e){} }
+function SUP_gateMsg(t){ const el=document.getElementById('sup-gate-msg'); if(el) el.textContent=t||''; }
+function SUP_showGate(msg){
+  const g=document.getElementById('sup-gate');
+  if(g) g.style.display='flex';
+  SUP_gateMsg(msg||'');
+  const i=document.getElementById('sup-code-input');
+  if(i){ i.value=''; try{ i.focus(); }catch(e){} }
+}
+function SUP_hideGate(){ const g=document.getElementById('sup-gate'); if(g) g.style.display='none'; }
+function SUP_saveCode(){
+  const el=document.getElementById('sup-code-input');
+  const v=(el && el.value || '').trim();
+  if(!v){ SUP_gateMsg('접속코드를 넣어 주세요.'); return; }
+  try{ localStorage.setItem(SUP_CODE_KEY, v); }catch(e){}
+  SUP_hideGate();
+  loadAll();
+}
+/** ★코드가 없으면 «아무것도 읽지 않는다» */
+function SUP_boot(){
+  if(!SUP_getCode()){ SUP_showGate(); return; }
+  SUP_hideGate();
+  loadAll();
+}
+/** 서버가 접속코드를 거부하면 다시 묻는다 */
+function SUP_isCodeError(msg){ return String(msg||'').indexOf('접속코드') >= 0; }
 let allOrders=[], allStock=[], allPrices=[], allWinsei=[], allStarion=[];
 let currentCarrierRowsForExport=[], currentWinseiRowsForExport=[], currentStarionRowsForExport=[];
 let currentOrderFilter='전체', selectedModel='', cancelTarget=null;
@@ -1796,6 +1850,7 @@ async function apiFetchOnce_(params){
   // _t는 doGet의 switch(action)에서 무시되므로 서버 동작에 영향이 없다.
   const q=new URLSearchParams(params);
   q.set('_t', Date.now()+'-'+Math.random().toString(36).slice(2,8));
+  q.set('code', SUP_getCode());                 // ★2026-09-18 추가 — 접속코드
   const r=await fetch(API+"?"+q, {cache:'no-store'});
   const text=await r.text();
   try{
@@ -1827,7 +1882,13 @@ async function apiCall(params){
       + '응답 앞부분: '+e2.head);
     }
   }
-  if(d&&d.error)throw new Error(d.error);
+  if(d&&d.error){
+    if(SUP_isCodeError(d.error)){                 // ★2026-09-18 추가 — 접속코드 3줄
+      SUP_clearCode();
+      SUP_showGate('접속코드가 맞지 않습니다. 다시 넣어 주세요.');
+    }
+    throw new Error(d.error);
+  }
   return d;
 }
 function updateHeaderDate(){
@@ -4974,7 +5035,7 @@ function showMain(){
   var etcV=document.getElementById('etcView');
   if(etcV) etcV.classList.remove('active');
 }
-loadAll();
+SUP_boot();          // ★2026-09-18 — 원래는 loadAll();
 </script>
 </body>
 </html>
