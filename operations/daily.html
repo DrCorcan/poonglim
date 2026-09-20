@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>풍림전자 — 하루 노선도</title>
 <!--
-  operations/daily.html   v1.0   (2026-09-20)
+  operations/daily.html   v1.2   (2026-09-20)
   ★sales.html 은 한 글자도 안 건드린다. 이 파일은 «옆에» 선다.
   ★되돌리기 = 이 파일을 지운다.
   ★서버 = sales-dashboard.gs doGet 한 줄 + 23_daily_ops.gs
@@ -130,7 +130,7 @@
   <div id="steps"></div>
 
   <div class="foot">
-    daily.html v1.0 · 체크는 매일 0시에 저절로 비워집니다<br>
+    daily.html v1.2 · 체크는 매일 0시에 비워집니다 · ★기록은 89_노선도체크 탭에 남습니다<br>
     ⛔ 이 주소를 밖으로 공유하지 않습니다 — 대표님·실장님·인수인계 두 분까지
   </div>
 </div>
@@ -362,8 +362,11 @@ function render(){
    7. 체크
    ═══════════════════════════════════════════════════════════ */
 function paintState(st){
+  /* ★v1.2 — daySet 응답에 「지금」이 없어 undefined 를 찍던 것을 막는다.
+     서버도 v1.2 에서 「지금」을 돌려주지만, ★화면도 스스로 막는다 (두 겹) */
+  const now = st.지금 || new Date().toTimeString().slice(0, 5);
   document.getElementById('hsub').textContent =
-    `${st.date}  ·  지금 ${st.지금}  ·  ${Object.keys(st.steps||{}).length} 걸음 마침`;
+    `${st.date}  ·  지금 ${now}  ·  ${Object.keys(st.steps||{}).length} 걸음 마침`;
   for (const s of STEPS){
     const hit = st.steps && st.steps[s.id];
     const at  = document.getElementById('at-' + s.id);
@@ -379,7 +382,10 @@ async function loadState(){
   catch(e){ top_(('불러오지 못했습니다 — ' + e.message), 'bad'); }
 }
 async function toggleStep(step, on){
-  try { paintState(await call('daySet', { step, on: on ? '1' : '0' })); }
+  /* ★v1.2 — 걸음 «이름»을 같이 보낸다. 89탭에 사람이 읽을 이름이 남는다 */
+  const s = STEPS.find(x => x.id === step);
+  const note = s ? `${s.tm} ${s.ttl}` : '';
+  try { paintState(await call('daySet', { step, on: on ? '1' : '0', note })); }
   catch(e){ top_(('저장하지 못했습니다 — ' + e.message), 'bad'); loadState(); }
 }
 
