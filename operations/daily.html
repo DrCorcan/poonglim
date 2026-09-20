@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>풍림전자 — 하루 노선도</title>
 <!--
-  operations/daily.html   v1.2   (2026-09-20)
+  operations/daily.html   v1.3   (2026-09-20)
   ★sales.html 은 한 글자도 안 건드린다. 이 파일은 «옆에» 선다.
   ★되돌리기 = 이 파일을 지운다.
   ★서버 = sales-dashboard.gs doGet 한 줄 + 23_daily_ops.gs
@@ -54,6 +54,9 @@
   .body{flex:1;min-width:0}
   .ttl{font-weight:700}
   .desc{font-size:13.5px;color:var(--dim);margin-top:3px;white-space:pre-wrap}
+  .where{font-size:12.5px;color:#0f766e;background:#f0fdfa;border:1px solid #99f6e4;
+         border-radius:6px;padding:3px 8px;margin-top:6px;display:inline-block;
+         white-space:pre-wrap;line-height:1.45}
   .tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;
        padding:2px 8px;margin-left:6px;vertical-align:2px}
   .tag.a{background:#eef2f6;color:var(--dim)}
@@ -130,7 +133,7 @@
   <div id="steps"></div>
 
   <div class="foot">
-    daily.html v1.2 · 체크는 매일 0시에 비워집니다 · ★기록은 89_노선도체크 탭에 남습니다<br>
+    daily.html v1.3 · 체크는 매일 0시에 비워집니다 · ★기록은 89_노선도체크 탭에 남습니다<br>
     ⛔ 이 주소를 밖으로 공유하지 않습니다 — 대표님·실장님·인수인계 두 분까지
   </div>
 </div>
@@ -148,29 +151,39 @@ const CODE_KEY = 'poonglim_sales_code';   /* ★sales.html · suppliers.html 과
    1. 노선도 — ⓐ매출 한 바퀴 + ⓑ매입 발주서 + ⓒ송장회신
    ═══════════════════════════════════════════════════════════ */
 const STEPS = [
-  { id:'s00', tm:'아침',  ttl:'어제 파일이 남아 있으면 [완료]로 옮긴다',
-    desc:'발주총괄_업로드 폴더. ★파일이 둘이면 매출 01번이 조용히 멈춘다' },
+  { id:'s00', tm:'아침',  ttl:'매입 — 「1_발주총괄_여기에_넣기」가 비어 있는지 본다',
+    where:'📍 공유PC  Z: ★풍림전자 사무 자동화 ▸ 발주서 관리',
+    desc:'어제 파일이 남아 있으면 치운다.\n★같은 자리의 「확인이_필요합니다」 폴더도 같이 본다 — 깃발이 서 있으면 워처가 멈춰 있는 것이다' },
+
+  { id:'s0b', tm:'아침',  ttl:'매출 — 발주총괄_업로드 폴더', auto:true,
+    where:'📍 구글드라이브 — ⛔두 분은 권한이 없습니다',
+    desc:'★여기는 누르실 것이 없습니다.\n파일이 둘이면 매출 01번이 조용히 멈춥니다 ⇒ ★Claude 가 대신 봅니다' },
 
   { id:'s02', tm:'12:10', ttl:'윈세이 발주서 (마감 12:45)',
-    desc:'1단계 로그의 「발주총괄 로드 N건」을 본다.\n★290~310 이 정상. ★절반 이하면 멈춘다' },
+    where:'📍 공유PC — 워처 검은 창의 ★1단계 로그',
+    desc:'「발주총괄 로드 N건」을 본다.\n★290~310 이 정상. ★절반 이하면 멈춘다' },
 
   { id:'s03', tm:'13:1x', ttl:'NY 주문서를 NY에 올리고 → 포털 [3]',
     desc:'13:00 사방넷 2차 → 13:03 발주총괄 도착 → 13:1x NY 주문서가 나온다' },
 
   { id:'s3b', tm:'13:0x', ttl:'스타리온·캐리어 발주서', auto:true,
-    desc:'워처 v33a 가 1단계 직후 저절로 만든다' },
+    where:'📍 공유PC — 워처가 ★2단계를 저절로 돌린다',
+    desc:'만들어진 발주서는 「발주서 관리 ▸ 2_발주서_여기서_받기」에서 받는다' },
 
   { id:'s04', tm:'13:55', ttl:'NY 송장수집 시작 (17:30까지)',
     desc:'⚠️빈 창을 닫지 않는다' },
 
   { id:'s05', tm:'14:00', ttl:'송장 한 바퀴 → 사방넷에 송장 업로드',
+    where:'📍 사방넷 사이트',
     desc:'★사방넷 3차(15:40)보다 «먼저» 끝낸다\n⚠️송장업로드 파일이 둘 이상 나올 수 있다 — 전부 올린다' },
 
-  { id:'s5b', tm:'14:1x', ttl:'5_송장회신_시작하기 더블클릭 → 10분 뒤 메일 발송',
-    desc:'[거래처송장회신] 폴더에서 파일을 꺼내 거래처에 보낸다' },
+  { id:'s5b', tm:'14:1x', ttl:'5_송장회신_시작하기_v5.bat 더블클릭 → 10분 뒤 메일 발송',
+    where:'📍 공유PC  Z: ★풍림전자 사무 자동화 ▸ 발주서 관리',
+    desc:'10분 뒤 구글드라이브 [거래처송장회신] 폴더에서 파일을 꺼내 거래처에 보낸다' },
 
   { id:'s5c', tm:'—',     ttl:'거래처회신 [16] → [17] → [17-1] → [18]', neu:true,
-    desc:'★시트 메뉴에 다 있다. ⛔[19]는 사방넷 수집부터 하므로 누르지 않는다' },
+    where:'📍 구글시트 매출관리원장 ▸ 메뉴',
+    desc:'⛔[19]는 사방넷 수집부터 하므로 누르지 않는다' },
 
   { id:'s06', tm:'15:2x', ttl:'ERP 자료 넷이 저절로 내려온다', auto:true,
     desc:'출고현황 · 발주현황 · 발주상세 · 입고' },
@@ -310,6 +323,7 @@ function render(){
       <div class="body">
         <div class="ttl">${esc(s.ttl)}${tag}</div>
         <div class="desc">${esc(s.desc)}</div>
+        ${s.where ? `<div class="where">${esc(s.where)}</div>` : ''}
       </div>`;
     h += s.auto
       ? `<div class="chk"><span class="at" id="at-${s.id}"></span></div></div>`
