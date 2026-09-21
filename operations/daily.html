@@ -180,7 +180,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v2.2</span>
+    <span class="today" style="opacity:.55">v2.3</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -206,47 +206,29 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
   <div class="linebox" id="linebox"></div>
 
   <footer class="foot">
-    <div class="caution" style="border-style:solid;border-color:var(--done)">
-      <h3 style="color:var(--done)">2026-09-20 — 네 자리가 이 화면에서 열렸습니다</h3>
-      <p>전에는 <b>구글시트 안</b>에 있어서 내부 관리 직원이 누를 수 없던 것들입니다. 이제 <b>노선도의 그 자리에서</b> 누르시면 됩니다.</p>
-      <p><code>[3] 오성 업로드 완료 처리</code> · <code>[9] ERP 업로드 완료 처리</code> · <b>출고등록 파일</b> · <b>발주·입고등록 파일</b></p>
-      <p>⬜ <b>아직 남은 것</b> — <code>21번 ERRFIX_</code> 점포명 딱지 풀기(3개). 이것은 여전히 대표님이 누르십니다.</p>
+    <div class="caution">
+      <h3>체크와 파란 버튼은 다른 것입니다</h3>
+      <p><b>체크</b>는 「내가 여기까지 했다」는 <b>기록</b>입니다. 같은 화면을 보는 사람 모두에게 보이고, 날짜가 바뀌면 저절로 비워집니다.<br>
+         <b>파란 버튼</b>만 <b>실제로 일을 합니다.</b> 잘못 누르셨으면 <b>[되돌리기]</b> 로 지웁니다.</p>
     </div>
 
     <div class="caution">
-      <h3>이 체크가 하는 일과 하지 않는 일</h3>
-      <p><b>하는 일</b> — 「내가 여기까지 했다」를 기록합니다. 누른 것은 <b>같은 화면을 보는 사람 모두에게</b> 보이고, <b>날짜가 바뀌면 저절로 비워집니다.</b> 기록은 <code>풍림_노선도기록</code> 시트에 <b>날짜별로 남습니다.</b></p>
-      <p><b>하지 않는 일</b> — <b>체크만으로는 구글시트가 바뀌지 않습니다.</b> 체크는 <b>「눌렀다」이지 「됐다」가 아닙니다.</b> 실제로 일을 하는 것은 <b>파란 버튼</b>뿐입니다.</p>
-      <p>잘못 눌렀으면 <b>되돌리기</b>로 지울 수 있습니다.</p>
+      <h3>「안 됐다」로 보이지만 정상인 것 셋</h3>
+      <p>① <b>파일 만들기가 회색</b> \u2014 미리보기가 <b>0건</b>이면 만들 것이 없어서 잠깁니다.<br>
+         ② <b>보관을 눌러도 오늘 파일 하나가 남는다</b> \u2014 ERP에 들어간 것이 확인되면 <b>내일</b> 옮겨집니다.<br>
+         ③ <b>회색 역의 선이 진해진다</b> \u2014 「그 시각이 <b>지났다</b>」는 뜻이지 「<b>제대로 돌았다</b>」는 뜻이 아닙니다.</p>
     </div>
 
     <div class="caution" style="border-style:solid;border-color:var(--warn)">
-      <h3 style="color:var(--warn)">결과 창의 제목은 언제나 「창고 업로드」입니다</h3>
-      <p>구글시트 쪽에서 무엇을 누르시든 창 첫 줄이 <code>풍림포털 — 창고 업로드</code> 로 뜹니다. <b>오류가 아닙니다.</b> 제목을 보고 놀라지 마시고 <b>그 아래 내용</b>을 읽으십시오.</p>
-      <p>정말 무엇이 돌았는지는 <b><code>90_실행로그</code> 탭</b>에 남습니다.</p>
+      <h3 style="color:var(--warn)">조심할 것 둘</h3>
+      <p>\u26A0 <b>ERP 업로드 완료 처리</b>는 실제 업로드를 보지 않고 전부 「완료」로 덮습니다. <b>올린 뒤에 한 번만</b> 누르십시오.<br>
+         \u26A0 <b>발주·입고 파일은 오후 3시 35분 전에 만들지 마십시오.</b> ERP 자료가 아직 <b>어제 판</b>이라, 어제 올린 것이 <b>또 나옵니다.</b></p>
     </div>
 
     <div class="caution">
-      <h3>회신을 받아야 할 거래처가 「빠져 있다」고 느껴지면</h3>
-      <p>새 거래처는 <b>한 곳만 넣어서는 안 됩니다.</b> <b>세 그릇</b>을 다 지나야 회신도 나가고 ERP 주문등록에도 담깁니다. (2026-09-16 에 여덟 곳이 몇 달째 빠져 있던 것이 이것 때문이었습니다)</p>
-      <ol>
-        <li>ERP에서 <b>신규 거래처를 등록</b>하고 <b>고객코드</b>를 받는다 <span style="color:var(--ink-3)">— 대표님</span></li>
-        <li><code>94_ERP거래처코드마스터</code> 에 한 줄 — 고객코드 · 고객명 · <b>쇼핑몰고객명 = 사방넷 점포명</b><br>
-            <span style="color:var(--ink-3)">앞의 0이 살아야 합니다. C열을 「일반 텍스트」로 두십시오</span></li>
-        <li><code>93_거래처마스터</code> 에 한 줄 — 회신 메일을 보낼 거래처만 (13열)</li>
-        <li><b>이미 「점포명매핑누락」 딱지가 붙은 주문</b>은 <code>21번</code> 으로 벗긴다<br>
-            <code>ERRFIX_previewStoreMapErrors</code> → <code>ERRFIX_clearOneStoreMapError</code><br>
-            <span style="color:var(--ink-3)">미리보기에 <b>[고객코드]</b> 가 찍히면 2번이 제대로 붙은 것입니다</span></li>
-      </ol>
-      <p style="margin-top:8px">⚠️ <b><code>매핑 재시도</code> 로는 안 풀립니다</b> — 그것은 <b>품목(92_품목마스터)</b> 전용입니다.</p>
-    </div>
-
-    <div class="caution">
-      <h3>회신 파일을 「손으로」 다시 만들어야 할 때</h3>
-      <p>순서는 <b>셋</b>입니다 — <code>16. 미리보기</code> → <code>17. 파일 생성</code> → <code>17-1. 전체 합본</code>. 그다음 메일을 보내고 <b>마지막에</b> <code>18. 발송 완료 처리</code>.</p>
-      <p>⚠️ <b><code>18</code>을 먼저 누르면 합본이 빈손이 됩니다.</b> 합본은 「파일생성완료」인 건만 모으기 때문입니다.</p>
-      <p>⛔ <b><code>19</code>는 누르지 마십시오</b> — 사방넷 다운로드부터 다시 합니다. 낮에 누르면 15:40·16:42 와 엉킵니다.</p>
-      <p>⚠️ <code>0_전체합본_검산용</code> 파일은 <b>검산용입니다. 거래처에 보내지 마십시오.</b></p>
+      <h3>막히면</h3>
+      <p>\u00B7 <b>회신받을 거래처가 빠진 것 같으면</b> \u2014 대표님께 알리십시오. 새 거래처 등록이 필요한 건입니다.<br>
+         \u00B7 <b>그 밖에 이상하면</b> \u2014 <b>무엇을 누르셨는지</b>와 <b>화면에 뜬 글</b>을 그대로 알려 주십시오.</p>
     </div>
 
     <p style="margin-top:16px">회색 역은 <b>기계가 혼자 하는 일</b>입니다 — 시각이 지나면 선이 진해지지만, 그것은 「그 시각이 지났다」는 뜻이지 <b>「제대로 돌았다」는 뜻이 아닙니다.</b></p>
@@ -337,7 +319,7 @@ const STEPS = [
 
   {id:"p06", t:"16:45", who:"s", person:true, title:"주문등록 파일을 ERP에 올린다",
    where:"\uD83D\uDCCD 구글 드라이브 \u25B8 ERP업로드",
-   d:"파일이 둘 이상이면 <b>전부</b> 올린 뒤에 다음으로 갑니다.<br><b>「매핑실패 N건」이 뜨면</b> 그만큼 파일에서 빠진 것입니다. 아래 <b>「회신을 받아야 할 거래처가 빠져 있다고 느껴지면」</b> 을 보십시오."},
+   d:"파일이 둘 이상이면 <b>전부</b> 올린 뒤에 다음으로 갑니다.<br><b>「매핑실패 N건」이 뜨면</b> 그만큼 파일에서 빠진 것입니다. 아래 <b>「막히면」</b> 을 보십시오."},
 
   {id:"p07", t:"16:50", who:"s", person:true, title:"ERP 업로드 완료 처리",
    d:"주문등록 파일을 다 올리셨으면 아래 버튼을 누르십시오.",
@@ -358,7 +340,7 @@ const STEPS = [
         {a:"poGenerate",t:"발주 \u2461 파일 만들기",w:true,needs:"poPreview"},
         {a:"rcvPreview",t:"입고 \u2460 미리보기",w:false,gate:true,ym:true},
         {a:"rcvGenerate",t:"입고 \u2461 파일 만들기",w:true,needs:"rcvPreview"}],
-   warn:"대상월 칸은 그대로 두십시오."},
+   warn:"오후 3시 35분 전에는 만들지 마십시오 \u2014 ERP 자료가 아직 어제 판이라 어제 올린 것이 또 나옵니다. 대상월 칸은 그대로 두십시오."},
 
   {id:"a14", t:"19:54", who:"a", title:"거래처송장회신 파일이 [처리완료]로 옮겨진다",
    d:"하루 <b>한 번</b>입니다. 다음 날 아침 <code>[거래처송장회신]</code> 폴더가 <b>비어 있는 것이 정상</b>입니다."},
