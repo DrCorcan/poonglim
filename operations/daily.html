@@ -180,6 +180,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
+    <span class="today" style="opacity:.55">v2.1</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -397,6 +398,19 @@ function pad(n){ return (n<10?"0":"")+n; }
 function mins(h){ const p=h.split(":"); return (+p[0])*60+(+p[1]); }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 const lastCount = {};
+const lastOut   = {};            /* v2.1 ⑬ 결과를 화면에 «남긴다» */
+const marking   = {};            /* v2.1 ⑨ 저장 중인 걸음 */
+const DONE_HINT = {              /* v2.1 ⑬ 돌려줄 값이 없는 둘 — 검산할 자리를 적어 준다 */
+  markWhDone : "★오성창고업로드 폴더가 비었으면 제대로 된 것입니다.",
+  markErpDone: "★ERP업로드 폴더가 비었으면 제대로 된 것입니다."
+};
+function nowHM(){ const n=seoulNow(); return pad(n.getHours())+":"+pad(n.getMinutes()); }
+/* v2.1 ⑬ — 결과를 전역에 담아 두고, 화면을 다시 그린 «뒤»에도 그 자리에 도로 넣는다 */
+function setOut(stepId, cls, html){
+  lastOut[stepId] = { cls: cls, html: html };
+  const el = document.getElementById("out-" + stepId);
+  if (el) { el.className = "out " + cls; el.innerHTML = html; }
+}
 
 function render(){
   const now=seoulNow(), nowM=now.getHours()*60+now.getMinutes();
@@ -445,12 +459,15 @@ function render(){
         const b=document.createElement("button");
         b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
-        if(o.needs) b.disabled=true;
+        if(o.needs) b.disabled = !(lastCount[o.needs] > 0);   /* v2.1 ⑰ */
         b.addEventListener("click",()=>runOp(s.id,o));
         bs.appendChild(b);
       });
       g.appendChild(bs);
-      const out=document.createElement("div"); out.className="out"; out.id="out-"+s.id; g.appendChild(out);
+      const out=document.createElement("div"); out.className="out"; out.id="out-"+s.id;
+      const lo=lastOut[s.id];                       /* v2.1 ⑬ */
+      if(lo){ out.className="out "+lo.cls; out.innerHTML=lo.html; }
+      g.appendChild(out);
       bd.appendChild(g);
     }
 
@@ -460,10 +477,13 @@ function render(){
         const st=document.createElement("span"); st.className="stamp";
         st.textContent="✓ 마침  "+state[s.id].t; act.appendChild(st);
         const u=document.createElement("button"); u.className="undo"; u.type="button";
-        u.textContent="되돌리기"; u.addEventListener("click",()=>mark(s,false)); act.appendChild(u);
+        u.textContent="되돌리기"; u.disabled=!!marking[s.id];        /* v2.1 ⑨ */
+        u.addEventListener("click",()=>mark(s,false)); act.appendChild(u);
       }else{
         const b=document.createElement("button"); b.className="do"; b.type="button";
-        b.textContent="했습니다"; b.addEventListener("click",()=>mark(s,true)); act.appendChild(b);
+        b.textContent=marking[s.id]?"저장 중…":"했습니다";            /* v2.1 ⑨ */
+        b.disabled=!!marking[s.id];
+        b.addEventListener("click",()=>mark(s,true)); act.appendChild(b);
       }
       bd.appendChild(act);
     }
@@ -502,9 +522,18 @@ function paint(st){
 }
 async function load(){ try{ paint(await call("dayGet")); }
   catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message,"bad"); } }
-async function mark(s,on){
+async function mark(s,on){                       /* v2.1 ⑨ — 화면 먼저, 서버 나중 */
+  if(marking[s.id]) return;                      /* 두 번 눌러도 한 번만 간다 */
+  marking[s.id]=1;
+  const prev = state[s.id];
+  if(on) state[s.id]={t:nowHM()}; else delete state[s.id];
+  render();                                      /* ★누르는 즉시 화면에 반영 */
   try{ paint(await call("daySet",{step:s.id, on:on?"1":"0", note:s.t+" "+s.title.replace(/<[^>]*>/g,"")})); }
-  catch(e){ top_("저장하지 못했습니다 — "+e.message,"bad"); load(); }
+  catch(e){
+    if(prev) state[s.id]=prev; else delete state[s.id];   /* 실패하면 되돌린다 */
+    top_("저장하지 못했습니다 — "+e.message,"bad");
+  }
+  finally{ delete marking[s.id]; render(); }
 }
 function top_(m,c){ const el=document.getElementById("topOut"); el.className="out "+c; el.textContent=m;
   if(c==="ok"||c==="info") setTimeout(()=>{el.className="out";},9000); }
@@ -514,8 +543,7 @@ async function runOp(stepId, o){
   if(o.w && !confirm("["+o.t.replace(/^[①②③④]\s*/,"")+"] 을(를) 실행합니다.\n계속할까요?")) return;
   const outEl=document.getElementById("out-"+stepId);
   document.querySelectorAll("button[data-act]").forEach(b=>b.disabled=true);
-  outEl.className="out busy";
-  outEl.textContent="돌고 있습니다… (길면 1~2분 걸립니다. ★창을 닫지 마십시오)";
+  setOut(stepId,"busy","돌고 있습니다… (길면 1~2분 걸립니다. ★창을 닫지 마십시오)");
 
   const extra={};
   if(o.ym){ const v=(document.getElementById("ym-"+stepId)||{}).value||""; if(v.trim()) extra.ym=v.trim(); }
@@ -531,8 +559,7 @@ async function runOp(stepId, o){
 
     if(stop){
       lastCount[o.a]=-1;
-      outEl.className="out bad";
-      outEl.innerHTML='<span class="big">'+esc(label)+" — ⛔ 멈췄습니다</span>"+esc(stop);
+      setOut(stepId,"bad",'<span class="big">'+esc(label)+" — ⛔ 멈췄습니다</span>"+esc(stop)+"\n("+nowHM()+")");
     }else{
       let html="", cls="ok";
       html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : " — 끝났습니다")+"</span>";
@@ -543,10 +570,12 @@ async function runOp(stepId, o){
       const miss=missLines(r,block);
       if(miss)  html+="\n\n안 담긴 것 —\n"+esc(miss);
       if(summ)  html+="\n\n"+esc(String(summ).slice(0,600));
-      outEl.className="out "+cls; outEl.innerHTML=html;
+      if(cnt===null && DONE_HINT[o.a]) html += "\n"+DONE_HINT[o.a];
+      html += "\n("+nowHM()+")";
+      setOut(stepId, cls, html);
     }
   }catch(e){
-    outEl.className="out bad"; outEl.textContent="⛔ "+e.message;
+    setOut(stepId,"bad", esc("⛔ "+e.message)+"\n("+nowHM()+")");
   }finally{
     document.querySelectorAll("button[data-act]").forEach(b=>{
       const st=STEPS.find(x=>x.id===b.dataset.step);
