@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v2.0   (2026-09-20)
+  operations/daily.html   v2.4   (2026-09-21)
   ★본체 = 2026-09-16 아티팩트 「풍림전자 하루 노선도」 ★그대로
   ★바꾼 것 — ① 아티팩트 db → ★웹앱(풍림_노선도기록 시트)   ⇒ 바깥 사람도 체크할 수 있다 (B111)
               ② 「실장님」 → ★「내부 관리 직원」            ⇒ 두 분이 하신다 (A69-1)
@@ -46,6 +46,14 @@ body{margin:0;background:var(--ground);color:var(--ink);
   border:1px solid var(--line-2);color:var(--ink-2);border-radius:3px;padding:4px 9px}
 .tools button:hover{background:var(--surface-2)}
 
+/* v2.4 — 자동 점검 배너. 되돌리기 = 이 덩어리와 #watch div, paint 의 네 줄을 지운다 */
+.watch{margin-top:16px;border:1px solid var(--line);border-left:4px solid var(--done);
+  border-radius:0 4px 4px 0;background:var(--done-bg);padding:12px 18px;
+  display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.watch.bad{border-left-color:var(--warn);background:var(--warn-bg)}
+.watch .wk{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap}
+.watch .wv{font-size:.95rem;font-weight:700;line-height:1.5;margin:0}
 .next{margin-top:20px;border:1px solid var(--line);border-left:4px solid var(--warn);
   border-radius:0 4px 4px 0;background:var(--surface);padding:16px 18px}
 .next .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
@@ -180,7 +188,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v2.3</span>
+    <span class="today" style="opacity:.55">v2.4</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -188,6 +196,12 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
       <button id="btnLogout">코드 지우기</button>
     </div>
   </header>
+
+  <!-- v2.4 자동 점검 배너 — 서버가 watch 를 안 주면 저절로 숨는다 -->
+  <div class="watch" id="watch" style="display:none">
+    <span class="wk">자동 점검</span>
+    <p class="wv" id="watchv"></p>
+  </div>
 
   <div class="next" id="next">
     <p class="k">지금 할 일</p>
@@ -520,6 +534,11 @@ function render(){
 /* ═══ 5. 체크 ═══ */
 function paint(st){
   state = st.steps || {};
+  /* v2.4 — 자동 점검 한 줄. 서버가 안 주면 숨긴다 (화면 먼저, 서버 나중 · 원칙 ㊶) */
+  const _w=document.getElementById("watch"), _wv=document.getElementById("watchv");
+  const _t=(st.watch||"").toString().trim();
+  if(_t){ _wv.textContent=_t; _w.className="watch"+(/[⚠⛔]/.test(_t)?" bad":""); _w.style.display="flex"; }
+  else  { _w.style.display="none"; }
   document.getElementById("savenote").textContent =
     "누른 것은 "+st.date+" 기록으로 ★풍림_노선도기록 시트에 남습니다. 날짜가 바뀌면 저절로 비워집니다.";
   render();
