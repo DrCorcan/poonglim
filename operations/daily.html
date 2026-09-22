@@ -7,7 +7,13 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v2.9   (2026-09-22)
+  operations/daily.html   v3.0   (2026-09-22)
+  ★v3.0 — ★물어보기를 «맨 아래»로 내리고, 이름을 ★드롭다운으로 바꿨다 (대표님 확정)
+     ① 자리 — 노선도 «아래». 아침에 화면을 열 때 ★물음부터 보이면 시작이 무겁다
+     ② 이름 — ★이실장님 · 이이사님 · 김부장님 세 분.
+        ⇒ 「이실장」「이 실장」「실장님」으로 갈리지 않는다. 사람이 늘면 ★한 줄 더한다
+     ③ 답 — ★물음 바로 아래에 «내 물음 + 답»이 짝으로 뜬다 (서버 v2.1 · 90_물음답 탭)
+     ⇒ 되돌리기 = ★ask 덩어리를 원래 자리(topOut 위)로 옮기고 select 를 input 으로
   ★v2.9 — ★발주·입고 폴더에 파일이 «영영» 쌓이는 것을 닫았다 (미결 557)
      p09 첫 자리에 ★[① 지난 파일 치우기] 를 넣었다 — ★먼저 치우고 그다음 만든다
      ⇒ ★서버 v2.0 의 erpArchive 를 부른다 (재배포 필요)
@@ -85,7 +91,13 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .askrow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
 .askrow input,.askrow textarea{font-family:var(--sans);font-size:.85rem;padding:6px 9px;
   border:1px solid var(--line-2);border-radius:3px;background:var(--surface)}
-.askrow input{width:110px}
+.askrow select{font-family:var(--sans);font-size:.85rem;padding:6px 9px;
+  border:1px solid var(--line-2);border-radius:3px;background:var(--surface);color:var(--ink)}
+.qa .row{padding:7px 0;border-top:1px solid var(--line)}
+.qa .row:first-child{border-top:0;padding-top:0}
+.qa .qq{margin:0;font-size:.84rem;line-height:1.55}
+.qa .aa{margin:3px 0 0;font-size:.84rem;line-height:1.6;white-space:pre-wrap}
+.qa .wait{color:var(--ink-3)}
 .askrow textarea{flex:1;min-width:230px;resize:vertical;line-height:1.5}
 .askrow button{font-family:var(--sans);font-size:.85rem;cursor:pointer;padding:7px 15px;
   border:1px solid var(--line-2);border-radius:3px;background:var(--surface-2);color:var(--ink)}
@@ -95,6 +107,7 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .qa .wk{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
   color:var(--ink-3)}
 .qa .wv{white-space:pre-wrap;margin:5px 0 0;font-size:.86rem;line-height:1.6}
+.qa .qq{white-space:pre-wrap}
 .next{margin-top:20px;border:1px solid var(--line);border-left:4px solid var(--warn);
   border-radius:0 4px 4px 0;background:var(--surface);padding:16px 18px}
 .next .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
@@ -229,7 +242,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v2.9</span>
+    <span class="today" style="opacity:.55">v3.0</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -256,28 +269,34 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
     <p class="savenote" id="savenote">불러오는 중…</p>
   </div>
 
-  <!-- v2.8 물어보기 — 서버가 qa 를 안 주면 답 상자는 저절로 숨는다 -->
+  <div class="out" id="topOut"></div>
+
+  <div class="linebox" id="linebox"></div>
+
+  <!-- v3.0 물어보기 — ★노선도 «아래»에 둔다. 아침에 물음부터 보이면 시작이 무겁다 -->
   <div class="ask">
     <h2>Claude 에게 물어보기</h2>
     <p class="note">막히신 자리 · 이상한 숫자 · 고쳤으면 하는 것을 적어 주십시오.<br>
-      <b>급한 것은 대표님께 전화하십시오.</b> 여기 적으신 것은 <b>다음 점검 때</b> 답이 옵니다 (하루 네 번).<br>
+      <b>급한 것은 대표님께 전화하십시오.</b> 여기 적으신 것은 <b>다음 점검 때</b> 답이 옵니다 (하루 네 번). <b>답은 바로 아래에 뜹니다.</b><br>
       여기 적으신 글로 <b>무언가가 실행되지는 않습니다.</b> 읽고 답만 합니다.</p>
     <div class="askrow">
-      <input id="askwho" maxlength="20" placeholder="이름">
+      <select id="askwho">
+        <option value="">이름을 고르십시오</option>
+        <option>이실장님</option>
+        <option>이이사님</option>
+        <option>김부장님</option>
+      </select>
       <textarea id="askq" rows="2" maxlength="300"
         placeholder="예) 출고 미리보기에서 못찾음이 40건 나왔는데 그냥 올려도 되나요?"></textarea>
       <button id="askbtn">보내기</button>
     </div>
     <div class="out" id="askout"></div>
     <div class="qa" id="qa" style="display:none">
-      <span class="wk">Claude 의 답</span>
-      <p class="wv" id="qav"></p>
+      <span class="wk">물음과 답 — 최근 다섯</span>
+      <div class="wv" id="qav"></div>
     </div>
   </div>
 
-  <div class="out" id="topOut"></div>
-
-  <div class="linebox" id="linebox"></div>
 
   <footer class="foot">
     <div class="caution">
@@ -610,11 +629,22 @@ function paint(st){
   const _t=(st.watch||"").toString().trim();
   if(_t){ _wv.textContent=_t; _w.className="watch"+(/[⚠⛔]/.test(_t)?" bad":""); _w.style.display="flex"; }
   else  { _w.style.display="none"; }
-  /* v2.8 — Claude 의 답. 서버가 안 주면 숨긴다 (막는 쪽으로 · 원칙 ⑩) */
+  /* v3.0 — 물음과 답을 «짝»으로 그린다. 서버가 안 주면 숨긴다 (막는 쪽으로 · 원칙 ⑩) */
   const _q=document.getElementById("qa"), _qv=document.getElementById("qav");
-  const _qt=(st.qa||"").toString().trim();
-  if(_qt){ _qv.textContent=_qt; _q.style.display="block"; }
-  else   { _q.style.display="none"; }
+  const _arr = Array.isArray(st.qa) ? st.qa : [];
+  if(_arr.length){
+    _qv.innerHTML = _arr.map(r=>{
+      const 답 = (r["답"]||"").toString().trim();
+      return '<div class="row"><p class="qq"><b>#'+esc(r["번호"])+" "+esc(r["이름"])+"</b>  "
+           + esc(r["날짜"])+"<br>"+esc(r["물음"])+"</p>"
+           + (답 ? '<p class="aa">↳ '+esc(답)+"</p>"
+                 : '<p class="aa wait">↳ 답을 기다리는 중입니다 — 다음 점검 때 옵니다</p>')
+           + "</div>";
+    }).join("");
+    _q.style.display="block";
+  } else if((st.qa||"").toString().trim()){        /* 옛 판(글자 하나)도 그대로 받는다 */
+    _qv.textContent=(st.qa||"").toString().trim(); _q.style.display="block";
+  } else { _q.style.display="none"; }
   document.getElementById("savenote").textContent =
     "누른 것은 "+st.date+" 기록으로 ★풍림_노선도기록 시트에 남습니다. 날짜가 바뀌면 저절로 비워집니다.";
   render();
@@ -703,19 +733,21 @@ document.getElementById("btnTest").addEventListener("click", async ()=>{
 const WHO_KEY = 'poonglim_ask_who';
 function getWho(){ try{return localStorage.getItem(WHO_KEY)||"";}catch(e){return "";} }
 function saveWho(v){ try{localStorage.setItem(WHO_KEY,v);}catch(e){} }
-document.getElementById("askwho").value = getWho();
+/* v3.0 — 지난번에 고른 이름을 그대로 세워 둔다. 없는 이름이면 조용히 빈칸 */
+(function(){ const el=document.getElementById("askwho"), w=getWho();
+  if(w && Array.prototype.some.call(el.options,o=>o.value===w||o.text===w)) el.value=w; })();
 document.getElementById("askbtn").addEventListener("click", async ()=>{
   const who = document.getElementById("askwho").value.trim();
   const q   = document.getElementById("askq").value.trim();
   const el  = document.getElementById("askout");
-  if(!who){ el.className="out bad"; el.textContent="이름을 적어 주십시오."; return; }
+  if(!who){ el.className="out bad"; el.textContent="이름을 고르십시오."; return; }
   if(!q){   el.className="out bad"; el.textContent="물으실 내용을 적어 주십시오."; return; }
   saveWho(who);
   el.className="out busy"; el.textContent="보내는 중…";
   try{
     await call("dayAsk", {who:who, q:q});
     el.className="out ok";
-    el.textContent="✅ 남겼습니다. 답은 이 아래에 뜹니다 — 다음 점검 때입니다. ("+nowHM()+")";
+    el.textContent="✅ 남겼습니다. 답은 바로 아래에 뜹니다 — 다음 점검 때입니다. ("+nowHM()+")";
     document.getElementById("askq").value="";
   }catch(e){
     el.className="out bad"; el.textContent="⛔ "+e.message+" ("+nowHM()+")";
