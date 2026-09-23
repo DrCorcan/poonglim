@@ -7,7 +7,22 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.2   (2026-09-23)
+  operations/daily.html   v3.4   (2026-09-23)
+  ★v3.4 — ① 의 상태 제목을 «문장»으로 바꿈 (대표님 2026-09-23)
+     「『끝남』이 아니라 『완료 되었습니다.』로. 바로 하단부에 『끝났습니다』가
+       있으니까 중복되면 보기 흉해서」
+     ★서버는 안 건드렸다 — 상태 값(끝남·멈춰음…)은 ★판정에 쓰이므로
+       «그대로 두고» ★보여주는 문구만 화면에서 갈아 끼운다 ⇒ ★재배포 없음
+     ★되돌리기 = ERP_WORD 를 빈 {} 로 두면 예전 문구로 돌아간다 (한 줄)
+  ★v3.3 — ★돌고 있는 동안 «몇 초 지났는지»를 보여준다 (출고·발주·입고)
+     대표님 (2026-09-23) — 「출고와 발주, 입고도 이렇게 하는 것이 좋겠어.
+       진행상황을 보여 주는 것」
+     ★① 과는 «성격이 다르다» — ① 은 공유PC 가 따로 일하고,
+       출고·발주·입고는 ★서버가 그 자리에서 일한다. 물어볼 것이 없다
+       ⇒ 그래서 ★경과 초를 센다. «돌고 있습니다…» 만 있으면 ★멈춘 것처럼 보인다
+     ★시간을 «예고»하지 않는다 — 실측한 값이 없다 (원칙 ⑮).
+       대신 ★«끝나면 무엇이 풀리는지»를 적는다 (원칙 ⓓ)
+     ★되돌리기 = ⑥ 덩어리와 «★v3.3» 표시가 붙은 줄 셋을 지운다
   ★v3.2 — ★[① ERP 자료 다시 받기] 가 «끝나는 시점»을 화면이 스스로 본다
      대표님 (2026-09-23) — 「『끝났습니다』라고 표시되어 있으니 마치 이 세션이
        끝난 것처럼 보여. 바로 2번을 누를 가능성 있음」
@@ -257,7 +272,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.2</span>
+    <span class="today" style="opacity:.55">v3.4</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -551,7 +566,7 @@ async function erpPoll(보여줄까, 바쁠때만){
     erpReady = (r["받기끝남"] !== false);
     const bad = (r.상태==="멈췔음" || r.상태==="오래됨");
     if(보여줄까 && (!바쁠때만 || !erpReady))
-      erpBox(erpReady ? (bad?"bad":"ok") : "busy", r.상태||"", r.한줄||"");
+      erpBox(erpReady ? (bad?"bad":"ok") : "busy", ERP_WORD[r.상태] || r.상태 || "", r.한줄||"");   /* ★v3.4 */
   }catch(e){
     erpReady = true;                          /* ★못 읽으면 «풀어 준다». 손을 묶지 않는다 */
     if(보여줄까 && !바쁠때만)
@@ -571,6 +586,38 @@ function erpWatchStart(){
 }
 /* ★① 의 결과 문구만 «시작했습니다»로. 나머지 버튼은 그대로 「끝났습니다」 */
 const DONE_WORD = { erpRefetch: " — ★시작했습니다" };
+/* ★v3.4 — 서버의 «상태 값»은 판정에 쓴다. 화면에 보일 문구만 여기서 갈아 끼운다.
+   ⇒ 서버를 안 고치므로 ★재배포가 필요 없다 (원칙 ㉵ · ㉑) */
+const ERP_WORD = { "끝남":"완료 되었습니다.", "멈춰음":"멈췄습니다", "오래됨":"너무 오래 걸립니다" };
+
+/* ═══ ⑥ ★v3.3 — 돌고 있는 동안 «몇 초 지났는지»를 보여준다 (2026-09-23) ═══
+   ★「돌고 있습니다…」 다섯 글자만 있으면 사람은 ★멈춘 것으로 읽고 또 누른다 (원칙 ⓓ)
+   ★시간을 «예고»하지 않는다 — 이 다섯의 실측값이 아직 없다 (원칙 ⑮)
+   ★대신 «끝나면 무엇이 풀리는가»를 그 자리에 적는다 — 코드의 needs 와 같은 사실이다 */
+const BUSY_HINT = {
+  shipPreview : "끝나면 ★[④ 파일 만들기] 가 풀립니다  (담김이 0 이면 회색 그대로 — 「만들 것이 없다」는 뜻입니다)",
+  poPreview   : "끝나면 ★[③ 발주 파일 만들기] 가 풀립니다  (담김이 0 이면 회색 그대로)",
+  rcvPreview  : "끝나면 ★[⑤ 입고 파일 만들기] 가 풀립니다  (담김이 0 이면 회색 그대로)",
+  shipGenerate: "아마란스에 올릴 xlsx 를 만듭니다. 끝나면 ★[▶ 파일 열기] 가 뚜니다",
+  poGenerate  : "끝나면 ★[▶ 파일 열기] 가 뚜니다",
+  rcvGenerate : "끝나면 ★[▶ 파일 열기] 가 뚜니다"
+};
+let busyTimer = null;
+function busyStop(){ if(busyTimer){ clearInterval(busyTimer); busyTimer = null; } }
+function busyStart(stepId, label, act){
+  const t0 = Date.now(), hint = BUSY_HINT[act] || "";
+  const draw = ()=>{
+    const 초 = Math.round((Date.now() - t0)/1000);
+    setOut(stepId, "busy",
+      '<span class="big">'+esc(label)+' \u2014 \ub3cc\uace0 \uc788\uc2b5\ub2c8\ub2e4\u2026 \u2605'+초+'\ucd08</span>'
+      + (hint ? esc(hint)+"\n" : "")
+      + "\u2605\ucc3d\uc744 \ub2eb\uc9c0 \ub9c8\uc2ed\uc2dc\uc624. \ub05d\ub098\uba74 \uc5ec\uae30\uc5d0 \uacb0\uacfc\uac00 \ub69c\ub2c8\ub2e4\n"
+      + "\u2605\ub3c4\ub294 \ub3d9\uc548 \ub2e4\ub978 \ubc84\ud2bc\uc740 \uc7a0\uae41\ub2c8\ub2e4 \u2014 \uace0\uc7a5\uc774 \uc544\ub2d9\ub2c8\ub2e4");
+  };
+  draw();
+  busyStop();
+  busyTimer = setInterval(draw, 1000);
+}
 
 function nowHM(){ const n=seoulNow(); return pad(n.getHours())+":"+pad(n.getMinutes()); }
 /* v2.1 ⑬ — 결과를 전역에 담아 두고, 화면을 다시 그린 «뒤»에도 그 자리에 도로 넣는다 */
@@ -731,10 +778,11 @@ function top_(m,c){ const el=document.getElementById("topOut"); el.className="ou
 
 /* ═══ 6. 버튼 ═══ */
 async function runOp(stepId, o){
-  if(o.w && !confirm("["+o.t.replace(/^[①②③④]\s*/,"")+"] 을(를) 실행합니다.\n계속할까요?")) return;
+  if(o.w && !confirm("["+o.t.replace(/^[①②③④⑤]\s*/,"")+"] 을(를) 실행합니다.\n계속할까요?")) return;
   const outEl=document.getElementById("out-"+stepId);
   document.querySelectorAll("button[data-act]").forEach(b=>b.disabled=true);
-  setOut(stepId,"busy","돌고 있습니다… (길면 1~2분 걸립니다. ★창을 닫지 마십시오)");
+  const label=o.t.replace(/^[①②③④⑤]\s*/,"");   /* ★v3.3 — 먼저 뽑는다 */
+  busyStart(stepId, label, o.a);                 /* ★v3.3 */
 
   const extra={};
   if(o.ym){ const v=(document.getElementById("ym-"+stepId)||{}).value||""; if(v.trim()) extra.ym=v.trim(); }
@@ -744,7 +792,6 @@ async function runOp(stepId, o){
     const cnt=pick(r,COUNT_KEYS), fname=pick(r,["파일명"]), furl=pick(r,["파일URL","파일url"]);
     const ym=pick(r,["대상월"]), stop=pick(r,["중단사유"]), summ=pick(r,["요약"]);
     const block=pick(r,BLOCK_KEYS);
-    const label=o.t.replace(/^[①②③④]\s*/,"");
 
     if(!o.w) lastCount[o.a]=(cnt===null?-1:Number(cnt));
 
@@ -769,6 +816,7 @@ async function runOp(stepId, o){
   }catch(e){
     setOut(stepId,"bad", esc("⛔ "+e.message)+"\n("+nowHM()+")");
   }finally{
+    busyStop();                                  /* ★v3.3 */
     document.querySelectorAll("button[data-act]").forEach(b=>{
       const st=STEPS.find(x=>x.id===b.dataset.step);
       const m=st && st.ops ? st.ops.find(x=>x.a===b.dataset.act) : null;
