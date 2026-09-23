@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.7   (2026-09-23)
+  operations/daily.html   v3.8   (2026-09-23)
   ★v3.6 — ★자리 이름을 «공유PC» 와 «구글 드라이브»로 또렷하게 갈랐다
      대표님 (2026-09-23) — 「공유 pc와 구글 드라이브를 정확하게 알도록」
      ⇒ 그냥 「폴더」라고만 적힌 자리가 여덟 곳 있었다. ★어디인지 알 수 없었다
@@ -16,6 +16,19 @@
      ★규칙 — ①구글 드라이브 : 「구글 드라이브 ▸ …」
               ②회사 서버 = ★공유PC : 「공유PC Z: ▸ …」
               ★둘뿐이다. ★노선도는 «개인 PC» 를 안 건드린다
+  ★v3.8 — ★「한 것」과 「할 것」을 ★색으로 가른다
+     대표님 (2026-09-23) — 「완료된 것은 녹색으로 버튼을 바꾸면 어때?
+       그러면 두번 누르지 않을 것 같아」 · 「해야할 것과 한 것을 구분하는 것」
+     ⇒ 지금은 ★누르기 «전»과 «뒤»의 버튼이 똑같이 생겼다. 결과글은 스크롤 밖일 수 있다
+     ⇒ ★사람은 반응이 안 보이면 ★또 누른다 (원칙 ⓓ · B114)
+     ★색이 두 가지를 동시에 말한다
+        ★진한 녹색 = 했다 · ★다시 누르면 안 된다   (만드는 버튼 · o.w=true)
+        ★옅은 녹색 = 했다 · 다시 눌러도 된다        (읽는 버튼 · o.w 없음)
+     ⇒ ★무엇이 «무서운 버튼»인지를 설명 없이 알게 된다 (9/28 직원 혼자 보는 날)
+     ★서버 v2.7 이 st.ops 를 같이 준다 ⇒ ★다른 PC 에서도 · ★새로고침해도 녹색이 남는다
+        ⚠️서버가 옛 판이면 ★그 브라우저에서만 남는다. ★화면은 그대로 돈다 (원칙 ㊶)
+     ★그리고 ★끝난 걸음(역)도 ★녹색 줄로 표시한다
+     ★되돌리기 = ⑱ 덩어리와 «★v3.8» 표시가 붙은 줄들을 지운다
   ★v3.7 — ★「공유PC」가 무엇인지를 거꾸로 적었다 (대표님 2026-09-23)
      「내 pc는 공유 pc가 아니야. 내 개인 pc 야. ★회사 서버가 공유pc 야」
      ⇒ v3.6 의 규칙 ①번이 틀렸다. ★공유PC = 회사 서버다
@@ -195,6 +208,9 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .ttl{margin:0;font-size:.98rem;font-weight:500;line-height:1.45}
 .st.person .ttl{font-weight:700}
 .st.done .ttl{color:var(--ink-3);text-decoration:line-through;text-decoration-thickness:1px}
+/* ★v3.8 — 끝난 역은 ★녹색 줄. 「지나갔다」가 아니라 ★「내가 했다」는 뜻이다 */
+.st.done .body{border-left:3px solid var(--done);padding-left:11px;background:var(--done-bg)}
+.st.done.person .ttl{color:var(--done)}
 .tag{display:inline-block;font-family:var(--mono);font-size:.63rem;font-weight:600;letter-spacing:.08em;
   padding:2px 6px;border-radius:2px;margin-right:7px;vertical-align:2px}
 .tag.a{background:var(--surface-2);color:var(--ink-3)}
@@ -228,6 +244,10 @@ button.op{font-family:var(--sans);font-size:.83rem;font-weight:700;cursor:pointe
   padding:6px 12px;line-height:1.2;border:1.5px solid var(--auto);background:var(--auto);color:#fff}
 button.op.read{background:var(--surface);color:var(--auto)}
 button.op[disabled]{opacity:.4;cursor:not-allowed}
+/* ★v3.8 — 누른 버튼은 녹색. ★진한 = 다시 누르면 안 된다 · ★옅은 = 다시 눌러도 된다 */
+button.op.pressed{background:var(--done);border-color:var(--done);color:#fff}
+button.op.read.pressed{background:var(--done-bg);border-color:var(--done);color:var(--done)}
+button.op.pressed[disabled]{opacity:.55}
 .ops input[type=text]{font-family:var(--mono);font-size:.82rem;padding:5px 8px;width:96px;
   border:1px solid var(--line-2);border-radius:3px;background:var(--surface);color:var(--ink)}
 .out{margin-top:9px;font-size:.83rem;border-radius:3px;padding:8px 10px;display:none;
@@ -292,7 +312,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.7</span>
+    <span class="today" style="opacity:.55">v3.8</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -441,7 +461,7 @@ const STEPS = [
    d:"각 거래처별로 생성된 파일을 활용하여 송장회신 메일을 보냅니다."},
 
   {id:"a11", t:"15:20", who:"a", title:"ERP 자료 넷이 저절로 내려온다",
-   d:"15:20 출고현황 \u00B7 15:23 발주현황 \u00B7 15:26 발주상세 \u00B7 15:29 입고현황<br>저녁에 만들 <b>ERP 업로드 파일 넷</b>이 이 자료를 보고 만들어집니다. 내려온 자료는 저절로 시트에 담깁니다."},
+   d:"15:20 출고현황 \u00B7 15:23 발주현황 \u00B7 15:26 발주상세 \u00B7 15:29 입고현황<br>저녁에 만들 <b>ERP 업로드 파일 넷</b>이 이 자료를 보고 만들어집니다. 여기서는 <b>파일이 구글 드라이브에 떨어지기만</b> 합니다.<br>발주·발주상세·입고 <b>셋은 5분 안에</b> 저절로 시트에 담김니다. <b>★출고현황만 16시대에 담깁니다</b> — 아래 「출고 되받기」 걸음입니다."},
 
   {id:"a09", t:"15:40", who:"a", title:"사방넷 3차 내려받기",
    d:"보통 15시 30분까지 그날의 주문 마감과 함께 사방넷 정리가 끝납니다. 3차로 내려받아 <b>그날 매출의 최종본</b>을 모으고, ERP에 올릴 자료를 만듭니다."},
@@ -453,8 +473,8 @@ const STEPS = [
    where:"\uD83D\uDCCD 현황판 \u25B8 캐리어",
    d:"캐리어 전산에 접속해서 오더번호를 저절로 가져옵니다.<br><b>두 가지만 눈으로 보십시오</b> \u2014<br>① <b>기존재고</b> \u2014 오래전에 받은 오더번호라 캐리어 전산에서 조회되지 않습니다. 비어 있으면 <b>손으로 넣으십시오</b><br>② <b>2IN1</b> \u2014 벽걸이는 보통 저절로 채워집니다. <b>채워졌는지만 확인하십시오</b><br><a href=\'suppliers.html\' target=\'_blank\' rel=\'noopener\'>\u25B6 현황판 열기</a>"},
 
-  {id:"a12", t:"16:40", who:"a", title:"출고 되받기 — 출고번호를 원장에 적는다",
-   d:"ERP에 출고등록을 올리면 ERP가 <b>출고번호(IS26…)</b>를 만들어 줍니다. 그 번호는 우리 원장에 없으므로 되받아 적습니다.<br>이것이 있어야 <b>이미 올린 건을 또 올리지 않습니다.</b> 어제 올린 것이 오늘 되받아집니다."},
+  {id:"a12", t:"16:30", who:"a", title:"출고 되받기 — 출고번호를 원장에 적는다",
+   d:"ERP에 출고등록을 올리면 ERP가 <b>출고번호(IS26…)</b>를 만들어 줍니다. 그 번호는 우리 원장에 없으므로 되받아 적습니다.<br>이것이 있어야 <b>이미 올린 건을 또 올리지 않습니다.</b> 어제 올린 것이 오늘 되받아집니다.<br><b>★시각은 16시대 어느 분이든 될 수 있습니다</b> — 구글이 정합니다. 우리가 못 정합니다 (16:1x~16:4x).<br><b>⚠️그러니 아래 출고등록의 [① 되받기]를 매일 누르십시오.</b> 2026-09-21 · 09-23 에 이것이 ★못 한 것을 사람이 눌러 맞추었습니다."},
 
   {id:"a10", t:"16:42", who:"a", title:"ERP 주문등록 파일이 저절로 만들어진다",
    where:"\uD83D\uDCCD 구글 드라이브 \u25B8 ERP업로드",
@@ -468,7 +488,7 @@ const STEPS = [
   {id:"p07", t:"16:50", who:"s", person:true, title:"ERP 업로드 완료 처리",
    d:"주문등록 파일을 다 올리셨으면 아래 버튼을 누르십시오.",
    ops:[{a:"markErpDone", t:"ERP 업로드 완료 처리", w:true}],
-   warn:"이 버튼은 실제 업로드를 보지 않고 전부 「완료」로 덮습니다. 반드시 올린 뒤에 한 번만 누르십시오."},
+   warn:"이 버튼은 실제 업로드를 보지 않고 전부 「완료」로 덮습니다. 반드시 올린 뒤에 한 번만 누르십시오.<br><b>★올릴 파일이 없는 날은 이 버튼을 누르지 마십시오.</b> 주문이 0건이면 만들 파일도 없습니다 — 그때 누르시면 ★아직 안 올라간 행까지 「올렸다」로 덮여 ★영영 안 올라갑니다."},
 
   /* ★v2.5 (2026-09-22) — 사람이 «올린 뒤»에 ERP 자료를 다시 받아 넣는 걸음.
      되돌리기 = ★이 덩어리 하나를 지운다 */
@@ -506,6 +526,7 @@ STEPS.sort((x,y)=>{const m=s=>{const p=s.t.split(":");return (+p[0])*60+(+p[1]);
 const PERSON = STEPS.filter(s=>s.person);
 const DAYS = ["일","월","화","수","목","금","토"];
 let state = {};
+let opDone = {};          /* ★v3.8 — {action: "HH:MM"} · 서버 st.ops 가 채운다 */
 
 /* ═══ 2. 접속코드 ═══ */
 function getCode(){ try{return localStorage.getItem(CODE_KEY)||"";}catch(e){return "";} }
@@ -724,6 +745,7 @@ function render(){
         const b=document.createElement("button");
         b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
+        opPaint(b,o);                              /* ★v3.8 */
         if(o.needs) b.disabled = !(lastCount[o.needs] > 0);   /* v2.1 ⑰ */
         if(ERP_GATED.indexOf(o.a) >= 0) b.disabled = !erpReady;   /* ★v3.2 */
         b.addEventListener("click",()=>runOp(s.id,o));
@@ -795,6 +817,8 @@ function render(){
 /* ═══ 5. 체크 ═══ */
 function paint(st){
   state = st.steps || {};
+  /* ★v3.8 — 서버가 주면 그것이 «참»이다. 안 주면 이 브라우저가 기억한 것을 지킨다 (원칙 ㊶) */
+  if(st.ops && typeof st.ops === "object") opDone = st.ops;
   /* v2.4 — 자동 점검 한 줄. 서버가 안 주면 숨긴다 (화면 먼저, 서버 나중 · 원칙 ㊶) */
   const _w=document.getElementById("watch"), _wv=document.getElementById("watchv");
   const _t=(st.watch||"").toString().trim();
@@ -840,6 +864,18 @@ async function mark(s,on){                       /* v2.1 ⑨ — 화면 먼저, 
 function top_(m,c){ const el=document.getElementById("topOut"); el.className="out "+c; el.textContent=m;
   if(c==="ok"||c==="info") setTimeout(()=>{el.className="out";},9000); }
 
+/* ═══ ⑱ ★v3.8 — 버튼의 «색»을 한 곳에서 칠한다 (원칙 ㊲) ═══
+   ★누른 자국은 opDone 에 있다. 서버 st.ops 가 주면 ★PC 가 달라도 · 새로고침해도 남는다
+   ⚠️★결과글을 지우지 않는다 — 이 함수는 «버튼»만 건드린다 (B114) */
+function opPaint(b, o){
+  const hit = opDone[o.a];
+  const base = "op" + (o.w ? "" : " read");
+  b.className = base + (hit ? " pressed" : "");
+  b.textContent = (hit ? "✓ " : "") + o.t;
+  if(hit) b.title = hit + " 에 누르셨습니다" + (o.w ? " — ★다시 누르지 마십시오" : " — 다시 눌러도 됩니다");
+  else    b.removeAttribute("title");
+}
+
 /* ═══ 6. 버튼 ═══ */
 async function runOp(stepId, o){
   if(o.w && !confirm("["+o.t.replace(/^[①②③④⑤]\s*/,"")+"] 을(를) 실행합니다.\n계속할까요?")) return;
@@ -875,6 +911,7 @@ async function runOp(stepId, o){
       if(cnt===null && DONE_HINT[o.a]) html += "\n"+DONE_HINT[o.a];
       html += "\n("+nowHM()+")";
       setOut(stepId, cls, html);
+      opDone[o.a]=nowHM();                       /* ★v3.8 — 눌렀다는 자국 */
       if(o.a==="erpRefetch") erpWatchStart();   /* ★v3.2 — 이제부터 공유PC 를 지켜본다 */
     }
   }catch(e){
@@ -885,6 +922,7 @@ async function runOp(stepId, o){
       const st=STEPS.find(x=>x.id===b.dataset.step);
       const m=st && st.ops ? st.ops.find(x=>x.a===b.dataset.act) : null;
       if(!m){ b.disabled=false; return; }
+      opPaint(b,m);                                /* ★v3.8 */
       b.disabled = m.needs ? !(lastCount[m.needs]>0) : false;
     });
     erpApplyGate();                              /* ★v3.2 — 전부 푼 뒤에 다시 잠근다 */
