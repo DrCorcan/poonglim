@@ -7,7 +7,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.1   (2026-09-22)
+  operations/daily.html   v3.2   (2026-09-23)
+  ★v3.2 — ★[① ERP 자료 다시 받기] 가 «끝나는 시점»을 화면이 스스로 본다
+     대표님 (2026-09-23) — 「『끝났습니다』라고 표시되어 있으니 마치 이 세션이
+       끝난 것처럼 보여. 바로 2번을 누를 가능성 있음」
+     ⇒ ① 의 결과는 ★「시작했습니다」로 바뀜다 (끝난 것은 «깃발을 떨괴다»만이다)
+     ⇒ ★② ③ 는 회색으로 잠기고, 공유PC 가 다 받으면 ★저절로 풀린다
+     ⇒ ★시간을 세지 않는다. 서버 erpStatus 가 _erp_watch.txt 를 읽는다 (원칙 ㊗)
+     ⇒ ★새로고침해도 잠금이 그대로다. 화면은 아무것도 기억하지 않는다
+     ★되돌리기 = ⑤ 덩어리와 «★v3.2» 표시가 붙은 줄 넷을 지운다 (원칙 ㉑)
   ★v3.1 — ★[ERP 자료 다시 받기] 를 p07b 첫 자리에 넣었다
      2026-09-22 — 바탕화면 6번 bat 이 공유PC 의 파일을 「직접」 불러서
        ★실장님 PC 에서는 검은 창만 번쩍하고 닫혔다. 세 번 겪었다
@@ -249,7 +257,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.1</span>
+    <span class="today" style="opacity:.55">v3.2</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -431,7 +439,7 @@ const STEPS = [
      되돌리기 = ★이 덩어리 하나를 지운다 */
   {id:"p07b", t:"16:52", who:"s", person:true, title:"ERP 자료를 다시 받아 시트에 넣는다",
    where:"\uD83D\uDCCD 이 화면의 아래 버튼 셋 (열리지 않을 때만 \u2192 Z: \u25B8 발주서 관리 \u25B8 6_ERP자료_다시받기)",
-   d:"<b>\u2460 \u2192 \u2461 \u2192 \u2462 차례로</b> 누르십시오.<br><br><b>\u2460 을 누르면 공유PC 가 아마란스에서 다섯 화면을 다시 받아옵니다.</b> <b>2~3분 걸립니다.</b> 그동안 화면은 그대로 두셔도 되고 닫으셔도 됩니다.<br><b>\u2460 이 끝난 뒤에</b> \u2461 \u2462 를 누르십시오. 먼저 누르면 <b>어제 자료가 담깁니다.</b><br>\u2462 가 <b>「건너뜀」</b> 이라고 나오는 것은 <b>받아온 것이 없다</b>는 뜻입니다. 고장이 아닙니다.",
+   d:"<b>\u2460 \u2192 \u2461 \u2192 \u2462 차례로</b> 누르십시오.<br><br><b>\u2460 을 누르면 공유PC 가 아마란스에서 다섯 화면을 다시 받아옵니다.</b> <b>2~3분 걸립니다.</b><br><b>\u2605그동안 \u2461 \u2462 는 회색으로 잠깁니다.</b> 다 받으면 <b>\u2605저절로 풀립니다</b> \u2014 화면이 10초마다 공유PC 를 봅니다.<br>그동안 화면은 그대로 두셔도 되고 <b>닫았다 다시 여셔도 됩니다.</b> 다시 열어도 <b>잠금은 그대로</b>입니다.<br>\u2462 가 <b>「건너뜀」</b> 이라고 나오는 것은 <b>받아온 것이 없다</b>는 뜻입니다. 고장이 아닙니다.",
    ops:[{a:"erpRefetch", t:"\u2460 ERP 자료 다시 받기", w:true},
         {a:"tab96", t:"\u2461 주문현황 다시 담기", w:true},
         {a:"tab98", t:"\u2462 출고현황 다시 담기", w:true}],
@@ -520,6 +528,50 @@ const DONE_HINT = {              /* v2.1 ⑬ 돌려줄 값이 없는 둘 — 검
   markWhDone : "★오성창고업로드 폴더가 비었으면 제대로 된 것입니다.",
   markErpDone: "★ERP업로드 폴더가 비었으면 제대로 된 것입니다."
 };
+/* ═══ ⑤ ★v3.2 — ERP 자료 받기가 «끝났는가»를 화면이 스스로 본다 (2026-09-23) ═══
+   ★끝난 것은 «깃발을 떨괴 것»뿐이다. 일은 그때부터 2~3분이다.
+   ★시간을 세지 않는다 — 서버 erpStatus 가 공유PC 의 _erp_watch.txt 를 읽는다 (원칙 ㊗)
+   ★막는 쪽으로, 그러나 사람을 가두지 않는다 —
+     상태를 «못 물어보면» 잠그지 않는다 (서버가 아직 v2.2 여도 오늘과 똑같이 돌다) */
+const ERP_GATED = ["tab96","tab98"];          /* ① 이 끝나기 전에는 잠근다 */
+const ERP_STEP  = (STEPS.find(s=>s.ops && s.ops.some(o=>o.a==="erpRefetch"))||{}).id || "";
+let erpReady = true;                          /* ★기본은 «열림». 서버가 아니라고 할 때만 잠근다 */
+let erpTimer = null, erpTicks = 0;
+
+function erpApplyGate(){
+  ERP_GATED.forEach(a=>{ const b=document.getElementById("b-"+a); if(b) b.disabled = !erpReady; });
+}
+function erpBox(cls, 제목, 글){
+  if(!ERP_STEP) return;
+  setOut(ERP_STEP, cls, '<span class="big">\u2460 ERP 자료 다시 받기 — '+esc(제목)+"</span>"+esc(글)+"\n("+nowHM()+")");
+}
+async function erpPoll(보여줄까, 바쁠때만){
+  try{
+    const r = await call("erpStatus");
+    erpReady = (r["받기끝남"] !== false);
+    const bad = (r.상태==="멈췔음" || r.상태==="오래됨");
+    if(보여줄까 && (!바쁠때만 || !erpReady))
+      erpBox(erpReady ? (bad?"bad":"ok") : "busy", r.상태||"", r.한줄||"");
+  }catch(e){
+    erpReady = true;                          /* ★못 읽으면 «풀어 준다». 손을 묶지 않는다 */
+    if(보여줄까 && !바쁠때만)
+      erpBox("info","상태를 못 읽었습니다", e.message+"\n★그래도 ② ③ 는 눌러도 됩니다.");
+  }
+  erpApplyGate();
+  return erpReady;
+}
+function erpWatchStart(){
+  if(erpTimer){ clearInterval(erpTimer); erpTimer=null; }
+  erpReady = false; erpTicks = 0; erpApplyGate();
+  erpTimer = setInterval(async ()=>{
+    erpTicks++;
+    const 끝 = await erpPoll(ERP_STEP, false);
+    if(끝 || erpTicks > 90){ clearInterval(erpTimer); erpTimer=null; }   /* 15분이면 그만 본다 */
+  }, 10000);
+}
+/* ★① 의 결과 문구만 «시작했습니다»로. 나머지 버튼은 그대로 「끝났습니다」 */
+const DONE_WORD = { erpRefetch: " — ★시작했습니다" };
+
 function nowHM(){ const n=seoulNow(); return pad(n.getHours())+":"+pad(n.getMinutes()); }
 /* v2.1 ⑬ — 결과를 전역에 담아 두고, 화면을 다시 그린 «뒤»에도 그 자리에 도로 넣는다 */
 function setOut(stepId, cls, html){
@@ -576,6 +628,7 @@ function render(){
         b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
         if(o.needs) b.disabled = !(lastCount[o.needs] > 0);   /* v2.1 ⑰ */
+        if(ERP_GATED.indexOf(o.a) >= 0) b.disabled = !erpReady;   /* ★v3.2 */
         b.addEventListener("click",()=>runOp(s.id,o));
         bs.appendChild(b);
       });
@@ -658,7 +711,8 @@ function paint(st){
   render();
 }
 async function load(){ try{ paint(await call("dayGet")); }
-  catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message,"bad"); } }
+  catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message,"bad"); }
+  erpPoll(ERP_STEP, true); }   /* ★v3.2 — 열 때 한 번, 잠겨 있으면 그 이유를 그 자리에 적는다 */
 async function mark(s,on){                       /* v2.1 ⑨ — 화면 먼저, 서버 나중 */
   if(marking[s.id]) return;                      /* 두 번 눌러도 한 번만 간다 */
   marking[s.id]=1;
@@ -699,7 +753,7 @@ async function runOp(stepId, o){
       setOut(stepId,"bad",'<span class="big">'+esc(label)+" — ⛔ 멈췄습니다</span>"+esc(stop)+"\n("+nowHM()+")");
     }else{
       let html="", cls="ok";
-      html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : " — 끝났습니다")+"</span>";
+      html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : (DONE_WORD[o.a] || " — 끝났습니다"))+"</span>";   /* ★v3.2 */
       if(cnt!==null && Number(cnt)===0){ cls="info"; html+="⚠️ 담김이 0 입니다. ★만들지 않고 여기서 끝냅니다."; }
       if(ym)    html+="\n대상월 "+esc(ym);
       if(fname) html+="\n파일 "+esc(fname);
@@ -710,6 +764,7 @@ async function runOp(stepId, o){
       if(cnt===null && DONE_HINT[o.a]) html += "\n"+DONE_HINT[o.a];
       html += "\n("+nowHM()+")";
       setOut(stepId, cls, html);
+      if(o.a==="erpRefetch") erpWatchStart();   /* ★v3.2 — 이제부터 공유PC 를 지켜본다 */
     }
   }catch(e){
     setOut(stepId,"bad", esc("⛔ "+e.message)+"\n("+nowHM()+")");
@@ -720,6 +775,7 @@ async function runOp(stepId, o){
       if(!m){ b.disabled=false; return; }
       b.disabled = m.needs ? !(lastCount[m.needs]>0) : false;
     });
+    erpApplyGate();                              /* ★v3.2 — 전부 푼 뒤에 다시 잠근다 */
     load();
   }
 }
