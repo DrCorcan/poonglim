@@ -7,7 +7,14 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.4   (2026-09-23)
+  operations/daily.html   v3.5   (2026-09-23)
+  ★v3.5 — ★p04(5_송장회신)에도 «진행 과정»과 «완료»를 보여준다
+     대표님 (2026-09-23) — 「이 자리에도 진행 과정이 표시되고, 완료되면
+       완료되었다고 알려 줄 수 있는가?」
+     ⇒ 지금은 「10분까지는 기다리십시오」뿐이라 ★멈춘 건지 도는 건지 모른다
+     ⇒ 서버 invStatus 가 공유PC 가 남긴 두 자국을 읽는다 (요청 txt · 결과 txt)
+     ⇒ ★결과글의 「대상 N건 → 거래처 M곳」까지 그 자리에 보여준다
+     ★되돌리기 = ⑰ 덩어리와 «★v3.5» 표시가 붙은 줄 넷을 지운다
   ★v3.4 — ① 의 상태 제목을 «문장»으로 바꿈 (대표님 2026-09-23)
      「『끝남』이 아니라 『완료 되었습니다.』로. 바로 하단부에 『끝났습니다』가
        있으니까 중복되면 보기 흉해서」
@@ -272,7 +279,7 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.4</span>
+    <span class="today" style="opacity:.55">v3.5</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -414,7 +421,7 @@ const STEPS = [
 
   {id:"p04", t:"14:30", who:"s", person:true, title:"<code>5_송장회신_시작하기</code> 더블클릭",
    where:"\uD83D\uDCCD 공유PC  Z: \u25B8 발주서 관리 \u25B8 5_송장회신_시작하기_v5.bat",
-   d:"구글 드라이브가 동기화되어 있는지 확인한 뒤 누르십시오. 보통은 동기화되어 있습니다.<br>더블클릭한 뒤에는 기다리시면 됩니다. 이것 하나가 <b>사방넷을 다시 받고 → 원장에 넣고 → 거래처 송장번호 회신 파일까지</b> 만듭니다.<br><b>10분까지는 기다리십시오.</b>"},
+   d:"구글 드라이브가 동기화되어 있는지 확인한 뒤 누르십시오. 보통은 동기화되어 있습니다.<br>더블클릭한 뒤에는 기다리시면 됩니다. 이것 하나가 <b>사방넷을 다시 받고 → 원장에 넣고 → 거래처 송장번호 회신 파일까지</b> 만듭니다.<br><b>10분까지는 기다리십시오.</b><br>\u2605아래 <b>[송장회신 상태 보기]</b> 를 누르시면 <b>지금 어디까지 왔는지</b>와 <b>끝났는지</b>가 보입니다.", inv:true},
 
   {id:"p05", t:"14:40", who:"s", person:true, title:"거래처 송장회신 메일 발송",
    where:"\uD83D\uDCCD 구글 드라이브 \u25B8 거래처송장회신",
@@ -619,6 +626,36 @@ function busyStart(stepId, label, act){
   busyTimer = setInterval(draw, 1000);
 }
 
+/* ═══ ⑦ ★v3.5 — 5_송장회신 이 «어디까지 왔는가» (2026-09-23) ═══
+   ★공유PC 가 남기는 두 자국을 서버가 읽는다 — 요청 txt 와 결과 txt.
+   ★시간을 세지 않는다. 그리고 결과글의 «몇 건인지»까지 그 자리에 적는다 */
+const INV_STEP = (STEPS.find(s=>s.inv)||{}).id || "";
+let invTimer = null, invTicks = 0, invFirst = false, lastInv = null;
+
+function invBox(cls, 제목, 글){
+  lastInv = { cls: cls,
+              html: '<span class="big">송장회신 \u2014 '+esc(제목)+"</span>"+esc(글)+"\n("+nowHM()+")" };
+  const el = document.getElementById("out-inv-"+INV_STEP);
+  if(el){ el.className = "out "+lastInv.cls; el.innerHTML = lastInv.html; }
+}
+function invStop(){ if(invTimer){ clearInterval(invTimer); invTimer=null; } }
+async function invPoll(){
+  if(!INV_STEP) return;
+  try{
+    const r = await call("invStatus");
+    const busy = (r.상태 === "받고 있습니다");
+    const bad  = (r.상태 === "오래됨");
+    invBox(r.끝났나 ? "ok" : (bad ? "bad" : (busy ? "busy" : "info")), r.상태||"", r.한줄||"");
+    if(busy){
+      if(!invTimer){ invTicks=0;
+        invTimer = setInterval(()=>{ if(++invTicks > 120){ invStop(); return; } invPoll(); }, 10000); }
+    }else invStop();
+  }catch(e){
+    invBox("info", "상태를 못 읽었습니다", e.message+"\n★공유PC 에서 5번을 누르셨으면 그냥 기다리시면 됩니다.");
+    invStop();
+  }
+}
+
 function nowHM(){ const n=seoulNow(); return pad(n.getHours())+":"+pad(n.getMinutes()); }
 /* v2.1 ⑬ — 결과를 전역에 담아 두고, 화면을 다시 그린 «뒤»에도 그 자리에 도로 넣는다 */
 function setOut(stepId, cls, html){
@@ -685,6 +722,19 @@ function render(){
       if(lo){ out.className="out "+lo.cls; out.innerHTML=lo.html; }
       g.appendChild(out);
       bd.appendChild(g);
+    }
+
+    if(s.inv){                                   /* ★v3.5 */
+      const g=document.createElement("div"); g.className="ops";
+      const k=document.createElement("p"); k.className="ok"; k.textContent="여기서 봅니다"; g.appendChild(k);
+      const bs=document.createElement("div"); bs.className="opsbtns";
+      const b=document.createElement("button"); b.className="op read"; b.type="button";
+      b.textContent="송장회신 상태 보기";
+      b.addEventListener("click",()=>invPoll());
+      bs.appendChild(b); g.appendChild(bs);
+      const out=document.createElement("div"); out.className="out"; out.id="out-inv-"+s.id;
+      if(lastInv){ out.className="out "+lastInv.cls; out.innerHTML=lastInv.html; }
+      g.appendChild(out); bd.appendChild(g);
     }
 
     if(s.person){
@@ -759,7 +809,8 @@ function paint(st){
 }
 async function load(){ try{ paint(await call("dayGet")); }
   catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message,"bad"); }
-  erpPoll(ERP_STEP, true); }   /* ★v3.2 — 열 때 한 번, 잠겨 있으면 그 이유를 그 자리에 적는다 */
+  erpPoll(ERP_STEP, true);     /* ★v3.2 — 열 때 한 번, 잠겨 있으면 그 이유를 그 자리에 적는다 */
+  if(!invFirst){ invFirst=true; invPoll(); } }   /* ★v3.5 — 송장회신 상태도 «열 때 한 번» */
 async function mark(s,on){                       /* v2.1 ⑨ — 화면 먼저, 서버 나중 */
   if(marking[s.id]) return;                      /* 두 번 눌러도 한 번만 간다 */
   marking[s.id]=1;
