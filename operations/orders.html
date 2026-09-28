@@ -7,6 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>order 메일 수주 노선</title>
 <!--
+  operations/orders.html   v0.3   (2026-09-28)
+  v0.3 — 맨 아래 「Claude 에게 물어보기」 (daily.html 과 같은 dayAsk · 물음 앞에 [order] 를 붙여 order 물음임을 가른다)
+  operations/orders.html   v0.2   (2026-09-28)
+  v0.2 — paint(): 응답에 order 칸이 없으면 배너를 그대로 둔다 ([했습니다] 뒤 배너가 잠깐 사라지던 것 · 사무 자동화 요청)
   operations/orders.html   v0.1   (2026-09-27)
   order 메일 수주 자동화 프로젝트가 만든 «order 메일 전용» 노선도 (노선도 daily.html 의 별도 창)
   ★daily.html 과 같은 서버(웹앱) · 같은 접속코드 · 같은 [했습니다] 기록(daySet) 을 쓴다
@@ -105,6 +109,25 @@ button.undo{font-family:var(--sans);font-size:.78rem;cursor:pointer;background:n
 #gmsg{min-height:20px;margin-top:10px;font-size:.82rem;color:#fca5a5}
 button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset:2px}
 @media (max-width:560px){ .st{grid-template-columns:48px 26px 1fr} .st .tm{font-size:.72rem;padding-right:6px} .body{padding-left:11px} .today{margin-left:0} }
+
+/* v0.3 물어보기 — daily.html v3.0 과 같은 모양 · 같은 서버(dayAsk) */
+.ask{margin-top:30px;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:14px 18px}
+.ask h2{margin:0 0 6px;font-size:.95rem;font-weight:800}
+.ask .note{margin:0 0 10px;font-size:.78rem;color:var(--ink-2);line-height:1.55}
+.askrow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.askrow select,.askrow textarea{font-family:var(--sans);font-size:.85rem;padding:6px 9px;border:1px solid var(--line-2);border-radius:3px;background:var(--surface);color:var(--ink)}
+.askrow textarea{flex:1;min-width:230px;resize:vertical;line-height:1.5}
+.askrow button{font-family:var(--sans);font-size:.85rem;cursor:pointer;padding:7px 15px;border:1px solid var(--line-2);border-radius:3px;background:var(--surface-2);color:var(--ink)}
+.askrow button:hover{background:var(--line)}
+.out.ok{display:block;background:var(--done-bg);border:1px solid #bbf0cd;color:#14532d}
+.out.busy{display:block;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-3)}
+.qa{margin-top:12px;border-left:4px solid var(--ceo);background:var(--ceo-bg);border-radius:0 4px 4px 0;padding:10px 14px}
+.qa .wk{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;color:var(--ink-3)}
+.qa .row{padding:7px 0;border-top:1px solid var(--line)}
+.qa .row:first-child{border-top:0;padding-top:0}
+.qa .qq{margin:0;font-size:.84rem;line-height:1.55;white-space:pre-wrap}
+.qa .aa{margin:3px 0 0;font-size:.84rem;line-height:1.6;white-space:pre-wrap}
+.qa .wait{color:var(--ink-3)}
 </style>
 </head>
 <body>
@@ -120,7 +143,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 <div class="wrap">
   <header class="mast">
     <h1>order 메일 수주 노선</h1>
-    <span class="today" style="opacity:.55">v0.1</span>
+    <span class="today" style="opacity:.55">v0.3</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload" type="button">새로고침</button>
@@ -152,6 +175,28 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
     <div class="o"><b>O 통과</b><p>폴더에 있는 파일 = 올려도 되는 파일입니다.</p></div>
     <div class="t"><b>△ 확인 후 통과</b><p>배너에 적힌 것 하나만 보고 올립니다 (예: PFW-901 트레이 동봉 요청 없는지).</p></div>
     <div class="x"><b>X 막힘</b><p>폴더에 들어가지 않습니다. 배너에 거래처와 이유가 뜹니다 — 대표님께.</p></div>
+  </div>
+
+  <div class="ask">
+    <h2>Claude 에게 물어보기</h2>
+    <p class="note">order 발주서 · 올릴것 폴더 · 막힘 · 배너에서 모르는 것을 적어 주십시오.<br>
+      <b>급한 것은 대표님께 전화하십시오.</b> 답은 <b>다음 점검 때</b>(11:52 · 12:08 · 12:57 · 15:55) 바로 아래에 뜹니다.<br>
+      여기 적으신 글로 <b>무언가가 실행되지는 않습니다.</b> 읽고 답만 합니다. 하루 노선도의 물어보기와 같은 곳에 남습니다.</p>
+    <div class="askrow">
+      <select id="askwho">
+        <option value="">이름을 고르십시오</option>
+        <option>이실장님</option>
+        <option>이이사님</option>
+        <option>김부장님</option>
+      </select>
+      <textarea id="askq" rows="2" maxlength="280" placeholder="예) 올릴것 폴더에 파일이 안 생겼는데 기다려야 하나요?"></textarea>
+      <button id="askbtn" type="button">보내기</button>
+    </div>
+    <div class="out" id="askout"></div>
+    <div class="qa" id="qa" hidden>
+      <span class="wk">물음과 답 — 최근 다섯</span>
+      <div id="qav"></div>
+    </div>
   </div>
 
   <footer class="foot">
@@ -208,6 +253,7 @@ async function call(action, extra){
 function seoulNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Seoul"})); }
 function pad(n){ return (n<10?"0":"")+n; }
 function nowHM(){ const n=seoulNow(); return pad(n.getHours())+":"+pad(n.getMinutes()); }
+function esc(x){ return String(x==null?"":x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function top_(m){ const el=document.getElementById("topOut"); el.className="out bad"; el.textContent=m; }
 
 function render(){
@@ -252,6 +298,8 @@ function render(){
 }
 function paint(st){
   state = st.steps || {};
+  /* v0.2 — order 칸이 없는 응답(daySet 등)이 오면 배너를 그대로 둔다 (노선도 v3.12 와 같이) */
+  if("order" in st){
   const o = st.order || null, b=document.getElementById("banner"), bv=document.getElementById("bannerv");
   if(o && (o.line || o.claude || o.watchStale)){
     const parts=[];
@@ -261,6 +309,21 @@ function paint(st){
     const t=parts.join("\n");
     bv.textContent=t; b.className="banner"+((o.watchStale||o.claude||/[⚠⛔]/.test(t))?" bad":""); b.hidden=false;
   } else { b.hidden=true; }
+  }
+  /* v0.3 물음과 답 — qa 칸이 있는 응답에서만 다시 그린다 */
+  if("qa" in st){
+    const q=document.getElementById("qa"), qv=document.getElementById("qav");
+    const arr = Array.isArray(st.qa) ? st.qa : [];
+    if(arr.length){
+      qv.innerHTML = arr.map(r=>{
+        const 답=(r["답"]||"").toString().trim();
+        return '<div class="row"><p class="qq"><b>#'+esc(r["번호"])+" "+esc(r["이름"])+"</b>  "+esc(r["날짜"])+"<br>"+esc(r["물음"])+"</p>"
+             + (답 ? '<p class="aa">↳ '+esc(답)+"</p>" : '<p class="aa wait">↳ 답을 기다리는 중입니다 — 다음 점검 때 옵니다</p>')+"</div>";
+      }).join("");
+      q.hidden=false;
+    } else if((st.qa||"").toString().trim()){ qv.textContent=(st.qa||"").toString().trim(); q.hidden=false; }
+    else q.hidden=true;
+  }
   render();
 }
 async function load(){ try{ paint(await call("dayGet")); } catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message); } }
@@ -274,6 +337,24 @@ async function mark(s,on){
   catch(e){ if(prev) state[s.id]=prev; else delete state[s.id]; top_("저장하지 못했습니다 — "+e.message); }
   finally{ delete marking[s.id]; render(); }
 }
+const WHO_KEY='poonglim_ask_who';   /* daily.html 과 같은 키 — 고른 이름을 기억 */
+(function(){ try{ const el=document.getElementById("askwho"), w=localStorage.getItem(WHO_KEY)||"";
+  if(w && Array.prototype.some.call(el.options,o=>o.value===w||o.text===w)) el.value=w; }catch(e){} })();
+document.getElementById("askbtn").addEventListener("click", async ()=>{
+  const who=document.getElementById("askwho").value.trim();
+  const q=document.getElementById("askq").value.trim();
+  const el=document.getElementById("askout");
+  if(!who){ el.className="out bad"; el.textContent="이름을 고르십시오."; return; }
+  if(!q){ el.className="out bad"; el.textContent="물으실 내용을 적어 주십시오."; return; }
+  try{ localStorage.setItem(WHO_KEY,who); }catch(e){}
+  el.className="out busy"; el.textContent="보내는 중…";
+  try{
+    await call("dayAsk",{who:who, q:"[order] "+q});
+    el.className="out ok"; el.textContent="✅ 남겼습니다. 답은 바로 아래에 뜹니다 — 다음 점검 때입니다. ("+nowHM()+")";
+    document.getElementById("askq").value="";
+    load();
+  }catch(e){ el.className="out bad"; el.textContent="⛔ "+e.message+" ("+nowHM()+")"; }
+});
 document.getElementById("btnReload").addEventListener("click", load);
 document.getElementById("gbtn").addEventListener("click", enter);
 document.getElementById("gcode").addEventListener("keydown", e=>{ if(e.key==="Enter") enter(); });
