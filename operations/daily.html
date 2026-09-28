@@ -7,7 +7,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.17   (2026-09-28)
+  operations/daily.html   v3.19   (2026-09-28)
+  ★v3.19 — 물어보기 안내: 하루 다섯 번(12:00 추가) · 사진·파일은 G드라이브 ▸ 물음_첨부 에 «번호_» 로 (대표님 2026-09-28)
+     되돌리기 = 물어보기 note 두 줄 · scratchpad daily_v3.18.html
+  ★v3.18 — p02(13:25 NY창고 업로드 완료) 위에 «먼저 할 것» 상자 (must · 크고 두껍고 색)
+     사방넷 물류처=엔와이국제물류 조회 → 신규주문 → 주문확인 (송장은 주문확인에서만 입력된다)
+     되돌리기 = must 한 줄 · .must CSS 두 줄 · 그리기 한 줄을 지운다
   ★v3.17 — ★12:10 사방넷 1차를 없애고 13:00 한 판으로 합쳤다 (대표님 2026-09-28)
      공유PC 작업 SabangDownload_1235 = Disabled · 워처 v33b (윈세이 12:10 → 13:00)
      a01(12:10) · a02(12:11) 을 뺐다 · p11 을 12:15 → 13:10 · a04 제목에 윈세이 · o02 주의문
@@ -135,7 +140,7 @@
   ★v2.8 — ★물어보기 자리를 만들었다 (대표님 요청)
      묻는 것 → ★풍림_노선도기록 89탭에 한 줄 (Claude 가 읽는다)
      답하는 것 → ★드라이브 자동화_로그 ▸ _답변.txt (Claude 가 쓴다)
-     ⇒ ★답은 «늦다». 점검이 돌 때(하루 네 번) 답한다. 급한 것은 대표님께
+     ⇒ ★답은 «늦다». 점검이 돌 때(하루 다섯 번 · v3.19) 답한다. 급한 것은 대표님께
      ⇒ 되돌리기 = ★.ask CSS · .ask div · paint 의 네 줄 · 보내기 핸들러를 지운다
   ★v2.7 — ④ 가 «회색일 때» 무슨 뜻인지를 ★그 자리에서 말한다
      2026-09-22 — 대표님이 「③ 을 하면 ④ 가 열리는가?」 하고 물으셨다.
@@ -273,6 +278,9 @@ body{margin:0;background:var(--ground);color:var(--ink);
 .dsc{margin:5px 0 0;font-size:.84rem;color:var(--ink-2);line-height:1.55}
 .dsc code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
 .wn{margin:6px 0 0;font-size:.82rem;color:var(--warn);border-left:2px solid var(--warn);padding-left:10px;line-height:1.55}
+/* v3.18 — 누르기 «전»에 꼭 해야 하는 것. 크고 두껍고 색 있게 (대표님 2026-09-28) */
+.must{margin:10px 0 4px;font-size:1.05rem;font-weight:800;color:var(--warn);border:2px solid var(--warn);border-radius:4px;padding:10px 12px;line-height:1.6}
+.must small{display:block;margin-top:4px;font-size:.84rem;font-weight:600}
 .where{display:inline-block;margin:7px 0 0;font-size:.79rem;color:#0f766e;background:#f0fdfa;
   border:1px solid #99f6e4;border-radius:3px;padding:3px 9px;line-height:1.5}
 
@@ -363,7 +371,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.17</span>
+    <span class="today" style="opacity:.55">v3.19</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -404,7 +412,7 @@ button.op.pressed[disabled]{opacity:.55}
   <div class="ask">
     <h2>Claude 에게 물어보기</h2>
     <p class="note">막히신 자리 · 이상한 숫자 · 고쳤으면 하는 것을 적어 주십시오.<br>
-      <b>급한 것은 대표님께 전화하십시오.</b> 여기 적으신 것은 <b>다음 점검 때</b> 답이 옵니다 (하루 네 번). <b>답은 바로 아래에 뜹니다.</b><br>
+      <b>급한 것은 대표님께 전화하십시오.</b> 여기 적으신 것은 <b>다음 점검 때</b> 답이 옵니다 (하루 다섯 번 — 09:30 · 12:00 · 14:15 · 15:45 · 17:30). <b>답은 바로 아래에 뜹니다.</b><br><b style="color:var(--warn)">사진·파일이 있으면</b> — 보낸 뒤 아래에 뜨는 <b>번호(#3 등)</b>를 파일 이름 앞에 붙여 <b>G드라이브 ▸ 물음_첨부</b> 에 넣으십시오 (예: <b>3_화면.png</b>). 물음 끝에는 「사진 있음」이라고 적어 주십시오.<br>
       여기 적으신 글로 <b>무언가가 실행되지는 않습니다.</b> 읽고 답만 합니다.</p>
     <div class="askrow">
       <select id="askwho">
@@ -512,6 +520,8 @@ const STEPS = [
    d:"파일 이름은 <code>주문서_NY물류_풍림전자주_오늘날짜.xlsx</code> 입니다. 이 파일을 내려받아 NY물류 전산에 올리십시오.<br><br><b>NY 주문서는 13:00 까지 사방넷에 들어온 주문 중 「신규주문」·「주문확인」 상태인 것만 담습니다.</b><br>그래서 빠지는 것이 둘 있고, 둘 다 정상입니다. 대응이 서로 다릅니다 \u2014<br>① 13:00 뒤에 들어온 주문 \u21D2 <b>손으로 넣으십시오</b><br>② 이미 「출고대기」로 넘어간 주문 \u21D2 <b>이미 넣으신 것입니다. 그냥 두십시오</b><br><b>「빠졌다」가 늘 사고는 아닙니다. 어느 쪽인지만 가리면 됩니다.</b>"},
 
   {id:"p02", t:"13:25", who:"s", person:true, title:"NY창고 업로드 완료 처리",
+   must:"\u26A0\uFE0F 누르기 전에 먼저 — 사방넷에서 <u>물류처를 「엔와이국제물류」로 골라 조회</u>하고, 나온 주문을 <u>「신규주문」 → 「주문확인」으로 모두 바꿔</u> 놓으십시오."
+        +"<small>송장은 「주문확인」 상태에서만 입력됩니다. 안 바꾸면 오후에 송장을 올릴 때 오류가 납니다.</small>",
    d:"NY물류에 올리셨으면 아래 버튼을 누르십시오. 원장이 정리되고 파일이 옮겨집니다.",
    ops:[{a:"markWhDone", t:"창고 업로드 완료 처리", w:true}],
    warn:"<b>G드라이브</b>의 폴더와 버튼 이름이 「오성창고」인 것은 옛 이름입니다. 창고는 NY물류로 옮겼지만 이름은 그대로 씁니다. 같은 것입니다."},
@@ -815,6 +825,7 @@ function render(){
     bd.appendChild(h);
 
     if(s.where){ const p=document.createElement("div"); p.className="where"; p.textContent=s.where; bd.appendChild(p); }
+    if(s.must){ const p=document.createElement("p"); p.className="must"; p.innerHTML=s.must; bd.appendChild(p); }
     if(s.d){ const p=document.createElement("p"); p.className="dsc"; p.innerHTML=s.d; bd.appendChild(p); }
     if(s.warn){ const p=document.createElement("p"); p.className="wn"; p.innerHTML=s.warn; bd.appendChild(p); }
 
