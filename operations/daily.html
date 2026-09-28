@@ -7,6 +7,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.12   (2026-09-27)
+  ★v3.12 — ★order 메일 수주 네 역 + 「order 메일」 배너 (메일 프로젝트 인수 메모 18 · 5-B · 5-C)
+     o01(11:30 자동) · o02(12:05) · o03(12:58) · o04(15:35) — step id 가 orders.html 과 같다 ⇒ 어느 쪽에서 눌러도 같은 기록
+     배너 — 서버 dayGet 의 order 칸(25_order배너.gs)이 있을 때만 보인다. 없으면 숨는다 (화면 먼저 · 원칙 ㊶)
+       ⇒ daySet 응답에는 order 칸이 없다 ⇒ ★그때는 배너를 «그대로 둔다» (지우지 않는다 · B114)
+     ★되돌리기 = o01~o04 네 덩어리 · #orderBan div · paint 의 order 덩어리를 지운다 (daily_v3.11.html 이 그 판이다)
   operations/daily.html   v3.11   (2026-09-27)
   ★v3.11 — ★늦은 송장 회신 (대표님 2026-09-27)
      p05 warn 끝에 「늦게 들어온 송장이 있으면 5번을 한 번 더」 한 줄
@@ -331,7 +337,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.11</span>
+    <span class="today" style="opacity:.55">v3.12</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -344,6 +350,12 @@ button.op.pressed[disabled]{opacity:.55}
   <div class="watch" id="watch" style="display:none">
     <span class="wk">자동 점검</span>
     <p class="wv" id="watchv"></p>
+  </div>
+
+  <!-- v3.12 order 메일 배너 — 서버가 order 칸을 안 주면 저절로 숨는다 -->
+  <div class="watch" id="orderBan" style="display:none">
+    <span class="wk">order 메일</span>
+    <p class="wv" id="orderBanv" style="white-space:pre-wrap"></p>
   </div>
 
   <div class="next" id="next">
@@ -427,6 +439,26 @@ const CODE_KEY = 'poonglim_sales_code';   /* ★sales.html · suppliers.html 과
 
 /* ═══ 1. 노선 — ★2026-09-16 판 그대로. ops 만 더했다 ═══ */
 const STEPS = [
+  /* ★v3.12 (order 메일 수주 자동화 · 인수 메모 18) — 되돌리기 = o01~o04 네 덩어리를 지운다 */
+  {id:"o01", t:"11:30", who:"a", title:"order 메일 발주서가 사방넷 입력본으로 저절로 만들어진다",
+   where:"\uD83D\uDCCD 구글 드라이브 \u25B8 풍림전자_매출관리원장 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
+   d:"11:30 에 그때까지 온 발주서를 <b>한꺼번에</b> 바꿔 <b>몇 분 안에</b> 이 폴더에 넣습니다. 11:45 \u00B7 12:03 \u00B7 12:50 \u00B7 13:30~15:30(30분마다) 에는 <b>새로 온 것만</b> 더해집니다.<br>폴더에는 <b>올려도 되는 파일(O \u00B7 \u25B3)만</b> 들어갑니다.<br><a href='orders.html' target='_blank' rel='noopener'>\u25B6 order 노선 열기</a>"},
+
+  {id:"o02", t:"12:05", who:"s", person:true, title:"order 발주서 1차 \u2014 올릴것의 파일을 사방넷에 올린다",
+   where:"\uD83D\uDCCD 구글 드라이브 \u25B8 풍림전자_매출관리원장 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
+   d:"파일이 보이면 <b>바로</b> 올리십시오. 배너에 <b>\u25B3 확인</b>이 있으면 그것 하나만 보고 올립니다.",
+   warn:"12:10 사방넷 1차 수집 \u2014 윈세이 발주가 이 판으로 나갑니다. 배너에 <b>\u26D4 막힘</b>이 뜨면 그 거래처는 올리지 말고 대표님께."},
+
+  {id:"o03", t:"12:58", who:"s", person:true, title:"order 발주서 2차 \u2014 새로 생긴 파일을 사방넷에 올린다",
+   where:"\uD83D\uDCCD 구글 드라이브 \u25B8 풍림전자_매출관리원장 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
+   d:"1차 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
+   warn:"13:00 사방넷 2차 수집 \u2014 그날 NY 주문서 \u00B7 영업 마감."},
+
+  {id:"o04", t:"15:35", who:"s", person:true, title:"order 발주서 늦은 것 \u2014 오후에 생긴 파일을 사방넷에 올린다",
+   where:"\uD83D\uDCCD 구글 드라이브 \u25B8 풍림전자_매출관리원장 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
+   d:"12:58 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
+   warn:"15:40 사방넷 3차 수집 \u2014 그날의 마지막 판."},
+
   {id:"a01", t:"12:10", who:"a", title:"사방넷 1차 내려받기",
    d:"받은 판은 <b>매입에만</b> 갑니다. 이 판으로 <b>윈세이 발주서</b>를 만듭니다."},
 
@@ -854,6 +886,20 @@ function paint(st){
   const _t=(st.watch||"").toString().trim();
   if(_t){ _wv.textContent=_t; _w.className="watch"+(/[⚠⛔]/.test(_t)?" bad":""); _w.style.display="flex"; }
   else  { _w.style.display="none"; }
+  /* ★v3.12 — order 메일 한 줄. dayGet 만 order 칸을 준다 ⇒ 칸이 «없는» 응답(daySet)에는 배너를 그대로 둔다 */
+  if(Object.prototype.hasOwnProperty.call(st,"order")){
+    const _ob=document.getElementById("orderBan"), _obv=document.getElementById("orderBanv");
+    const _o=st.order||null, _parts=[];
+    if(_o && _o.watchStale) _parts.push("\u26D4 공유PC 감시 멈춤 \u2014 대표님이 공유PC 에서 감시_시작.bat");
+    if(_o && _o.line) _parts.push(String(_o.line));
+    if(_o && _o.claude) _parts.push("Claude: "+String(_o.claude));
+    if(_parts.length){
+      const _ot=_parts.join("\n");
+      _obv.textContent=_ot;
+      _ob.className="watch"+((_o.watchStale||_o.claude||/[\u26A0\u26D4]/.test(_ot))?" bad":"");
+      _ob.style.display="flex";
+    } else { _ob.style.display="none"; }
+  }
   /* v3.0 — 물음과 답을 «짝»으로 그린다. 서버가 안 주면 숨긴다 (막는 쪽으로 · 원칙 ⑩) */
   const _q=document.getElementById("qa"), _qv=document.getElementById("qav");
   const _arr = Array.isArray(st.qa) ? st.qa : [];
