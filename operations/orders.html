@@ -7,6 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>order 메일 수주 노선</title>
 <!--
+  operations/orders.html   v0.5   (2026-09-28)
+  v0.5 — 올릴것 폴더 버튼 삭제 (G드라이브로 연다) · o02 주의문 삭제 · Claude 점검 12:45 · 회차 12:40 추가 (대표님). 되돌리기 = v0.4
+  operations/orders.html   v0.4   (2026-09-28)
+  v0.4 — 12:10 사방넷 수집이 없어졌다 (대표님 · daily v3.17). o02 · o03 · o04 주의문, Claude 점검 역 12:08 → 12:57. 되돌리기 = v0.3
   operations/orders.html   v0.3   (2026-09-28)
   v0.3 — 맨 아래 「Claude 에게 물어보기」 (daily.html 과 같은 dayAsk · 물음 앞에 [order] 를 붙여 order 물음임을 가른다)
   operations/orders.html   v0.2   (2026-09-28)
@@ -143,7 +147,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 <div class="wrap">
   <header class="mast">
     <h1>order 메일 수주 노선</h1>
-    <span class="today" style="opacity:.55">v0.3</span>
+    <span class="today" style="opacity:.55">v0.5</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload" type="button">새로고침</button>
@@ -163,10 +167,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
     <p class="d" id="nextd"></p>
   </div>
 
-  <div class="folder">
-    <a href="https://drive.google.com/drive/folders/197Pldj3WGdxPua9pq45PeVrgFH2fDetm" target="_blank" rel="noopener">▶ 올릴것 폴더 열기</a>
-    <span>구글 드라이브 ▸ 풍림전자_매출관리원장 ▸ order메일_검토 ▸ 올릴것 ▸ 오늘 날짜</span>
-  </div>
 
   <div class="out" id="topOut"></div>
   <div class="linebox" id="linebox"></div>
@@ -180,7 +180,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
   <div class="ask">
     <h2>Claude 에게 물어보기</h2>
     <p class="note">order 발주서 · 올릴것 폴더 · 막힘 · 배너에서 모르는 것을 적어 주십시오.<br>
-      <b>급한 것은 대표님께 전화하십시오.</b> 답은 <b>다음 점검 때</b>(11:52 · 12:08 · 12:57 · 15:55) 바로 아래에 뜹니다.<br>
+      <b>급한 것은 대표님께 전화하십시오.</b> 답은 <b>다음 점검 때</b>(11:52 · 12:08 · 12:45 · 15:55) 바로 아래에 뜹니다.<br>
       여기 적으신 글로 <b>무언가가 실행되지는 않습니다.</b> 읽고 답만 합니다. 하루 노선도의 물어보기와 같은 곳에 남습니다.</p>
     <div class="askrow">
       <select id="askwho">
@@ -217,18 +217,18 @@ const STEPS = [
   {id:"o00", t:"전날", who:"a", title:"어제 늦게 온 발주는 오늘 11:30 에 함께",
    d:"어제 15:00 이후 온 발주 메일은 오늘 11:30 회차가 같이 처리합니다. <b>손으로 따로 올리지 마십시오</b> — 두 번 올라갑니다."},
   {id:"o01", t:"11:30", who:"a", title:"그때까지 온 발주서가 사방넷 입력본으로 저절로 만들어진다",
-   d:"<b>몇 분 안에</b> 올릴것 폴더에 파일이 생깁니다. 폴더에는 <b>올려도 되는 파일(O · △)만</b> 들어갑니다.<br>11:45 · 12:03 · 12:50 · 13:30~15:30(30분마다)에는 <b>새로 온 것만</b> 더해집니다."},
+   d:"<b>몇 분 안에</b> 올릴것 폴더에 파일이 생깁니다. 폴더에는 <b>올려도 되는 파일(O · △)만</b> 들어갑니다.<br>11:45 · 12:03 · 12:40 · 12:50 · 13:30~15:30(30분마다)에는 <b>새로 온 것만</b> 더해집니다."},
   {id:"o02", t:"12:05", who:"s", person:true, title:"1차 — 올릴것의 파일을 사방넷에 올린다",
-   d:"파일이 보이면 <b>바로</b> 올리십시오. 기다릴 것 없습니다. 배너에 △ 확인이 있으면 그것 하나만 보고 올립니다.",
-   warn:"12:10 사방넷 1차 수집 — 윈세이 발주가 이 판으로 나갑니다."},
-  {id:"c1", t:"12:08", who:"c", title:"Claude 점검 — 문제가 있으면 맨 위 배너에",
-   d:"막힘이 남아 있으면 「12:10 마감 전 — 올리지 말 것」이 배너에 뜹니다. 없으면 아무것도 뜨지 않습니다."},
+   d:"📍 G드라이브 ▸ order메일_검토 ▸ 올릴것 ▸ 오늘 날짜<br>파일이 보이면 <b>바로</b> 올리십시오. 기다릴 것 없습니다. 배너에 △ 확인이 있으면 그것 하나만 보고 올립니다."
+},
+  {id:"c1", t:"12:45", who:"c", title:"Claude 점검 — 문제가 있으면 맨 위 배너에",
+   d:"막힘이 남아 있으면 「13:00 마감 전 — 올리지 말 것」이 배너에 뜹니다. 없으면 아무것도 뜨지 않습니다."},
   {id:"o03", t:"12:58", who:"s", person:true, title:"2차 — 새로 생긴 파일을 사방넷에 올린다",
    d:"1차 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
-   warn:"13:00 사방넷 2차 수집 — 그날 NY 주문서 · 영업 마감."},
+   warn:"13:00 사방넷 수집 — 그날 NY 주문서 · 윈세이·스타리온·캐리어 발주 · 영업 마감."},
   {id:"o04", t:"15:35", who:"s", person:true, title:"늦은 것 — 오후에 생긴 파일을 사방넷에 올린다",
    d:"12:58 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
-   warn:"15:40 사방넷 3차 수집 — 그날의 마지막 판."},
+   warn:"15:40 사방넷 2차 수집 — 그날의 마지막 판."},
   {id:"c2", t:"15:55", who:"c", title:"Claude 하루 정리",
    d:"표를 고치면 없어질 막힘이 있으면 대표님께 수정안을 올립니다."}
 ];
@@ -294,7 +294,7 @@ function render(){
   const doneN=PERSON.filter(s=>state[s.id]).length;
   if(weekend){ nbox.classList.add("allclear"); nv.textContent="오늘은 주말입니다"; nd2.textContent=""; }
   else if(!nx){ nbox.classList.add("allclear"); nv.textContent="오늘 order 발주서 올리기는 다 끝났습니다"; nd2.textContent=doneN+" / "+PERSON.length+" 마침"; }
-  else{ nbox.classList.remove("allclear"); nv.innerHTML=nx.t+"  "+nx.title; nd2.textContent=doneN+" / "+PERSON.length+" 마침 · 올릴것 폴더를 여십시오"; }
+  else{ nbox.classList.remove("allclear"); nv.innerHTML=nx.t+"  "+nx.title; nd2.textContent=doneN+" / "+PERSON.length+" 마침 · G드라이브 ▸ order메일_검토 ▸ 올릴것"; }
 }
 function paint(st){
   state = st.steps || {};
