@@ -7,6 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.20   (2026-09-30)
+  ★v3.20 — 입고 «대상월» 칸의 흐린 글씨를 «이번 달»로 (미결 536 · 10/1 부터 2026-10 이 보인다)
+             서버는 v2.7 부터 이미 «비우면 이번 달»이다 (23_daily_ops DAY_receipt_). 화면만 고쳤다
+
   operations/daily.html   v3.19   (2026-09-28)
   ★v3.19 — 물어보기 안내: 하루 다섯 번(12:00 추가) · 사진·파일은 G드라이브 ▸ 물음_첨부 에 «번호_» 로 (대표님 2026-09-28)
      되돌리기 = 물어보기 note 두 줄 · scratchpad daily_v3.18.html
@@ -371,7 +375,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.19</span>
+    <span class="today" style="opacity:.55">v3.20</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -838,7 +842,9 @@ function render(){
           lb.style.cssText="font-size:.8rem;color:var(--ink-3)"; lb.textContent="대상월";
           bs.appendChild(lb);
           const inp=document.createElement("input"); inp.type="text"; inp.id="ym-"+s.id;
-          inp.placeholder="2026-09"; bs.appendChild(inp); }
+          inp.placeholder=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit"}).format(new Date()).slice(0,7);  /* ★v3.20 이번 달 (536) */
+          inp.title="비워 두면 이번 달로 봅니다"; bs.appendChild(inp);
+          const hn=document.createElement("span"); hn.style.cssText="font-size:.75rem;color:var(--ink-3)"; hn.textContent="(비워 두면 이번 달)"; bs.appendChild(hn); }
         const b=document.createElement("button");
         b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
