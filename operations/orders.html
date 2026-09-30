@@ -7,6 +7,10 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>order 메일 수주 노선</title>
 <!--
+  operations/orders.html   v0.7   (2026-09-30)
+  v0.7 — daily.html v3.21 에서 order 배너·역이 빠짐 (사무 편지 9/30 11:41): 여기가 중계의 유일한 자리. 감시 멈춤을 맨 위 큰 빨간 칸으로 · 「전날」 역 id o00 → oy (daily 의 새 o00 과 겹치지 않게) · 문구를 표 기준으로 · [했습니다] 는 이 화면만의 기록. 되돌리기 = v0.6
+  operations/orders.html   v0.6   (2026-09-30)
+  v0.6 — 배너 아래 「오늘 중계」 표 (통과 · 이상 가나다순 · CS 따로 · 오늘 메일 합계). 서버 dayGet 의 order.today 가 있을 때만 보인다. 되돌리기 = v0.5
   operations/orders.html   v0.5   (2026-09-28)
   v0.5 — 올릴것 폴더 버튼 삭제 (G드라이브로 연다) · o02 주의문 삭제 · Claude 점검 12:45 · 회차 12:40 추가 (대표님). 되돌리기 = v0.4
   operations/orders.html   v0.4   (2026-09-28)
@@ -132,6 +136,35 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 .qa .qq{margin:0;font-size:.84rem;line-height:1.55;white-space:pre-wrap}
 .qa .aa{margin:3px 0 0;font-size:.84rem;line-height:1.6;white-space:pre-wrap}
 .qa .wait{color:var(--ink-3)}
+.stale{margin-top:16px;border:2px solid var(--warn);border-radius:4px;background:var(--warn-bg);padding:16px 18px}
+.stale b{display:block;font-size:1.15rem;font-weight:900;color:var(--warn);line-height:1.35}
+.stale p{margin:6px 0 0;font-size:.9rem}
+/* v0.6 오늘 중계 — 서버 dayGet 의 order.today 가 있을 때만 보인다 */
+.relay{margin-top:14px;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:16px 18px}
+.relay .rh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.relay .rh b{font-size:1.02rem;font-weight:900}
+.relay .rh span{font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:14px}
+.tile{border:1px solid var(--line);border-radius:4px;padding:9px 12px;background:var(--ground)}
+.tile .n{font-size:1.5rem;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile .l{font-size:.74rem;color:var(--ink-2);margin-top:2px}
+.tile.bad{border-color:var(--warn);background:var(--warn-bg)} .tile.bad .n{color:var(--warn)}
+.tile.good .n{color:var(--done)}
+.relay h3{font-size:.86rem;font-weight:700;margin:16px 0 6px;display:flex;gap:8px;align-items:baseline}
+.relay h3 small{font-weight:500;color:var(--ink-3);font-size:.74rem}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.relay table{width:100%;border-collapse:collapse;font-size:.83rem}
+.relay th{text-align:left;font-weight:500;color:var(--ink-3);font-size:.72rem;border-bottom:1px solid var(--line-2);padding:5px 8px;white-space:nowrap}
+.relay td{border-bottom:1px solid var(--line);padding:6px 8px;vertical-align:top}
+.relay td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.relay td.t{font-family:var(--mono);font-size:.76rem;color:var(--ink-2);white-space:nowrap}
+.relay td.v{font-weight:700;white-space:nowrap}
+.pill{display:inline-block;white-space:nowrap;min-width:1.6em;text-align:center;border-radius:3px;padding:0 6px;font-weight:700;font-size:.78rem}
+.pill.o{background:var(--done-bg);color:var(--done)} .pill.t{background:var(--sil-bg);color:var(--sil)}
+.pill.x{background:var(--warn-bg);color:var(--warn)} .pill.ok{background:var(--surface-2);color:var(--ink-3)}
+.relay .none{color:var(--ink-3);font-size:.82rem;margin:2px 0 0}
+.relay .foot{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink-2)}
+.relay .foot b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -147,19 +180,27 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 <div class="wrap">
   <header class="mast">
     <h1>order 메일 수주 노선</h1>
-    <span class="today" style="opacity:.55">v0.5</span>
+    <span class="today" style="opacity:.55">v0.7</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload" type="button">새로고침</button>
-      <a href="daily.html">◀ 하루 노선도</a>
+      <a href="https://ops.corcan.co.kr/operations/daily.html">◀ 하루 노선도</a>
     </div>
   </header>
 
+  <!-- v0.7 공유PC 감시 멈춤 — daily.html 에서 빠져 여기서만 보인다 -->
+  <div class="stale" id="stale" hidden>
+    <b>⛔ 공유PC 감시가 멈췄습니다 — 발주서가 자동으로 만들어지지 않습니다</b>
+    <p>대표님께 바로 알려 주십시오. (대표님: 공유PC ▸ 매출 수주메일 ▸ 감시_시작.bat) · 그동안 온 발주는 올릴것 폴더에 생기지 않습니다.</p>
+  </div>
   <!-- 서버가 order 필드를 줄 때만 보인다 -->
   <div class="banner" id="banner" hidden>
     <span class="wk">order 메일</span>
     <p class="wv" id="bannerv"></p>
   </div>
+
+  <!-- v0.6 오늘 중계 (서버가 order.today 를 줄 때만) -->
+  <section class="relay" id="relay" hidden></section>
 
   <div class="next" id="next">
     <p class="k">지금 할 일</p>
@@ -173,8 +214,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 
   <div class="jd">
     <div class="o"><b>O 통과</b><p>폴더에 있는 파일 = 올려도 되는 파일입니다.</p></div>
-    <div class="t"><b>△ 확인 후 통과</b><p>배너에 적힌 것 하나만 보고 올립니다 (예: PFW-901 트레이 동봉 요청 없는지).</p></div>
-    <div class="x"><b>X 막힘</b><p>폴더에 들어가지 않습니다. 배너에 거래처와 이유가 뜹니다 — 대표님께.</p></div>
+    <div class="t"><b>△ 확인 후 통과</b><p>「오늘 중계」 표의 「확인할 것」 하나만 보고 올립니다 (예: PFW-901 트레이 동봉 요청 없는지).</p></div>
+    <div class="x"><b>X 막힘</b><p>폴더에 들어가지 않습니다. 「이상」 표에 거래처 · 이유 · 볼 곳이 뜹니다 — 대표님께.</p></div>
   </div>
 
   <div class="ask">
@@ -201,9 +242,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 
   <footer class="foot">
     <p><b>메일함은 읽기만 합니다.</b> 읽음 표시도 바꾸지 않습니다. 발주 메일을 확인하러 들어가 열어 보시는 것은 괜찮습니다.</p>
-    <p><b>사람이 볼 것</b> — 케이앤씨 · 에드가 · 투엘커머스 · 에버리테일 · 우민 · 더진, 엑셀 없는 본문 발주, 「취소」 메일은 기계가 바꾸지 않습니다. 예전처럼 사람이 처리합니다.</p>
+    <p><b>사람이 볼 것</b> — 케이앤씨 · 더진엠씨(정나래) · 아이티프렌즈 법인, 엑셀 없는 본문 발주, 「취소」 메일, CS 메일은 기계가 바꾸지 않습니다. 예전처럼 사람이 처리합니다.</p>
     <p><b>막히면</b> — 무엇을 보셨는지와 화면에 뜬 글을 그대로 대표님께 알려 주십시오.</p>
-    <p>여기서 누른 [했습니다] 는 하루 노선도에도 같은 기록으로 남습니다.</p>
+    <p>여기서 누른 [했습니다] (1차 · 2차 · 늦은 것) 는 <b>이 화면의 기록</b>입니다. 세 번 다 올린 뒤 <b>하루 노선도</b>의 「order 발주서」 역에서 한 번 더 [했습니다] 를 누르십시오.</p>
   </footer>
 </div>
 
@@ -214,12 +255,12 @@ const API = 'https://script.google.com/macros/s/'
 const CODE_KEY = 'poonglim_sales_code';   /* daily.html 과 같은 키 — 한 번 넣으면 둘 다 열린다 */
 
 const STEPS = [
-  {id:"o00", t:"전날", who:"a", title:"어제 늦게 온 발주는 오늘 11:30 에 함께",
+  {id:"oy", t:"전날", who:"a", title:"어제 늦게 온 발주는 오늘 11:30 에 함께",
    d:"어제 15:00 이후 온 발주 메일은 오늘 11:30 회차가 같이 처리합니다. <b>손으로 따로 올리지 마십시오</b> — 두 번 올라갑니다."},
   {id:"o01", t:"11:30", who:"a", title:"그때까지 온 발주서가 사방넷 입력본으로 저절로 만들어진다",
    d:"<b>몇 분 안에</b> 올릴것 폴더에 파일이 생깁니다. 폴더에는 <b>올려도 되는 파일(O · △)만</b> 들어갑니다.<br>11:45 · 12:03 · 12:40 · 12:50 · 13:30~15:30(30분마다)에는 <b>새로 온 것만</b> 더해집니다."},
   {id:"o02", t:"12:05", who:"s", person:true, title:"1차 — 올릴것의 파일을 사방넷에 올린다",
-   d:"📍 G드라이브 ▸ order메일_검토 ▸ 올릴것 ▸ 오늘 날짜<br>파일이 보이면 <b>바로</b> 올리십시오. 기다릴 것 없습니다. 배너에 △ 확인이 있으면 그것 하나만 보고 올립니다."
+   d:"📍 G드라이브 ▸ order메일_검토 ▸ 올릴것 ▸ 오늘 날짜<br>파일이 보이면 <b>바로</b> 올리십시오. 기다릴 것 없습니다. 「오늘 중계」 표에 <b>△</b> 가 있으면 그 줄의 「확인할 것」 하나만 보고 올립니다. <b>이상</b> 표에 「남음」이 있는 거래처는 올리지 마십시오."
 },
   {id:"c1", t:"12:45", who:"c", title:"Claude 점검 — 문제가 있으면 맨 위 배너에",
    d:"막힘이 남아 있으면 「13:00 마감 전 — 올리지 말 것」이 배너에 뜹니다. 없으면 아무것도 뜨지 않습니다."},
@@ -296,6 +337,56 @@ function render(){
   else if(!nx){ nbox.classList.add("allclear"); nv.textContent="오늘 order 발주서 올리기는 다 끝났습니다"; nd2.textContent=doneN+" / "+PERSON.length+" 마침"; }
   else{ nbox.classList.remove("allclear"); nv.innerHTML=nx.t+"  "+nx.title; nd2.textContent=doneN+" / "+PERSON.length+" 마침 · G드라이브 ▸ order메일_검토 ▸ 올릴것"; }
 }
+/* v0.6 오늘 중계 — order.today (order_run v1.4 가 드라이브 _order오늘.json 에 쓰는 것) 를 표로 */
+function el(tag, cls, txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=String(txt); return e; }
+function table(heads, rows){
+  const w=el("div","tw"), t=el("table"), th=el("thead"), tr=el("tr");
+  heads.forEach(h=>tr.appendChild(el("th",null,h))); th.appendChild(tr); t.appendChild(th);
+  const tb=el("tbody"); rows.forEach(r=>tb.appendChild(r)); t.appendChild(tb); w.appendChild(t); return w;
+}
+function td(txt, cls){ return el("td", cls||null, txt); }
+function pill(txt, cls){ const c=el("td"); c.appendChild(el("span","pill "+cls,txt)); return c; }
+function renderRelay(T){
+  const box=document.getElementById("relay");
+  if(typeof T==="string"){ try{ T=JSON.parse(T); }catch(e){ T=null; } }
+  if(!T || !T.mail){ box.hidden=true; return; }
+  box.innerHTML="";
+  const rh=el("p","rh"); rh.appendChild(el("b",null,"오늘 중계")); rh.appendChild(el("span",null,T.day+" "+T.at+" 현재 · 회차 "+T.rounds+"번")); box.appendChild(rh);
+  const m=T.mail, fixed=T.issues.length-T.open;
+  const tiles=el("div","tiles");
+  [[m.total+"통","오늘 메일",""],[T.vendors+"곳","발주 거래처",""],[T.upload.files+"개","올릴것 (O "+T.upload.O+" · △ "+T.upload.T+")","good"],
+   [T.open+"건","이상 남음"+(fixed?" (해결 "+fixed+")":""), T.open?"bad":"good"],[T.cs.length+"건","CS (참고)",""]]
+   .forEach(([n,l,c])=>{ const t=el("div","tile "+c); t.appendChild(el("div","n",n)); t.appendChild(el("div","l",l)); tiles.appendChild(t); });
+  box.appendChild(tiles);
+  /* 통과 · 올릴것 — 가나다순 */
+  const h1=el("h3",null,"통과 · 올릴것 "); h1.appendChild(el("small",null,"가나다순 · "+T.passed.length+"곳 · "+T.folder)); box.appendChild(h1);
+  if(T.passed.length){
+    box.appendChild(table(["판정","거래처","건수","회차","확인할 것"], T.passed.map(x=>{
+      const r=el("tr"); r.appendChild(pill(x.verdict, x.verdict==="O"?"o":"t")); r.appendChild(td(x.vendor,"v"));
+      r.appendChild(td(x.rows+"건","num")); r.appendChild(td(x.rounds.join(", "),"t")); r.appendChild(td(x.check.join(" / ")||"—")); return r; })));
+  } else box.appendChild(el("p","none","아직 없음"));
+  /* 이상 — 가나다순 */
+  const h2=el("h3",null,"이상 "); h2.appendChild(el("small",null,"가나다순 · 남음 "+T.open+" · 해결 "+fixed)); box.appendChild(h2);
+  if(T.issues.length){
+    box.appendChild(table(["상태","거래처","회차","내용","할 일 · 볼 곳"], T.issues.map(i=>{
+      const r=el("tr"); r.appendChild(pill(i.open?"남음":"해결", i.open?"x":"ok")); r.appendChild(td(i.vendor,"v"));
+      r.appendChild(td(i.round,"t")); r.appendChild(td(i.what)); r.appendChild(td(i.todo+" · "+i.where)); return r; })));
+  } else box.appendChild(el("p","none","없음"));
+  /* CS — 따로 (참고) */
+  const h3=el("h3",null,"CS "); h3.appendChild(el("small",null,"참고 · 발주 아님 · 사방넷에 올리지 않음 · order@ 웹메일에서 처리")); box.appendChild(h3);
+  if(T.cs.length){
+    box.appendChild(table(["거래처","시각","구분","내용"], T.cs.map(c=>{
+      const r=el("tr"); r.appendChild(td(c.vendor,"v")); r.appendChild(td(c.time,"t"));
+      r.appendChild(td(Object.entries(c.kinds).map(([k,n])=>k+" "+n).join(" · ")||(c.how==="메일 본문"?"본문 (첨부 없음)":"—")));
+      r.appendChild(td(c.items.map(it=>[it.date,it.model,it.qty?("수량 "+it.qty):"",it.kind].filter(Boolean).join(" · ")).join(" / ")||(c.read||"—")));
+      return r; })));
+  } else box.appendChild(el("p","none","없음"));
+  const f=el("p","foot"); f.appendChild(el("b",null,"오늘 메일 "+m.total+"통"));
+  f.appendChild(document.createTextNode(" = 발주(자동) "+m.auto+" · 발주(사람이 볼 것) "+m.human+" · CS·답장·거래처 메일 "+m.people+" · 모르는 발신자 "+m.unknown+" · 공지·기타 "+m.notice+"   (우리가 보낸 메일 "+m.ours+"통은 빼고 셈)"));
+  box.appendChild(f);
+  box.hidden=false;
+}
+
 function paint(st){
   state = st.steps || {};
   /* v0.2 — order 칸이 없는 응답(daySet 등)이 오면 배너를 그대로 둔다 (노선도 v3.12 와 같이) */
@@ -309,6 +400,8 @@ function paint(st){
     const t=parts.join("\n");
     bv.textContent=t; b.className="banner"+((o.watchStale||o.claude||/[⚠⛔]/.test(t))?" bad":""); b.hidden=false;
   } else { b.hidden=true; }
+  document.getElementById("stale").hidden = !(o && o.watchStale);
+  renderRelay(o && o.today);
   }
   /* v0.3 물음과 답 — qa 칸이 있는 응답에서만 다시 그린다 */
   if("qa" in st){
