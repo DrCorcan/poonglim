@@ -7,6 +7,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.21   (2026-09-30)
+  ★v3.21 — order 메일 «중계»를 뺐다 — 배너를 없애고 네 역(o01~o04)을 한 역(o00)으로 (대표님 2026-09-30 「메일은 메일 노선도에서만」)
+             ⇒ 직원 일(12:05 · 12:58 · 15:35 에 올린다)만 남기고 메일 노선도 링크를 둔다. 서버는 안 건드렸다
+             ★되돌리기 = daily_v3.20.html
+
   operations/daily.html   v3.20   (2026-09-30)
   ★v3.20 — 입고 «대상월» 칸의 흐린 글씨를 «이번 달»로 (미결 536 · 10/1 부터 2026-10 이 보인다)
              서버는 v2.7 부터 이미 «비우면 이번 달»이다 (23_daily_ops DAY_receipt_). 화면만 고쳤다
@@ -375,7 +380,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.20</span>
+    <span class="today" style="opacity:.55">v3.21</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -390,11 +395,7 @@ button.op.pressed[disabled]{opacity:.55}
     <p class="wv" id="watchv"></p>
   </div>
 
-  <!-- v3.12 order 메일 배너 — 서버가 order 칸을 안 주면 저절로 숨는다 -->
-  <div class="watch" id="orderBan" style="display:none">
-    <span class="wk">order 메일</span>
-    <p class="wv" id="orderBanv" style="white-space:pre-wrap"></p>
-  </div>
+  <!-- ★v3.21 — order 메일 배너는 뺐다. 중계는 메일 노선도(orders.html)에서만 -->
 
   <div class="next" id="next">
     <p class="k">지금 할 일</p>
@@ -477,25 +478,12 @@ const CODE_KEY = 'poonglim_sales_code';   /* ★sales.html · suppliers.html 과
 
 /* ═══ 1. 노선 — ★2026-09-16 판 그대로. ops 만 더했다 ═══ */
 const STEPS = [
-  /* ★v3.12 (order 메일 수주 자동화 · 인수 메모 18) — 되돌리기 = o01~o04 네 덩어리를 지운다 */
-  {id:"o01", t:"11:30", who:"a", title:"order 메일 발주서가 사방넷 입력본으로 저절로 만들어진다",
+  /* ★v3.21 — order 메일 네 역(o01~o04)을 «한 역»으로 줄였다. 중계는 메일 노선도(orders.html)에서만 (대표님 2026-09-30)
+     되돌리기 = 이 덩어리를 daily_v3.20.html 의 o01~o04 네 덩어리로 바꾼다 */
+  {id:"o00", t:"12:05", who:"s", person:true, title:"order 발주서 파일을 사방넷에 올린다 \u2014 12:05 \u00B7 12:58 \u00B7 15:35 세 번",
    where:"\uD83D\uDCCD G드라이브 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
-   d:"11:30 에 그때까지 온 발주서를 <b>한꺼번에</b> 바꿔 <b>몇 분 안에</b> 이 폴더에 넣습니다. 11:45 \u00B7 12:03 \u00B7 12:50 \u00B7 13:30~15:30(30분마다) 에는 <b>새로 온 것만</b> 더해집니다.<br>폴더에는 <b>올려도 되는 파일(O \u00B7 \u25B3)만</b> 들어갑니다.<br><a href='orders.html' target='_blank' rel='noopener'>\u25B6 order 노선 열기</a>"},
-
-  {id:"o02", t:"12:05", who:"s", person:true, title:"order 발주서 1차 \u2014 올릴것의 파일을 사방넷에 올린다",
-   where:"\uD83D\uDCCD G드라이브 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
-   d:"파일이 보이면 <b>바로</b> 올리십시오. 배너에 <b>\u25B3 확인</b>이 있으면 그것 하나만 보고 올립니다.",
-   warn:"12:10 수집은 없어졌습니다(2026-09-28). 여기서 올린 것도 <b>13:00 판</b>으로 나갑니다 \u2014 미리 올려 두면 12:58 에 할 일이 줄어듭니다. 배너에 <b>\u26D4 막힘</b>이 뜨면 그 거래처는 올리지 말고 대표님께."},
-
-  {id:"o03", t:"12:58", who:"s", person:true, title:"order 발주서 2차 \u2014 새로 생긴 파일을 사방넷에 올린다",
-   where:"\uD83D\uDCCD G드라이브 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
-   d:"1차 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
-   warn:"13:00 사방넷 2차 수집 \u2014 그날 NY 주문서 \u00B7 영업 마감."},
-
-  {id:"o04", t:"15:35", who:"s", person:true, title:"order 발주서 늦은 것 \u2014 오후에 생긴 파일을 사방넷에 올린다",
-   where:"\uD83D\uDCCD G드라이브 \u25B8 order메일_검토 \u25B8 올릴것 \u25B8 오늘 날짜",
-   d:"12:58 뒤에 <b>새로 생긴 파일만</b> 올립니다. 없으면 그냥 [했습니다].",
-   warn:"15:40 사방넷 3차 수집 \u2014 그날의 마지막 판."},
+   d:"order 메일로 온 발주서는 11:30 부터 저절로 사방넷 입력본이 되어 이 폴더에 들어옵니다.<br><b>12:05 \u00B7 12:58 \u00B7 15:35</b> 에 <b>새로 생긴 파일</b>을 사방넷에 올립니다 (13:00 \u00B7 15:40 수집 전에).<br>무엇이 왔는지 \u00B7 막힌 것이 있는지는 <b>메일 노선도</b>에서 봅니다.<br><a href='orders.html' target='_blank' rel='noopener'>\u25B6 메일 노선도 열기</a>",
+   warn:"메일 노선도에 <b>\u26D4 막힘</b>이 뜬 거래처는 올리지 말고 대표님께. 세 번 다 올린 뒤에 [했습니다]."},
 
   /* ★v3.17 — 12:10 사방넷 1차(a01) · 12:11 윈세이 발주서(a02) 를 뺐다. p11 은 13:10 으로 옮겼다 */
 
@@ -927,20 +915,7 @@ function paint(st){
   const _t=(st.watch||"").toString().trim();
   if(_t){ _wv.textContent=_t; _w.className="watch"+(/[⚠⛔]/.test(_t)?" bad":""); _w.style.display="flex"; }
   else  { _w.style.display="none"; }
-  /* ★v3.12 — order 메일 한 줄. dayGet 만 order 칸을 준다 ⇒ 칸이 «없는» 응답(daySet)에는 배너를 그대로 둔다 */
-  if(Object.prototype.hasOwnProperty.call(st,"order")){
-    const _ob=document.getElementById("orderBan"), _obv=document.getElementById("orderBanv");
-    const _o=st.order||null, _parts=[];
-    if(_o && _o.watchStale) _parts.push("\u26D4 공유PC 감시 멈춤 \u2014 대표님이 공유PC 에서 감시_시작.bat");
-    if(_o && _o.line) _parts.push(String(_o.line));
-    if(_o && _o.claude) _parts.push("Claude: "+String(_o.claude));
-    if(_parts.length){
-      const _ot=_parts.join("\n");
-      _obv.textContent=_ot;
-      _ob.className="watch"+((_o.watchStale||_o.claude||/[\u26A0\u26D4]/.test(_ot))?" bad":"");
-      _ob.style.display="flex";
-    } else { _ob.style.display="none"; }
-  }
+  /* ★v3.21 — order 메일 배너를 뺐다 (dayGet 의 order 칸은 orders.html 만 쓴다) */
   /* v3.0 — 물음과 답을 «짝»으로 그린다. 서버가 안 주면 숨긴다 (막는 쪽으로 · 원칙 ⑩) */
   const _q=document.getElementById("qa"), _qv=document.getElementById("qav");
   const _arr = Array.isArray(st.qa) ? st.qa : [];
