@@ -377,7 +377,7 @@ function renderRelay(T){
   if(T.cs.length){
     box.appendChild(table(["거래처","시각","구분","내용"], T.cs.map(c=>{
       const r=el("tr"); r.appendChild(td(c.vendor,"v")); r.appendChild(td(c.time,"t"));
-      r.appendChild(td(Object.entries(c.kinds).map(([k,n])=>k+" "+n).join(" · ")||(c.how==="메일 본문"?"본문 (첨부 없음)":"—")));
+      r.appendChild(td(Object.entries(c.kinds).map(([k,n])=>k+" "+n).join(" · ")||(c.how!=="첨부"?c.how:"—")));
       r.appendChild(td(c.items.map(it=>[it.date,it.model,it.qty?("수량 "+it.qty):"",it.kind].filter(Boolean).join(" · ")).join(" / ")||(c.read||"—")));
       return r; })));
   } else box.appendChild(el("p","none","없음"));
