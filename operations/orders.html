@@ -7,6 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>order 메일 수주 노선</title>
 <!--
+  operations/orders.html   v0.8   (2026-10-06)
+  v0.8 — (14:25 고침: 「사방넷 대조」 칸을 거래처 바로 옆 · 확인할 것은 맨 뒤 흐리게) (13:30 고침: 금액 다름 · 손입력 비교 줄 추가) 「오늘 중계」 통과 표에 「사방넷」 칸 (13:00·15:40 수집 파일과 대조: ✅ 정상 · ⛔ 빠짐 · ⚠ 수량다름) + 「사방넷 반영」 칸 하나 + 빠짐·지난주문 목록 (order_run v1.5d 의 order.today.sabang). 되돌리기 = v0.7
   operations/orders.html   v0.7   (2026-09-30)
   v0.7 — daily.html v3.21 에서 order 배너·역이 빠짐 (사무 편지 9/30 11:41): 여기가 중계의 유일한 자리. 감시 멈춤을 맨 위 큰 빨간 칸으로 · 「전날」 역 id o00 → oy (daily 의 새 o00 과 겹치지 않게) · 문구를 표 기준으로 · [했습니다] 는 이 화면만의 기록. 되돌리기 = v0.6
   operations/orders.html   v0.6   (2026-09-30)
@@ -162,6 +164,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 .pill{display:inline-block;white-space:nowrap;min-width:1.6em;text-align:center;border-radius:3px;padding:0 6px;font-weight:700;font-size:.78rem}
 .pill.o{background:var(--done-bg);color:var(--done)} .pill.t{background:var(--sil-bg);color:var(--sil)}
 .pill.x{background:var(--warn-bg);color:var(--warn)} .pill.ok{background:var(--surface-2);color:var(--ink-3)}
+/* v0.8 사방넷 칸 */
+.sbc{font-size:.8rem;font-weight:700;white-space:nowrap} .sbc.ok{color:var(--done)} .sbc.x{color:var(--warn)} .sbc.t{color:var(--sil)} .sbc.wait{color:var(--ink-3);font-weight:500}
+.sbl{margin:4px 0 0;padding:0;list-style:none;font-size:.82rem} .sbl li{padding:3px 0;border-bottom:1px solid var(--line)} .sbl li.x{color:var(--warn);font-weight:700}
 .relay .none{color:var(--ink-3);font-size:.82rem;margin:2px 0 0}
 .relay .foot{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink-2)}
 .relay .foot b{color:var(--ink)}
@@ -180,7 +185,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 <div class="wrap">
   <header class="mast">
     <h1>order 메일 수주 노선</h1>
-    <span class="today" style="opacity:.55">v0.7</span>
+    <span class="today" style="opacity:.55">v0.8</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload" type="button">새로고침</button>
@@ -352,19 +357,38 @@ function renderRelay(T){
   if(!T || !T.mail){ box.hidden=true; return; }
   box.innerHTML="";
   const rh=el("p","rh"); rh.appendChild(el("b",null,"오늘 중계")); rh.appendChild(el("span",null,T.day+" "+T.at+" 현재 · 회차 "+T.rounds+"번")); box.appendChild(rh);
-  const m=T.mail, fixed=T.issues.length-T.open;
+  const m=T.mail, fixed=T.issues.length-T.open, SB=T.sabang||null;
   const tiles=el("div","tiles");
   [[m.total+"통","오늘 메일",""],[T.vendors+"곳","발주 거래처",""],[T.upload.files+"개","올릴것 (O "+T.upload.O+" · △ "+T.upload.T+")","good"],
    [T.open+"건","이상 남음"+(fixed?" (해결 "+fixed+")":""), T.open?"bad":"good"],[T.cs.length+"건","CS (참고)",""]]
+   .concat(SB&&SB.found?[[SB.ok+"/"+SB.rows,"사방넷 반영 ("+SB.at+" 수집)"+((SB.amt||[]).length?" · 금액다름 "+SB.amt.length:""), (SB.missing.length||SB.diff.length||(SB.amt||[]).length)?"bad":"good"]]:[])
    .forEach(([n,l,c])=>{ const t=el("div","tile "+c); t.appendChild(el("div","n",n)); t.appendChild(el("div","l",l)); tiles.appendChild(t); });
   box.appendChild(tiles);
   /* 통과 · 올릴것 — 가나다순 */
   const h1=el("h3",null,"통과 · 올릴것 "); h1.appendChild(el("small",null,"가나다순 · "+T.passed.length+"곳 · "+T.folder)); box.appendChild(h1);
   if(T.passed.length){
-    box.appendChild(table(["판정","거래처","건수","회차","확인할 것"], T.passed.map(x=>{
+    box.appendChild(table(["판정","거래처","사방넷 대조","건수","회차","확인할 것"], T.passed.map(x=>{
       const r=el("tr"); r.appendChild(pill(x.verdict, x.verdict==="O"?"o":"t")); r.appendChild(td(x.vendor,"v"));
-      r.appendChild(td(x.rows+"건","num")); r.appendChild(td(x.rounds.join(", "),"t")); r.appendChild(td(x.check.join(" / ")||"—")); return r; })));
+      const c=el("td"); c.appendChild(el("span","sbc "+(x.sbc||"wait"), x.sb||"수집 전")); r.appendChild(c);
+      r.appendChild(td(x.rows+"건","num")); r.appendChild(td(x.rounds.join(", "),"t"));
+      const k=td(x.check.join(" / ")||"—"); k.style.color="var(--ink-3)"; k.style.fontSize=".78rem"; r.appendChild(k); return r; })));
   } else box.appendChild(el("p","none","아직 없음"));
+  /* v0.8 사방넷 반영 — 빠짐 · 수량다름 · 두 번 · 지난 주문 · 사람/막힘 건 */
+  if(SB&&SB.found){
+    const hs=el("h3",null,"사방넷 반영 "); hs.appendChild(el("small",null,SB.at+" 수집 파일과 대조 · 올릴것 "+SB.rows+"줄 중 "+SB.ok+"줄 들어감")); box.appendChild(hs);
+    const ul=el("ul","sbl"); const li=(t,c)=>ul.appendChild(el("li",c||null,t));
+    const g={}; SB.missing.forEach(x=>{ const v=g[x.vendor]||(g[x.vendor]={n:0,m:{}}); v.n++; v.m[x.model]=(v.m[x.model]||0)+(parseInt(x.qty)||0); });
+    Object.keys(g).sort().forEach(v=>li("⛔ 빠짐 · "+v+" "+g[v].n+"줄 ("+Object.entries(g[v].m).map(([k,q])=>k+" "+q+"개").join(" · ")+") → 다음 판(15:35)에 그 파일을 올리세요","x"));
+    SB.diff.forEach(x=>li("⚠ 수량 다름 · "+x.vendor+" · "+x.model+" 올릴것 "+x.qty+" / 사방넷 "+x.sb_qty,"x"));
+    (SB.amt||[]).forEach(x=>li("⚠ 금액 다름 · "+x.vendor+(x.hand?" (손입력)":"")+" · "+x.model+" "+x.qty+"개 · "+x.what+" → 사방넷에서 고치세요","x"));
+    SB.dup.forEach(x=>li("⚠ 두 번 올라감 의심 · "+x.vendor+" · "+x.model+" ("+x.n+"줄)","x"));
+    (SB.old||[]).forEach(x=>li("⚠ 지난 주문이 오늘 다시 · "+x.vendor+" · "+x.model+" "+x.qty+"개 ("+x.day+" 주문) → 두 번 올라갔는지 확인","x"));
+    (SB.late||[]).forEach(x=>li("⏳ 다음 수집 판에서 · "+x.vendor+" · "+x.model+" "+x.qty+"개"));
+    (SB.manual||[]).forEach(x=>{ const b=(SB.by||{})[x.vendor]; li((x.rows?"✔ ":"⛔ ")+"막힘·사람 건 · "+x.vendor+" — 사방넷 오늘 "+x.rows+"줄"+(b&&b.hand?(" · 우리 파일과 비교 "+b.ok+"/"+b.rows+(b.amt?" · 금액다름 "+b.amt:"")):""), (x.rows&&!(b&&b.amt))?null:"x"); });
+    if((SB.renum||[]).length) li("· 주문번호가 올릴것 파일과 다른 줄 "+SB.renum.length+" (받는 분·모델·수량으로 찾음)");
+    if(!ul.children.length) li("모두 들어감 ✅");
+    box.appendChild(ul);
+  } else if(SB&&SB.note){ const hs=el("h3",null,"사방넷 반영 "); hs.appendChild(el("small",null,SB.note)); box.appendChild(hs); }
   /* 이상 — 가나다순 */
   const h2=el("h3",null,"이상 "); h2.appendChild(el("small",null,"가나다순 · 남음 "+T.open+" · 해결 "+fixed)); box.appendChild(h2);
   if(T.issues.length){
