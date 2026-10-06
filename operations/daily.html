@@ -7,6 +7,12 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.22   (2026-10-06)
+  ★v3.22 — 담김 0 일 때 「★만들지 않고 여기서 끝냅니다」를 뺐다 (대표님 2026-10-06 「직원이 또 헷갈려 할 것」)
+             ⇒ 되받기 · 올린 파일 보관 · 지난 파일 치우기 는 0 이면 「✅ …없었습니다 (정상) → 다음 버튼으로」
+             ⇒ 미리보기 0 은 「만들 파일이 없습니다 · 파일 만들기는 누르지 않습니다 → 다음 버튼은 그대로」
+             ★바꾼 곳 둘(runOp 의 0 한 줄 · ZERO_OK 표) · 서버는 안 건드렸다 · ★되돌리기 = daily_v3.21.html
+
   operations/daily.html   v3.21   (2026-09-30)
   ★v3.21 — order 메일 «중계»를 뺐다 — 배너를 없애고 네 역(o01~o04)을 한 역(o00)으로 (대표님 2026-09-30 「메일은 메일 노선도에서만」)
              ⇒ 직원 일(12:05 · 12:58 · 15:35 에 올린다)만 남기고 메일 노선도 링크를 둔다. 서버는 안 건드렸다
@@ -380,7 +386,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.21</span>
+    <span class="today" style="opacity:.55">v3.22</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -715,6 +721,12 @@ function erpWatchStart(){
 }
 /* ★① 의 결과 문구만 «시작했습니다»로. 나머지 버튼은 그대로 「끝났습니다」 */
 const DONE_WORD = { erpRefetch: " — ★시작했습니다", invStart: " — ★요청했습니다" };
+/* ★v3.22 — 0 이어도 «정상»인 버튼 (만드는 버튼이 아니다). 0 이면 이 글만 보인다 */
+const ZERO_OK = {
+  shipSync:   "새로 맞출 것이 없었습니다 (정상).",
+  shipArchive:"옮길 지난 파일이 없었습니다 (정상).",
+  erpArchive: "옮길 지난 파일이 없었습니다 (정상)."
+};
 /* ★v3.4 — 서버의 «상태 값»은 판정에 쓴다. 화면에 보일 문구만 여기서 갈아 끼운다.
    ⇒ 서버를 안 고치므로 ★재배포가 필요 없다 (원칙 ㉵ · ㉑) */
 const ERP_WORD = { "끝남":"완료 되었습니다.", "멈춰음":"멈췄습니다", "오래됨":"너무 오래 걸립니다" };
@@ -993,7 +1005,10 @@ async function runOp(stepId, o){
     }else{
       let html="", cls="ok";
       html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : (DONE_WORD[o.a] || " — 끝났습니다"))+"</span>";   /* ★v3.2 */
-      if(cnt!==null && Number(cnt)===0){ cls="info"; html+="⚠️ 담김이 0 입니다. ★만들지 않고 여기서 끝냅니다."; }
+      if(cnt!==null && Number(cnt)===0){   /* ★v3.22 — 「여기서 끝냅니다」를 뺐다. 직원이 «이 걸음 전체를 멈춘다»로 읽었다 (2026-10-06) */
+        if(ZERO_OK[o.a]){ html+="✅ "+ZERO_OK[o.a]+"\n→ ★다음 버튼으로 가십시오."; }
+        else { cls="info"; html+="⚠️ 담김 0 — 만들 파일이 없습니다. 이 칸의 «파일 만들기»는 누르지 않습니다.\n→ ★다음 버튼은 그대로 누르십시오."; }
+      }
       if(ym)    html+="\n대상월 "+esc(ym);
       if(fname) html+="\n파일 "+esc(fname);
       if(furl)  html+='\n<a href="'+esc(furl)+'" target="_blank" rel="noopener">▶ 파일 열기</a>';
