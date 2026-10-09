@@ -7,7 +7,13 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
-  operations/daily.html   v3.22   (2026-10-06)
+  operations/daily.html   v3.23   (2026-10-09)
+  ★v3.23 — 앞 일이 끝나기 전에 뒤 버튼이 눌리지 않게 (대표님 2026-10-09)
+             ⇒ ① ERP 자료 받기: «누른 뒤에 끝난 DONE» 을 봐야만 풀린다 (10/8 17:08 ② 가 일찍 눌린 구멍)
+             ⇒ ① 이 도는 동안 ②③ + 출고·발주·입고 버튼도 잠근다 · ① 뒤에는 ②③ 을 해야 출고가 풀린다
+             ⇒ 버튼 하나가 도는 동안 ★모든 버튼이 회색 (60초 다시 그리기가 풀어 버리던 것도 막았다)
+             ⇒ 화면을 새로 열어도 잠금을 다시 본다 · 20분이 지나면 풀어 준다 (사람을 가두지 않는다)
+             되돌리기 = daily_v3.22.html 로 바꾼다 (서버는 안 건드렸다)
   ★v3.22 — 담김 0 일 때 「★만들지 않고 여기서 끝냅니다」를 뺐다 (대표님 2026-10-06 「직원이 또 헷갈려 할 것」)
              ⇒ 되받기 · 올린 파일 보관 · 지난 파일 치우기 는 0 이면 「✅ …없었습니다 (정상) → 다음 버튼으로」
              ⇒ 미리보기 0 은 「만들 파일이 없습니다 · 파일 만들기는 누르지 않습니다 → 다음 버튼은 그대로」
@@ -322,6 +328,8 @@ button.op[disabled]{opacity:.4;cursor:not-allowed}
 button.op.pressed{background:var(--done);border-color:var(--done);color:#fff}
 button.op.read.pressed{background:var(--done-bg);border-color:var(--done);color:var(--done)}
 button.op.pressed[disabled]{opacity:.55}
+/* ★v3.23 — 잠긴 버튼은 «눌러도 될 것처럼» 보이면 안 된다. 색을 빼고 회색으로 */
+button.op[disabled],button.op.pressed[disabled],button.op.read.pressed[disabled]{background:#e5e7eb;border-color:#cbd5e1;color:#94a3b8;opacity:1;cursor:not-allowed}
 .ops input[type=text]{font-family:var(--mono);font-size:.82rem;padding:5px 8px;width:96px;
   border:1px solid var(--line-2);border-radius:3px;background:var(--surface);color:var(--ink)}
 .out{margin-top:9px;font-size:.83rem;border-radius:3px;padding:8px 10px;display:none;
@@ -386,7 +394,7 @@ button.op.pressed[disabled]{opacity:.55}
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.22</span>
+    <span class="today" style="opacity:.55">v3.23</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -688,8 +696,55 @@ const ERP_STEP  = (STEPS.find(s=>s.ops && s.ops.some(o=>o.a==="erpRefetch"))||{}
 let erpReady = true;                          /* ★기본은 «열림». 서버가 아니라고 할 때만 잠근다 */
 let erpTimer = null, erpTicks = 0;
 
+/* ★v3.23 (2026-10-09) — 잠금을 «한 곳»에서 정한다 (원칙 ㊲)
+   ① 버튼 하나가 도는 동안          → 전부 잠근다 (opRunning)
+   ② ① ERP 자료 받기가 안 끝났으면  → ②③ + 출고·발주·입고 버튼을 잠근다
+   ③ 오늘 ① 을 눌렀으면             → ②③ 을 «그 뒤에» 해야 출고 버튼이 풀린다
+   ★「끝났다」는 ★«① 을 누른 뒤의 DONE» 만 믿는다. 옛 DONE 은 끝난 것이 아니다
+     (2026-10-08 17:07 ① → 17:08 ② 가 열려 있었다 → 「건너뜀」 → 실장님이 멈추셨다) */
+let opRunning = false;
+const ERP_WAIT  = ["tab96","tab98","shipSync","shipPreview","shipArchive","shipGenerate",
+                   "erpArchive","poPreview","poGenerate","rcvPreview","rcvGenerate"];
+const ERP_AFTER = ["shipSync","shipPreview","shipArchive","shipGenerate"];
+const ERP_GIVEUP_MIN = 20;                    /* ★이만큼 지나면 풀어 준다 — 사람을 가두지 않는다 */
+function hm2m(v){ const m=String(v||"").match(/(\d{1,2}):(\d{2})/); return m ? (+m[1])*60+(+m[2]) : -1; }
+function nowMin(){ const n=seoulNow(); return n.getHours()*60+n.getMinutes(); }
+function todayYMD(){ return new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()); }
+/* 오늘 ① 을 눌렀는데 그 «뒤»의 DONE 이 아직 없으면 false */
+function erpFresh(r){
+  const p = hm2m(opDone.erpRefetch); if(p < 0) return true;              /* 오늘 ① 을 안 눌렀다 */
+  if(nowMin() - p >= ERP_GIVEUP_MIN) return true;                       /* 너무 오래 — 풀어 준다 */
+  const g = String((r && r["감시"]) || "");
+  const m = g.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/);
+  if(!m || m[1] !== todayYMD() || !/DONE/.test(g)) return false;
+  return ((+m[2])*60 + (+m[3])) >= p;
+}
+function needsOff(o){ return o.needs ? !(lastCount[o.needs] > 0) : false; }
+function gateWhy(a){
+  if(opRunning) return "다른 버튼이 돌고 있습니다 — 끝나면 저절로 풀립니다";
+  if(ERP_WAIT.indexOf(a) >= 0 && !erpReady) return "① ERP 자료 받기가 아직 안 끝났습니다 — 끝나면 저절로 풀립니다";
+  if(ERP_AFTER.indexOf(a) >= 0){
+    const p = hm2m(opDone.erpRefetch);
+    if(p >= 0 && nowMin() - p < ERP_GIVEUP_MIN + 30){
+      if(hm2m(opDone.tab96) < p) return "먼저 위의 ② 주문현황 다시 담기 를 누르십시오";
+      if(hm2m(opDone.tab98) < p) return "먼저 위의 ③ 출고현황 다시 담기 를 누르십시오";
+    }
+  }
+  return "";
+}
+function applyGate(b, o){
+  const why = gateWhy(o.a);
+  b.disabled = needsOff(o) || !!why;
+  if(why) b.title = "잠김 — " + why;
+}
 function erpApplyGate(){
-  ERP_GATED.forEach(a=>{ const b=document.getElementById("b-"+a); if(b) b.disabled = !erpReady; });
+  document.querySelectorAll("button[data-act]").forEach(b=>{
+    const st=STEPS.find(x=>x.id===b.dataset.step);
+    const o=st && st.ops ? st.ops.find(x=>x.a===b.dataset.act) : null;
+    if(!o){ b.disabled = opRunning; return; }
+    opPaint(b,o);
+    applyGate(b,o);
+  });
 }
 function erpBox(cls, 제목, 글){
   if(!ERP_STEP) return;
@@ -698,16 +753,29 @@ function erpBox(cls, 제목, 글){
 async function erpPoll(보여줄까, 바쁠때만){
   try{
     const r = await call("erpStatus");
-    erpReady = (r["받기끝남"] !== false);
+    const fresh = erpFresh(r);                                /* ★v3.23 */
+    erpReady = (r["받기끝남"] !== false) && (fresh || r.상태==="오래됨");
     const bad = (r.상태==="멈췔음" || r.상태==="오래됨");
-    if(보여줄까 && (!바쁠때만 || !erpReady))
-      erpBox(erpReady ? (bad?"bad":"ok") : "busy", ERP_WORD[r.상태] || r.상태 || "", r.한줄||"");   /* ★v3.4 */
+    if(보여줄까 && (!바쁠때만 || !erpReady)){
+      if(r["받기끝남"] !== false && !fresh)                  /* ★옛 DONE — 공유PC 가 아직 안 집었거나 적는 중 */
+        erpBox("busy", "기다리는 중", opDone.erpRefetch+" 에 누르셨습니다. 공유PC 가 받기 시작하기를 기다립니다 (보통 1분 안).\n★② ③ 과 출고·발주·입고 버튼은 끝나면 저절로 풀립니다. 다시 누르지 마십시오.");
+      else
+        erpBox(erpReady ? (bad?"bad":"ok") : "busy", ERP_WORD[r.상태] || r.상태 || "", r.한줄||"");   /* ★v3.4 */
+    }
   }catch(e){
     erpReady = true;                          /* ★못 읽으면 «풀어 준다». 손을 묶지 않는다 */
     if(보여줄까 && !바쁠때만)
       erpBox("info","상태를 못 읽었습니다", e.message+"\n★그래도 ② ③ 는 눌러도 됩니다.");
   }
   erpApplyGate();
+  if(!erpReady && !erpTimer){                      /* ★v3.23 — 새로 열었을 때도 «풀릴 때까지» 지켜본다 */
+    erpTicks = 0;
+    erpTimer = setInterval(async ()=>{
+      erpTicks++;
+      const 끝 = await erpPoll(ERP_STEP, false);
+      if(끝 || erpTicks > 90){ clearInterval(erpTimer); erpTimer=null; }
+    }, 10000);
+  }
   return erpReady;
 }
 function erpWatchStart(){
@@ -849,8 +917,7 @@ function render(){
         b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
         opPaint(b,o);                              /* ★v3.8 */
-        if(o.needs) b.disabled = !(lastCount[o.needs] > 0);   /* v2.1 ⑰ */
-        if(ERP_GATED.indexOf(o.a) >= 0) b.disabled = !erpReady;   /* ★v3.2 */
+        applyGate(b,o);                            /* ★v3.23 — needs · ERP · 도는 중 을 한 곳에서 (60초 다시 그리기도 잠금을 지킨다) */
         b.addEventListener("click",()=>runOp(s.id,o));
         bs.appendChild(b);
       });
@@ -982,8 +1049,12 @@ function opPaint(b, o){
 
 /* ═══ 6. 버튼 ═══ */
 async function runOp(stepId, o){
+  if(opRunning) return;                          /* ★v3.23 — 도는 중에는 아무것도 안 받는다 */
+  const why0 = gateWhy(o.a);
+  if(why0){ setOut(stepId,"info",'<span class="big">잠겨 있습니다</span>'+esc(why0)+"\n("+nowHM()+")"); return; }
   if(o.w && !confirm("["+o.t.replace(/^[①②③④⑤]\s*/,"")+"] 을(를) 실행합니다.\n계속할까요?")) return;
   const outEl=document.getElementById("out-"+stepId);
+  opRunning = true;                              /* ★v3.23 */
   document.querySelectorAll("button[data-act]").forEach(b=>b.disabled=true);
   const label=o.t.replace(/^[①②③④⑤]\s*/,"");   /* ★v3.3 — 먼저 뽑는다 */
   busyStart(stepId, label, o.a);                 /* ★v3.3 */
@@ -1026,14 +1097,8 @@ async function runOp(stepId, o){
     setOut(stepId,"bad", esc("⛔ "+e.message)+"\n("+nowHM()+")");
   }finally{
     busyStop();                                  /* ★v3.3 */
-    document.querySelectorAll("button[data-act]").forEach(b=>{
-      const st=STEPS.find(x=>x.id===b.dataset.step);
-      const m=st && st.ops ? st.ops.find(x=>x.a===b.dataset.act) : null;
-      if(!m){ b.disabled=false; return; }
-      opPaint(b,m);                                /* ★v3.8 */
-      b.disabled = m.needs ? !(lastCount[m.needs]>0) : false;
-    });
-    erpApplyGate();                              /* ★v3.2 — 전부 푼 뒤에 다시 잠근다 */
+    opRunning = false;                           /* ★v3.23 */
+    erpApplyGate();                              /* ★v3.23 — 칠하기 · needs · ERP 잠금을 한 곳에서 */
     load();
   }
 }
@@ -1082,7 +1147,7 @@ async function enter(){
   const v=document.getElementById("gcode").value.trim();
   if(!v){ document.getElementById("gmsg").textContent="접속코드를 넣어 주세요"; return; }
   saveCode(v); document.getElementById("gmsg").textContent="확인하는 중…";
-  try{ const st=await call("dayGet"); hideGate(); document.getElementById("gcode").value=""; paint(st); }
+  try{ const st=await call("dayGet"); hideGate(); document.getElementById("gcode").value=""; paint(st); erpPoll(ERP_STEP, true); }
   catch(e){ if(!isCodeError(e.message)) document.getElementById("gmsg").textContent=e.message; }
 }
 
@@ -1090,7 +1155,7 @@ async function enter(){
 (async ()=>{
   render();
   if(!getCode()){ showGate(""); return; }
-  try{ const st=await call("dayGet"); hideGate(); paint(st); }
+  try{ const st=await call("dayGet"); hideGate(); paint(st); erpPoll(ERP_STEP, true); }   /* ★v3.23 — 열 때 잠금을 다시 본다 */
   catch(e){ if(!isCodeError(e.message)) top_("⛔ "+e.message,"bad"); }
 })();
 setInterval(render, 60000);
