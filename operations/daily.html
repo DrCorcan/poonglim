@@ -7,6 +7,11 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.24   (2026-10-13)
+  ★v3.24 — 만드는 버튼(출고·발주·입고 파일 만들기)이 파일을 내면 결과 제목이 「✅ 완료 · 파일을 만들었습니다」
+             + 「다시 누르지 마십시오」 (대표님 2026-10-13 — 「담김 4 건」만 보고 안 만들어진 줄 알고 또 눌렀다 · 10/12 발주 _2)
+             되돌리기 = daily_v3.23.html (화면 한 곳 · 서버 무변경)
+  (아래는 v3.23)
   operations/daily.html   v3.23   (2026-10-09)
   ★v3.23 — 앞 일이 끝나기 전에 뒤 버튼이 눌리지 않게 (대표님 2026-10-09)
              ⇒ ① ERP 자료 받기: «누른 뒤에 끝난 DONE» 을 봐야만 풀린다 (10/8 17:08 ② 가 일찍 눌린 구멍)
@@ -394,7 +399,7 @@ button.op[disabled],button.op.pressed[disabled],button.op.read.pressed[disabled]
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.23</span>
+    <span class="today" style="opacity:.55">v3.24</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -1075,7 +1080,9 @@ async function runOp(stepId, o){
       setOut(stepId,"bad",'<span class="big">'+esc(label)+" — ⛔ 멈췄습니다</span>"+esc(stop)+"\n("+nowHM()+")");
     }else{
       let html="", cls="ok";
-      html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : (DONE_WORD[o.a] || " — 끝났습니다"))+"</span>";   /* ★v3.2 */
+      const made = !!(/Generate$/.test(o.a) && fname && cnt!==null && Number(cnt)>0);   /* ★v3.24 — 만드는 버튼이 파일을 냈으면 «완료»라고 크게 말한다 (대표님 2026-10-13) */
+      if(made) html += '<span class="big">'+esc(label)+" — ✅ 완료 · 파일을 만들었습니다 ("+esc(cnt)+" 건)</span>★다시 누르지 마십시오 — 같은 파일이 하나 더 생깁니다 (2026-10-12 발주 _2).\n→ 아래 [▶ 파일 열기] 의 파일을 ERP 에 올리면 이 칸은 끝입니다.\n";
+      else html += '<span class="big">'+esc(label)+(cnt!==null? " — 담김 "+esc(cnt)+" 건" : (DONE_WORD[o.a] || " — 끝났습니다"))+"</span>";   /* ★v3.2 */
       if(cnt!==null && Number(cnt)===0){   /* ★v3.22 — 「여기서 끝냅니다」를 뺐다. 직원이 «이 걸음 전체를 멈춘다»로 읽었다 (2026-10-06) */
         if(ZERO_OK[o.a]){ html+="✅ "+ZERO_OK[o.a]+"\n→ ★다음 버튼으로 가십시오."; }
         else { cls="info"; html+="⚠️ 담김 0 — 만들 파일이 없습니다. 이 칸의 «파일 만들기»는 누르지 않습니다.\n→ ★다음 버튼은 그대로 누르십시오."; }
