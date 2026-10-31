@@ -7,7 +7,8 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>order 메일 수주 노선</title>
 <!--
-  operations/orders.html   v1.0   (2026-10-14)
+  operations/orders.html   v1.1   (2026-10-31)
+  v1.1 — 대표님 10/31: 위쪽 버튼 줄에 「딤채 현황판」 (풍림 구글 시트 링크 · 설치 진행 · 판매 실적 · 공지). 링크만 · 자료는 시트에 있고 공유받은 사람만 열림. 되돌리기 = v1.0
   v1.0 — 오후 회차를 알기 쉽게 (대표님 10/14 「실장님 헷갈리지 않도록」): o01 회차 모두 적음 · 새 자동 역 oa(13:30~ 오후 메일도 저절로) · o03 「13:00 뒤 메일은 15:35」 · o04 「12:58 뒤 새 파일만 · 15:30 뒤 메일은 내일 폴더」 · 전날 역 15:00 → 15:30 · 사람이 볼 것 목록 지금 발신자표대로. 되돌리기 = v0.9
   operations/orders.html   v0.9   (2026-10-12)
   v0.9 — 「송장회신 초안」 표: 메일 온 순서대로 거래처마다 초안 넣음 / 송장 대기 / 직원이 회신 / 안 만듦 (order_reply v0.4 · order.today.reply). 되돌리기 = v0.8
@@ -188,11 +189,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ceo);outline-offset
 <div class="wrap">
   <header class="mast">
     <h1>order 메일 수주 노선</h1>
-    <span class="today" style="opacity:.55">v1.0</span>
+    <span class="today" style="opacity:.55">v1.1</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload" type="button">새로고침</button>
       <a href="https://ops.corcan.co.kr/operations/daily.html">◀ 하루 노선도</a>
+      <a href="https://docs.google.com/spreadsheets/d/1k3JnmZwktYufb9dahJftnPsnIGTsM6ElB8ofwq5wPLA/edit" target="_blank" rel="noopener">딤채 현황판 ↗</a>
     </div>
   </header>
 
