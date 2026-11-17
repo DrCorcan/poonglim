@@ -7,6 +7,9 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.25   (2026-11-17)
+  ★v3.25 — 대표님 11/17: 직원 물음 답하기를 그만둠 (예약 점검에서 뺌) → 「Claude 에게 물어보기」 를 숨김 (display:none · 스크립트는 그대로)
+             되돌리기 = .ask div 의 style 지우기
   operations/daily.html   v3.24   (2026-10-13)
   ★v3.24 — 만드는 버튼(출고·발주·입고 파일 만들기)이 파일을 내면 결과 제목이 「✅ 완료 · 파일을 만들었습니다」
              + 「다시 누르지 마십시오」 (대표님 2026-10-13 — 「담김 4 건」만 보고 안 만들어진 줄 알고 또 눌렀다 · 10/12 발주 _2)
@@ -433,7 +436,8 @@ button.op[disabled],button.op.pressed[disabled],button.op.read.pressed[disabled]
   <div class="linebox" id="linebox"></div>
 
   <!-- v3.0 물어보기 — ★노선도 «아래»에 둔다. 아침에 물음부터 보이면 시작이 무겁다 -->
-  <div class="ask">
+  <!-- v3.25 2026-11-17 물어보기 숨김 (대표님 · 직원 물음 답하기 끝) · 되돌리기 = 아래 style 지우기 -->
+  <div class="ask" style="display:none">
     <h2>Claude 에게 물어보기</h2>
     <p class="note">막히신 자리 · 이상한 숫자 · 고쳤으면 하는 것을 적어 주십시오.<br>
       <b>급한 것은 대표님께 전화하십시오.</b> 여기 적으신 것은 <b>다음 점검 때</b> 답이 옵니다 (하루 다섯 번 — 09:30 · 12:00 · 14:15 · 15:45 · 17:30). <b>답은 바로 아래에 뜹니다.</b><br><b style="color:var(--warn)">사진·파일이 있으면</b> — 보낸 뒤 아래에 뜨는 <b>번호(#3 등)</b>를 파일 이름 앞에 붙여 <b>G드라이브 ▸ 물음_첨부</b> 에 넣으십시오 (예: <b>3_화면.png</b>). 물음 끝에는 「사진 있음」이라고 적어 주십시오.<br>
