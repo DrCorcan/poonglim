@@ -7,6 +7,13 @@
 <meta http-equiv="Pragma" content="no-cache">
 <title>풍림전자 하루 노선도</title>
 <!--
+  operations/daily.html   v3.26   (2026-11-17)
+  ★v3.26 — 대표님 11/17: «읽는 버튼»을 묶었다 — 한 번 누르면 차례로 끝까지 간다 (서버 무변경 · 화면만)
+             [ERP 자료 받고 담기] = ① 다시 받기 → (공유PC 끝날 때까지 기다림) → ② 주문현황 → ③ 출고현황
+             [출고 준비] = 되받기 → 미리보기 → 올린 파일 보관   ·   [발주 준비] = 지난 파일 치우기 → 발주 미리보기
+             ★만드는 버튼(출고·발주·입고 파일 만들기 · ERP 업로드 완료 처리)은 그대로 하나씩
+             ★옛 버튼은 각 칸의 «막혔을 때 — 하나씩 누르기» 안에 그대로 있다
+             되돌리기 = daily_v3.25.html (화면 한 곳 · 서버 무변경)
   operations/daily.html   v3.25   (2026-11-17)
   ★v3.25 — 대표님 11/17: 직원 물음 답하기를 그만둠 (예약 점검에서 뺌) → 「Claude 에게 물어보기」 를 숨김 (display:none · 스크립트는 그대로)
              되돌리기 = .ask div 의 style 지우기
@@ -328,6 +335,10 @@ button.undo{font-family:var(--sans);font-size:.78rem;cursor:pointer;background:n
 .ops .ok{font-family:var(--mono);font-size:.66rem;font-weight:600;letter-spacing:.1em;
   color:var(--auto);margin:0 0 7px}
 .opsbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button.op.chain{font-weight:700;padding-left:14px;padding-right:14px}   /* ★v3.26 */
+details.subops{margin-top:8px;font-size:.85rem;color:var(--ink-3)}
+details.subops summary{cursor:pointer;user-select:none}
+details.subops .opsbtns{margin-top:6px}
 button.op{font-family:var(--sans);font-size:.83rem;font-weight:700;cursor:pointer;border-radius:3px;
   padding:6px 12px;line-height:1.2;border:1.5px solid var(--auto);background:var(--auto);color:#fff}
 button.op.read{background:var(--surface);color:var(--auto)}
@@ -402,7 +413,7 @@ button.op[disabled],button.op.pressed[disabled],button.op.read.pressed[disabled]
 <div class="wrap">
   <header class="mast">
     <h1>하루 노선도</h1>
-    <span class="today" style="opacity:.55">v3.24</span>
+    <span class="today" style="opacity:.55">v3.26</span>
     <span class="today" id="today">—</span>
     <div class="tools">
       <button id="btnReload">새로고침</button>
@@ -597,26 +608,32 @@ const STEPS = [
      되돌리기 = ★이 덩어리 하나를 지운다 */
   {id:"p07b", t:"16:17", who:"s", person:true, title:"ERP 자료를 다시 받아 시트에 넣는다",
    where:"\uD83D\uDCCD 이 화면의 아래 버튼 셋   (화면이 안 열릴 때만 \u2192 \u2605공유PC  Z: \u25B8 발주서 관리 \u25B8 6_ERP자료_다시받기 \u2014 어느 PC 에서나 됩니다)",
-   d:"<b>\u2460 \u2192 \u2461 \u2192 \u2462 차례로</b> 누르십시오.<br><br><b>\u2460 을 누르면 공유PC 가 아마란스에서 다섯 화면을 다시 받아옵니다.</b> <b>2~3분 걸립니다.</b><br><b>\u2605그동안 \u2461 \u2462 는 회색으로 잠깁니다.</b> 다 받으면 <b>\u2605저절로 풀립니다</b> \u2014 화면이 10초마다 공유PC 를 봅니다.<br>그동안 화면은 그대로 두셔도 되고 <b>닫았다 다시 여셔도 됩니다.</b> 다시 열어도 <b>잠금은 그대로</b>입니다.<br>\u2462 가 <b>「건너뜀」</b> 이라고 나오는 것은 <b>받아온 것이 없다</b>는 뜻입니다. 고장이 아닙니다.",
-   ops:[{a:"erpRefetch", t:"\u2460 ERP 자료 다시 받기", w:true},
-        {a:"tab96", t:"\u2461 주문현황 다시 담기", w:true},
-        {a:"tab98", t:"\u2462 출고현황 다시 담기", w:true}],
+   d:"<b>\u2605[ERP 자료 받고 담기] 를 한 번만</b> 누르십시오. 받기 \u2192 기다리기 \u2192 주문현황 \u2192 출고현황을 <b>화면이 차례로 끝까지</b> 합니다 (보통 3~5분). <b>끝날 때까지 창을 닫지 마십시오.</b><br>아래 «하나씩 누르기»는 <b>막혔을 때만</b> 씁니다.<br><br><b>\u2460 을 누르면 공유PC 가 아마란스에서 다섯 화면을 다시 받아옵니다.</b> <b>2~3분 걸립니다.</b><br><b>\u2605그동안 \u2461 \u2462 는 회색으로 잠깁니다.</b> 다 받으면 <b>\u2605저절로 풀립니다</b> \u2014 화면이 10초마다 공유PC 를 봅니다.<br>그동안 화면은 그대로 두셔도 되고 <b>닫았다 다시 여셔도 됩니다.</b> 다시 열어도 <b>잠금은 그대로</b>입니다.<br>\u2462 가 <b>「건너뜀」</b> 이라고 나오는 것은 <b>받아온 것이 없다</b>는 뜻입니다. 고장이 아닙니다.",
+   ops:[{a:"chainErp", t:"ERP 자료 받고 담기", chain:["erpRefetch","tab96","tab98"],
+         after:"이제 아래 «출고등록» 칸의 [출고 준비] 를 누르십시오."},   /* ★v3.26 */
+        {a:"erpRefetch", t:"\u2460 ERP 자료 다시 받기", w:true, sub:true},
+        {a:"tab96", t:"\u2461 주문현황 다시 담기", w:true, sub:true},
+        {a:"tab98", t:"\u2462 출고현황 다시 담기", w:true, sub:true}],
    warn:"2026-09-21 에 이것을 건너뛰어 「주문 못찾음 108」이 났습니다. 그리고 <b>발주\u00B7입고까지 다 올리신 뒤에 한 번 더</b> 해 두시면, 다음 날 아침 미리보기에 오늘 올린 것이 또 나오지 않습니다.<br><b>\u2605\u2460 을 누른 뒤 「json」 같은 에러가 뜨거나 「기다리는 중」에서 멈춰 보여도 다시 누르지 마십시오.</b> 공유PC 는 대개 <b>그대로 일을 끝냅니다</b> (2026-09-24 실물). <b>3분 기다렸다가 F5</b> 를 누르고 \u2461 부터 이어 가십시오. 그래도 \u2461 \u2462 가 잠겨 있으면 대표님께 알립니다."},
 
   {id:"p08", t:"16:25", who:"s", person:true, title:"출고등록 파일을 만들어 올린다",
    where:"\uD83D\uDCCD G드라이브 \u25B8 ERP출고등록업로드   (④ 가 끝나면 결과의 [\u25B6 파일 열기] 로 바로 열립니다)",
-   d:"<b>①  ②  ③  ④ 차례로</b> 누르십시오.<br><br><b>② 의 담김이 0이면 ④ 는 회색으로 잠깁니다.</b> 고장이 아닙니다 \u2014 <b>「만들 것이 없다」</b>는 뜻입니다. 그냥 다음 걸음으로 가십시오.<br><b>③ 은 담김이 0이어도 «언제나» 누르십시오.</b> ③ 이 하는 일은 <b>어제 올린 파일을 치우는 것</b>이라 ② 와 상관이 없습니다.<br>④ 가 끝나면 결과에 뜨는 <b>[▶ 파일 열기]</b> 로 파일을 여십시오. <b>G드라이브 폴더를 뒤지지 마십시오.</b>",
-   ops:[{a:"shipSync",t:"\u2460 되받기",w:true},
-        {a:"shipPreview",t:"\u2461 미리보기",w:false,gate:true},
-        {a:"shipArchive",t:"\u2462 올린 파일 보관",w:true},
+   d:"<b>\u2605[출고 준비] \u2192 [④ 파일 만들기]</b> 두 번이면 됩니다. [출고 준비] 가 되받기 \u2192 미리보기 \u2192 올린 파일 보관을 차례로 합니다.<br>아래 «하나씩 누르기»는 <b>막혔을 때만</b> 씁니다.<br><br><b>② 의 담김이 0이면 ④ 는 회색으로 잠깁니다.</b> 고장이 아닙니다 \u2014 <b>「만들 것이 없다」</b>는 뜻입니다. 그냥 다음 걸음으로 가십시오.<br><b>③ 은 담김이 0이어도 «언제나» 누르십시오.</b> ③ 이 하는 일은 <b>어제 올린 파일을 치우는 것</b>이라 ② 와 상관이 없습니다.<br>④ 가 끝나면 결과에 뜨는 <b>[▶ 파일 열기]</b> 로 파일을 여십시오. <b>G드라이브 폴더를 뒤지지 마십시오.</b>",
+   ops:[{a:"chainShip", t:"출고 준비", chain:["shipSync","shipPreview","shipArchive"],
+         after:"미리보기 담김이 1 이상이면 이제 [④ 파일 만들기] 를 누르십시오. 0 이면 이 칸은 끝입니다."},   /* ★v3.26 */
+        {a:"shipSync",t:"\u2460 되받기",w:true,sub:true},
+        {a:"shipPreview",t:"\u2461 미리보기",w:false,gate:true,sub:true},
+        {a:"shipArchive",t:"\u2462 올린 파일 보관",w:true,sub:true},
         {a:"shipGenerate",t:"\u2463 파일 만들기",w:true,needs:"shipPreview"}],
    warn:"④ 뒤에 <b>G드라이브 \u25B8 ERP출고등록업로드</b> 에 <b>둘</b>이 있으면 무언가 안 옮겨진 것입니다. <b>하나면 정상</b>입니다 \u2014 오늘 만든 것은 내일 옮겨집니다.<br>2026-09-22 에 어제 파일을 오늘 것으로 <b>착각해 다시 올릴 뻔했습니다.</b>"},
 
   {id:"p09", t:"16:35", who:"s", person:true, title:"발주등록 · 입고등록 파일을 만들어 올린다",
    where:"\uD83D\uDCCD G드라이브 \u25B8 ERP업로드   (③ · ⑤ 가 끝나면 결과의 [\u25B6 파일 열기] 로 바로 열립니다)",
-   d:"<b>① → ② → ③ → ④ → ⑤ 차례로</b> 누르십시오.<br><br><b>① 은 언제나 먼저 누릅니다.</b> 지난 파일을 치워 내야 <b>G드라이브 \u25B8 ERP업로드</b> 에 남은 것이 <b>«오늘 것»임이 분명해집니다.</b><br><b>② · ④ 에서 담김이 0이면 그쪽 파일 만들기는 회색으로 잠깁니다.</b> 고장이 아니라 <b>「만들 것이 없다」</b>는 뜻입니다.<br>파일은 결과에 뜨는 <b>[▶ 파일 열기]</b> 로 여십시오. <b>G드라이브 폴더를 뒤지지 마십시오.</b>",
-   ops:[{a:"erpArchive",t:"\u2460 지난 파일 치우기",w:true},
-        {a:"poPreview",t:"\u2461 발주 미리보기",w:false,gate:true},
+   d:"<b>\u2605[발주 준비] \u2192 [③ 발주 파일 만들기] \u2192 [④ 입고 미리보기] \u2192 [⑤ 입고 파일 만들기]</b> 차례입니다. [발주 준비] 가 지난 파일 치우기 \u2192 발주 미리보기를 한 번에 합니다.<br><br><b>① 은 언제나 먼저 누릅니다.</b> 지난 파일을 치워 내야 <b>G드라이브 \u25B8 ERP업로드</b> 에 남은 것이 <b>«오늘 것»임이 분명해집니다.</b><br><b>② · ④ 에서 담김이 0이면 그쪽 파일 만들기는 회색으로 잠깁니다.</b> 고장이 아니라 <b>「만들 것이 없다」</b>는 뜻입니다.<br>파일은 결과에 뜨는 <b>[▶ 파일 열기]</b> 로 여십시오. <b>G드라이브 폴더를 뒤지지 마십시오.</b>",
+   ops:[{a:"chainPo", t:"발주 준비", chain:["erpArchive","poPreview"],
+         after:"발주 미리보기 담김이 1 이상이면 [③ 발주 파일 만들기], 0 이면 건너뛰고 [④ 입고 미리보기] 로 가십시오."},   /* ★v3.26 */
+        {a:"erpArchive",t:"\u2460 지난 파일 치우기",w:true,sub:true},
+        {a:"poPreview",t:"\u2461 발주 미리보기",w:false,gate:true,sub:true},
         {a:"poGenerate",t:"\u2462 발주 파일 만들기",w:true,needs:"poPreview"},
         {a:"rcvPreview",t:"\u2463 입고 미리보기",w:false,gate:true,ym:true},
         {a:"rcvGenerate",t:"\u2464 입고 파일 만들기",w:true,needs:"rcvPreview"}],
@@ -742,7 +759,7 @@ function gateWhy(a){
   return "";
 }
 function applyGate(b, o){
-  const why = gateWhy(o.a);
+  const why = whyOf(o);                                /* ★v3.26 — 묶음 버튼도 한 곳에서 */
   b.disabled = needsOff(o) || !!why;
   if(why) b.title = "잠김 — " + why;
 }
@@ -756,7 +773,7 @@ function erpApplyGate(){
   });
 }
 function erpBox(cls, 제목, 글){
-  if(!ERP_STEP) return;
+  if(!ERP_STEP || erpBoxHold) return;            /* ★v3.26 */
   setOut(ERP_STEP, cls, '<span class="big">\u2460 ERP 자료 다시 받기 — '+esc(제목)+"</span>"+esc(글)+"\n("+nowHM()+")");
 }
 async function erpPoll(보여줄까, 바쁠때만){
@@ -914,23 +931,32 @@ function render(){
       const g=document.createElement("div"); g.className="ops";
       const k=document.createElement("p"); k.className="ok"; k.textContent="여기서 누릅니다"; g.appendChild(k);
       const bs=document.createElement("div"); bs.className="opsbtns";
+      let subBox=null;                                 /* ★v3.26 — 옛 버튼은 «막혔을 때» 안에 */
+      if(s.ops.some(o=>o.sub)){
+        subBox=document.createElement("details"); subBox.className="subops";
+        const sm=document.createElement("summary"); sm.textContent="막혔을 때 \u2014 하나씩 누르기";
+        subBox.appendChild(sm);
+        const sb=document.createElement("div"); sb.className="opsbtns"; subBox.appendChild(sb);
+      }
       s.ops.forEach(o=>{
+        const host = o.sub ? subBox.lastChild : bs;   /* ★v3.26 */
         if(o.ym){ const lb=document.createElement("span");
           lb.style.cssText="font-size:.8rem;color:var(--ink-3)"; lb.textContent="대상월";
-          bs.appendChild(lb);
+          host.appendChild(lb);
           const inp=document.createElement("input"); inp.type="text"; inp.id="ym-"+s.id;
           inp.placeholder=new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit"}).format(new Date()).slice(0,7);  /* ★v3.20 이번 달 (536) */
-          inp.title="비워 두면 이번 달로 봅니다"; bs.appendChild(inp);
-          const hn=document.createElement("span"); hn.style.cssText="font-size:.75rem;color:var(--ink-3)"; hn.textContent="(비워 두면 이번 달)"; bs.appendChild(hn); }
+          inp.title="비워 두면 이번 달로 봅니다"; host.appendChild(inp);
+          const hn=document.createElement("span"); hn.style.cssText="font-size:.75rem;color:var(--ink-3)"; hn.textContent="(비워 두면 이번 달)"; host.appendChild(hn); }
         const b=document.createElement("button");
-        b.className="op"+(o.w?"":" read"); b.type="button"; b.id="b-"+o.a;
+        b.className="op"+(o.w?"":" read")+(o.chain?" chain":""); b.type="button"; b.id="b-"+o.a;
         b.dataset.act=o.a; b.dataset.step=s.id; b.textContent=o.t;
         opPaint(b,o);                              /* ★v3.8 */
         applyGate(b,o);                            /* ★v3.23 — needs · ERP · 도는 중 을 한 곳에서 (60초 다시 그리기도 잠금을 지킨다) */
-        b.addEventListener("click",()=>runOp(s.id,o));
-        bs.appendChild(b);
+        b.addEventListener("click",()=>(o.chain ? runChain(s.id,o) : runOp(s.id,o)));   /* ★v3.26 */
+        host.appendChild(b);
       });
       g.appendChild(bs);
+      if(subBox) g.appendChild(subBox);                /* ★v3.26 */
       const out=document.createElement("div"); out.className="out"; out.id="out-"+s.id;
       const lo=lastOut[s.id];                       /* v2.1 ⑬ */
       if(lo){ out.className="out "+lo.cls; out.innerHTML=lo.html; }
@@ -1048,12 +1074,122 @@ function top_(m,c){ const el=document.getElementById("topOut"); el.className="ou
    ★누른 자국은 opDone 에 있다. 서버 st.ops 가 주면 ★PC 가 달라도 · 새로고침해도 남는다
    ⚠️★결과글을 지우지 않는다 — 이 함수는 «버튼»만 건드린다 (B114) */
 function opPaint(b, o){
+  if(o.chain){ chainPaint(b,o); return; }          /* ★v3.26 */
   const hit = opDone[o.a];
   const base = "op" + (o.w ? "" : " read");
   b.className = base + (hit ? " pressed" : "");
   b.textContent = (hit ? "✓ " : "") + o.t;
   if(hit) b.title = hit + " 에 누르셨습니다" + (o.w ? " — ★다시 누르지 마십시오" : " — 다시 눌러도 됩니다");
   else    b.removeAttribute("title");
+}
+
+/* ═══ ⑲ ★v3.26 — «읽는 버튼» 묶음 (대표님 2026-11-17) ═══
+   ★서버를 안 고친다 — 화면이 옛 버튼을 «차례로» 부를 뿐이다. 서버는 버튼마다 89탭·녹색을 그대로 남긴다
+   ★만드는 버튼은 묶지 않는다 (원칙 ㉜ · 두 번 누르면 _2 파일)
+   ★ERP 받기는 «누른 뒤의 DONE» 을 볼 때까지 기다린다 (v3.23 erpFresh 그대로)
+   ★중간에 창을 닫았으면 — 다시 누르면 «이미 요청한 받기»를 기다리는 데서 이어 간다 (20분 안) */
+function opOf(a){ for(const st of STEPS){ const o=(st.ops||[]).find(x=>x.a===a); if(o) return o; } return null; }
+function opName(a){ const o=opOf(a); return o ? o.t.replace(/^[①-⑤]\s*/,"") : a; }
+function erpResumable(){
+  const p = hm2m(opDone.erpRefetch);
+  return p >= 0 && nowMin() - p < ERP_GIVEUP_MIN && hm2m(opDone.tab98) < p;
+}
+function whyOf(o){
+  if(!o.chain) return gateWhy(o.a);
+  if(opRunning) return "다른 버튼이 돌고 있습니다 — 끝나면 저절로 풀립니다";
+  if(o.a==="chainErp") return "";                   /* 받기는 언제나 누를 수 있다 (도는 중이면 이어 간다) */
+  return gateWhy(o.chain[0]);
+}
+function chainPaint(b, o){
+  const first = hm2m(opDone[o.chain[0]]), last = opDone[o.chain[o.chain.length-1]];
+  const hit = (first >= 0 && last && hm2m(last) >= first) ? last : "";
+  b.className = "op read chain" + (hit ? " pressed" : "");
+  b.textContent = (hit ? "✓ " : "▶ ") + o.t;
+  if(hit) b.title = hit + " 에 끝났습니다 — 다시 눌러도 됩니다"; else b.removeAttribute("title");
+}
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function erpAfterPress(r){                       /* 감시 줄이 «오늘 · 누른 뒤» 것인가 (DONE 이 아니어도) */
+  const p = hm2m(opDone.erpRefetch); if(p < 0) return false;
+  const m = String((r && r["감시"]) || "").match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/);
+  return !!m && m[1] === todayYMD() && ((+m[2])*60 + (+m[3])) >= p;
+}
+let erpBoxHold = false;                          /* 묶음이 멈췄으면 그 이유를 erpBox 가 덮지 않게 */
+async function erpWaitDone(){                      /* {ok, msg} — 최대 15분 */
+  for(let i=0;i<90;i++){
+    await sleep(10000);
+    let r; try{ r = await call("erpStatus"); }catch(e){ continue; }
+    const fresh = erpFresh(r);
+    if(r.상태==="끝남" && fresh) return {ok:true, msg:String(r.한줄||"").split("\n").slice(0,2).join(" · ")};
+    if(r.상태==="멈췄음" && erpAfterPress(r)) return {ok:false, msg:"공유PC 가 멈췄습니다 — "+String(r.한줄||"")};
+    if(r.상태==="오래됨") return {ok:false, msg:String(r.한줄||"")};
+  }
+  return {ok:false, msg:"15분이 지나도 공유PC 가 끝내지 않았습니다. 공유PC 의 ERP_watch 가 살아 있는지 봐야 합니다."};
+}
+async function runChain(stepId, o){
+  if(opRunning) return;
+  const why0 = whyOf(o);
+  if(why0){ setOut(stepId,"info",'<span class="big">잠겨 있습니다</span>'+esc(why0)+"\n("+nowHM()+")"); return; }
+  const resume = (o.a==="chainErp") && erpResumable();
+  if(o.a==="chainErp") erpBoxHold = false;
+  const 차례 = o.chain.map(opName).join(" → ");
+  if(!confirm("["+o.t+"] 을(를) 실행합니다.\n"+차례+"\n\n화면이 차례로 끝까지 합니다. 끝날 때까지 창을 닫지 마십시오.\n계속할까요?")) return;
+  opRunning = true;
+  if(erpTimer){ clearInterval(erpTimer); erpTimer=null; }
+  document.querySelectorAll("button[data-act]").forEach(b=>b.disabled=true);
+  const lines=[], t0=Date.now(); let cur="";
+  const draw=()=>{
+    const 초=Math.round((Date.now()-t0)/1000);
+    setOut(stepId,"busy",'<span class="big">'+esc(o.t)+' — 돌고 있습니다… ★'+초+'초</span>'
+      + esc(lines.join("\n")) + (cur ? (lines.length?"\n":"")+"▶ "+esc(cur) : "")
+      + "\n★창을 닫지 마십시오. 도는 동안 다른 버튼은 잠깁니다 — 고장이 아닙니다");
+  };
+  draw();
+  const tick=setInterval(draw,1000);
+  let ok=true, endMsg="";
+  try{
+    for(const a of o.chain){
+      const name=opName(a), sub=opOf(a)||{};
+      if(a==="erpRefetch" && resume){
+        lines.push("✓ "+name+" — "+opDone.erpRefetch+" 에 이미 요청했습니다. 그 받기를 기다려 이어 갑니다");
+      }else{
+        cur=name+" …"; draw();
+        const r=await call(a,{});
+        const stop=pick(r,["중단사유"]);
+        if(stop){ lines.push("⛔ "+name+" — "+stop); ok=false; endMsg=name+" 에서 멈췄습니다"; break; }
+        const cnt=pick(r,COUNT_KEYS);
+        if(!sub.w) lastCount[a]=(cnt===null?-1:Number(cnt));
+        opDone[a]=nowHM();
+        let line="✅ "+name+(cnt!==null ? " — 담김 "+cnt+" 건" : " — 끝났습니다")+" ("+nowHM()+")";
+        if(cnt!==null && Number(cnt)===0) line += ZERO_OK[a] ? "  "+ZERO_OK[a] : "  ⚠️ 담김 0 — 만들 파일이 없습니다";
+        const summ=pick(r,["요약"]);
+        if(summ && (a==="tab96"||a==="tab98")) line += "\n   "+String(summ).split("\n")[0].slice(0,140);
+        const miss=missLines(r,pick(r,BLOCK_KEYS));
+        if(miss) line += "\n   안 담긴 것 —\n   "+String(miss).split("\n").join("\n   ");
+        lines.push(line);
+      }
+      if(a==="erpRefetch"){
+        erpReady=false;
+        cur="공유PC 가 아마란스에서 받는 중 (보통 2~3분) …"; draw();
+        const w=await erpWaitDone();
+        if(!w.ok){ lines.push("⛔ "+w.msg); ok=false; endMsg="ERP 자료 받기가 끝나지 않았습니다"; erpBoxHold = true; break; }
+        erpReady=true;
+        lines.push("✅ 공유PC 받기 끝 — "+w.msg+" ("+nowHM()+")");
+      }
+      cur="";
+    }
+  }catch(e){ lines.push("⛔ "+e.message); ok=false; endMsg="오류가 났습니다"; }
+  finally{
+    clearInterval(tick);
+    setOut(stepId, ok?"ok":"bad",
+      '<span class="big">'+esc(o.t)+(ok ? " — ✅ 다 끝났습니다" : " — ⛔ "+esc(endMsg))+"</span>"
+      + esc(lines.join("\n"))
+      + (ok ? (o.after ? "\n\n→ "+esc(o.after) : "")
+            : "\n\n→ ★같은 버튼을 바로 또 누르지 마십시오. 아래 «막혔을 때 — 하나씩 누르기» 에서 ✅ 가 없는 것부터 누르십시오. 모르면 대표님께.")
+      + "\n("+nowHM()+")");
+    opRunning=false;
+    erpApplyGate();
+    load();
+  }
 }
 
 /* ═══ 6. 버튼 ═══ */
@@ -1101,7 +1237,7 @@ async function runOp(stepId, o){
       html += "\n("+nowHM()+")";
       setOut(stepId, cls, html);
       opDone[o.a]=nowHM();                       /* ★v3.8 — 눌렀다는 자국 */
-      if(o.a==="erpRefetch") erpWatchStart();   /* ★v3.2 — 이제부터 공유PC 를 지켜본다 */
+      if(o.a==="erpRefetch"){ erpBoxHold = false; erpWatchStart(); }   /* ★v3.2 — 이제부터 공유PC 를 지켜본다 */
       if(o.a==="invStart") setTimeout(invPoll, 2000);   /* ★v3.14 — 송장회신 진행을 저절로 본다 */
     }
   }catch(e){
